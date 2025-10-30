@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PBC Monitor Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <!--CONFIG_PLACEHOLDER-->
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-header__top">
+        <h1>PBC Monitor Dashboard</h1>
+        <nav class="app-header__nav" aria-label="Primary">
+          <a class="button-link button-link--current" href="index.html">Dashboard</a>
+          <a class="button-link" href="entries.html">Entries</a>
+          <a class="button-link" href="api-explorer.html">API Explorer</a>
+        </nav>
+      </div>
+      <p>
+        Last updated <span data-generated-at>—</span>. Auto refresh every
+        <span data-auto-refresh>—</span> second(s).
+      </p>
+    </header>
+    <main>
+      <section class="summary" id="summary">
+        <div class="summary__cards" id="summary-cards"></div>
+        <button
+          type="button"
+          class="summary__toggle"
+          id="task-filter-toggle"
+          aria-expanded="false"
+          aria-controls="task-filters"
+        >
+          <span class="summary__toggle-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" role="presentation" focusable="false">
+              <path
+                d="M4 5h16l-5.5 7v6l-5 3v-9z"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              ></path>
+            </svg>
+            <span class="summary__toggle-chevron">⌄</span>
+          </span>
+          <span class="sr-only" id="task-filter-toggle-text">展开任务筛选</span>
+        </button>
+      </section>
+      <section class="task-filters hidden" id="task-filters">
+        <div class="task-filters__header">
+          <h2>任务筛选</h2>
+          <p>按状态或关键字快速定位需要关注的任务。</p>
+        </div>
+        <form id="task-filter-form" class="filters-form" autocomplete="off">
+          <label class="filters-form__field filters-form__field--grow" for="task-filter-query">
+            关键字
+            <input
+              type="search"
+              id="task-filter-query"
+              name="query"
+              placeholder="按任务名称、标识或起始链接筛选"
+            />
+          </label>
+          <label class="filters-form__field" for="task-filter-status">
+            状态
+            <select id="task-filter-status" name="status">
+              <option value="all">全部状态</option>
+              <option value="ok">正常</option>
+              <option value="attention">关注</option>
+              <option value="waiting">等待</option>
+              <option value="stale">过期</option>
+            </select>
+          </label>
+          <button type="reset" class="filters-form__reset">重置</button>
+        </form>
+        <div class="filters-form__status" id="task-filter-status-text"></div>
+      </section>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Pages</th>
+              <th>Downloads</th>
+              <th>Entries (unique)</th>
+              <th>Extract</th>
+              <th>Extract (unique)</th>
+            </tr>
+          </thead>
+          <tbody id="tasks-body">
+            <tr>
+              <td colspan="6" class="empty">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="message hidden" id="status-message"></div>
+    </main>
+    <footer>
+      PBC Monitor dashboard &middot; Generated at
+      <span data-generated-at>—</span>
+    </footer>
+    <script src="main.js" defer></script>
+  </body>
+</html>

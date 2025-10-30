@@ -1,0 +1,44 @@
+{
+  "artifact_dir": "./files",
+  "delay": 5,
+  "jitter": 3,
+  "timeout": 30,
+  "tasks": [
+    {
+      "name": "zhengwugongkai_chinese_regulations",
+      "chinese_name": "政务公开-规章",
+      "start_url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4406348/index.html",
+      "parser": "pbc_regulations.crawler.parser"
+    },
+    {
+      "name": "zhengwugongkai_administrative_normative_documents",
+      "chinese_name": "政务公开-行政规范性文件",
+      "start_url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/index.html",
+      "parser": "pbc_regulations.crawler.parser_policy"
+    },
+    {
+      "name": "tiaofasi_national_law",
+      "chinese_name": "条法司-国家法律",
+      "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/index.html",
+      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+    },
+    {
+      "name": "tiaofasi_administrative_regulation",
+      "chinese_name": "条法司-行政法规",
+      "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/index.html",
+      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+    },
+    {
+      "name": "tiaofasi_departmental_rule",
+      "chinese_name": "条法司-部门规章",
+      "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/index.html",
+      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+    },
+    {
+      "name": "tiaofasi_normative_document",
+      "chinese_name": "条法司-规范性文件",
+      "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/index.html",
+      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+    }
+  ]
+}

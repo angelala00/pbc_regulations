@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Task Entry Details</title>
+    <link rel="stylesheet" href="style.css" />
+    <!--CONFIG_PLACEHOLDER-->
+  </head>
+  <body class="entries-page">
+    <header class="app-header entries-header">
+      <div class="app-header__top entries-header__top">
+        <div class="entries-header__title-group">
+          <h1 class="entries-header__title" id="entries-title">Entry details</h1>
+        </div>
+        <nav class="app-header__nav" aria-label="Primary">
+          <a class="button-link" href="index.html">Dashboard</a>
+          <a class="button-link button-link--current" href="entries.html">Entries</a>
+          <a class="button-link" href="api-explorer.html">API Explorer</a>
+        </nav>
+      </div>
+      <p class="entries-header__meta">Generated at <span data-generated-at>—</span></p>
+    </header>
+    <main class="entries-main">
+      <div class="entries-container">
+        <section class="entries-card">
+          <div class="entries-card__meta" id="entries-meta"></div>
+          <section class="search-panel entries-search" id="search-panel">
+            <div class="search-panel__header">
+              <h2>Policy search</h2>
+              <p>Search captured tasks for policy entries and quickly locate key documents.</p>
+            </div>
+            <form id="search-form" class="search-form" autocomplete="off">
+              <label class="field field--grow" for="search-query">
+                Keywords
+                <input
+                  type="text"
+                  id="search-query"
+                  name="query"
+                  placeholder="Enter keywords, e.g. financial regulation"
+                  required
+                />
+              </label>
+              <label class="field" for="search-topk">
+                Results
+                <input
+                  type="number"
+                  id="search-topk"
+                  name="topk"
+                  min="1"
+                  max="50"
+                  value="5"
+                />
+              </label>
+              <label class="field field--checkbox" for="search-include-documents">
+                <input
+                  type="checkbox"
+                  id="search-include-documents"
+                  name="include_documents"
+                  checked
+                />
+                <span>Include document details</span>
+              </label>
+              <button type="submit" id="search-submit">Search</button>
+            </form>
+            <div class="message hidden" id="search-status"></div>
+            <ol id="search-results" class="search-results">
+              <li class="empty">Enter keywords to start searching.</li>
+            </ol>
+          </section>
+          <section class="entries-filters hidden" id="entries-filters" aria-label="Entry filters">
+            <header class="entries-filters__header">
+              <h2>Filters</h2>
+              <p>Use tags to quickly filter tasks or highlight specific entry types.</p>
+            </header>
+            <div class="entries-filters__groups">
+              <div class="entries-filters__group" id="entries-filter-slugs" aria-live="polite">
+                <span class="entries-filters__label">Task identifier</span>
+                <div class="entries-filters__tags" id="entries-slug-tags"></div>
+                <p class="entries-filters__hint">Select multiple tags to refine the view. Leaving all tags unselected shows every task.</p>
+              </div>
+              <div class="entries-filters__group">
+                <span class="entries-filters__label">Entry type</span>
+                <div class="entries-filters__tags">
+                  <button type="button" class="entries-filter-tag" data-filter="abolish" id="entries-filter-abolish">
+                    Include entries that mention “abolished”
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <div class="message hidden" id="entries-message"></div>
+          <div class="entries-body" id="entries-body">
+            <p class="empty">Loading entries…</p>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer class="entries-footer">
+      <a href="index.html" class="entries-footer__link">Back to dashboard overview</a>
+    </footer>
+    <script src="entries.js" defer></script>
+  </body>
+</html>

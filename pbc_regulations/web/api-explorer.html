@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>API Explorer</title>
+    <link rel="stylesheet" href="style.css" />
+    <!--CONFIG_PLACEHOLDER-->
+  </head>
+  <body class="api-page">
+    <header class="app-header api-header">
+      <div class="app-header__top">
+        <h1>API Explorer</h1>
+        <nav class="app-header__nav" aria-label="Primary">
+          <a class="button-link" href="index.html">Dashboard</a>
+          <a class="button-link" href="entries.html">Entries</a>
+          <a class="button-link button-link--current" href="api-explorer.html"
+            >API Explorer</a
+          >
+        </nav>
+      </div>
+      <p class="api-header__meta">
+        Use the explorer to send test requests to
+        <span data-api-base>the current origin</span>.
+        <span class="api-header__note hidden" id="api-static-note"
+          >API calls are disabled in static snapshot mode.</span
+        >
+      </p>
+    </header>
+    <main class="api-main">
+      <div class="api-grid">
+        <aside class="api-panel api-panel--list">
+          <div class="api-panel__header">
+            <h2>Available endpoints</h2>
+            <p>Select an endpoint to pre-fill the request builder.</p>
+          </div>
+          <ul class="api-endpoint-list" id="api-endpoint-list"></ul>
+        </aside>
+        <section class="api-panel api-panel--console">
+          <div class="api-panel__header">
+            <h2 id="api-endpoint-title">Request builder</h2>
+            <p id="api-endpoint-description">
+              Choose an endpoint or enter a path to send a request.
+            </p>
+            <p class="api-endpoint__hint hidden" id="api-endpoint-hint"></p>
+          </div>
+          <form id="api-request-form" class="api-form" autocomplete="off">
+            <div class="api-form__field">
+              <label for="api-request-method">HTTP method</label>
+              <select id="api-request-method" name="method">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="PATCH">PATCH</option>
+                <option value="DELETE">DELETE</option>
+                <option value="HEAD">HEAD</option>
+              </select>
+            </div>
+            <div class="api-form__field api-form__field--grow">
+              <label for="api-request-path">Endpoint path</label>
+              <input
+                type="text"
+                id="api-request-path"
+                name="path"
+                placeholder="/api/tasks"
+                required
+              />
+            </div>
+            <div class="api-form__field">
+              <label for="api-request-query">Query string</label>
+              <input
+                type="text"
+                id="api-request-query"
+                name="query"
+                placeholder="slugs=task-a&slugs=task-b"
+              />
+            </div>
+            <div class="api-form__field api-form__field--grow">
+              <label for="api-request-headers">Headers (JSON)</label>
+              <textarea
+                id="api-request-headers"
+                name="headers"
+                placeholder='{"Authorization": "Bearer ..."}'
+                rows="3"
+              ></textarea>
+            </div>
+            <div class="api-form__field api-form__field--grow">
+              <label for="api-request-body">Request body</label>
+              <textarea
+                id="api-request-body"
+                name="body"
+                placeholder='{"example": true}'
+                rows="6"
+              ></textarea>
+            </div>
+            <div class="api-form__actions">
+              <button type="submit" class="button button--primary" id="api-send-button">
+                Send request
+              </button>
+              <button
+                type="button"
+                class="button button--ghost"
+                id="api-request-reset"
+              >
+                Reset
+              </button>
+            </div>
+            <p class="api-form__request-url">
+              Request URL:
+              <code id="api-request-url">/api/tasks</code>
+            </p>
+          </form>
+          <section class="api-response" aria-live="polite">
+            <div class="api-response__status" id="api-response-status">
+              Responses will appear here after you send a request.
+            </div>
+            <div class="api-response__meta" id="api-response-meta"></div>
+            <div class="api-response__section">
+              <h3>Body</h3>
+              <pre id="api-response-body" class="api-response__body">—</pre>
+            </div>
+            <div class="api-response__section">
+              <h3>Headers</h3>
+              <pre id="api-response-headers" class="api-response__body">—</pre>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+    <footer class="api-footer">
+      API Explorer · Base endpoint:
+      <span data-api-base>the current origin</span>
+    </footer>
+    <script src="api-explorer.js" defer></script>
+  </body>
+</html>

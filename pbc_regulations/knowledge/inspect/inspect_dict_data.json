@@ -1,0 +1,20 @@
+{
+  "数字人民币监管": [
+    {
+      "id": "kb-demo-1",
+      "title": "数字人民币监管政策概览",
+      "summary": "围绕数字人民币监管政策的示例回答。",
+      "source": "mock-dataset",
+      "url": "https://example.org/knowledge/cdbc-overview"
+    }
+  ],
+  "合规": [
+    {
+      "id": "kb-demo-2",
+      "title": "合规检查要点",
+      "summary": "用于演示的合规知识条目。",
+      "source": "mock-dataset",
+      "url": "https://example.org/knowledge/compliance-checklist"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+requests
+beautifulsoup4
+pdfkit
+fastapi
+uvicorn
+pdfminer.six
+pypdfium2
+Pillow
+openpyxl
