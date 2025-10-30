@@ -1514,8 +1514,6 @@ def process_state_data(
         document_url = f"local-text://{filename}"
         wrote_text = False
 
-        meta_path = text_path.with_suffix(text_path.suffix + ".meta.json")
-
         if extraction.status == "success":
             text_content = extraction.text if extraction.text is not None else ""
             text_output = _build_text_content(text_content)
@@ -1527,34 +1525,6 @@ def process_state_data(
                     text_path.unlink()
                 except OSError:
                     pass
-
-        if wrote_text:
-            if meta_path.exists():
-                try:
-                    meta_path.unlink()
-                except OSError:
-                    pass
-        else:
-            failure_summary: Dict[str, Any] = {
-                "status": extraction.status,
-            }
-            serial_value = entry.get("serial")
-            if isinstance(serial_value, int):
-                failure_summary["serial"] = serial_value
-            title_value = entry.get("title")
-            if isinstance(title_value, str) and title_value:
-                failure_summary["title"] = title_value
-            if extraction.selected and extraction.selected.normalized_type:
-                failure_summary["source_type"] = extraction.selected.normalized_type
-            if extraction.selected and extraction.selected.error:
-                failure_summary["error"] = extraction.selected.error
-            try:
-                meta_path.write_text(
-                    json.dumps(failure_summary, ensure_ascii=False, indent=2),
-                    encoding="utf-8",
-                )
-            except OSError:
-                pass
 
         documents = entry.setdefault("documents", []) if isinstance(entry.get("documents"), list) else []
         if documents is not entry.get("documents"):
