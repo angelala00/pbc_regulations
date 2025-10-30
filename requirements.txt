@@ -7,3 +7,5 @@ pdfminer.six
 pypdfium2
 Pillow
 openpyxl
+openai
+httpx
