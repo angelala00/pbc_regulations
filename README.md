@@ -33,7 +33,7 @@ http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第�
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第一条，第三条，\n《中华人民共和国票据法》第八条，第三款
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第四点，第五项
 
-
+curl -N -X POST http://localhost:8000/api/legal_search/ai_chat   -H 'Content-Type: application/json'   -d '{ "query": "违规发行预付卡违反了什么法律？" }'
 
 git remote add modelscope https://oauth2:ms-0d8f9c4e-4a3d-4058-86cf-62dd7ecdbda9@www.modelscope.cn/angelala00/icrawler.git
 git push modelscope HEAD:github-master
