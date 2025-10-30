@@ -7,9 +7,11 @@ if __package__ in {None, ""}:
     sys.path.append(str(Path(__file__).resolve().parents[3]))
     from pbc_regulations.agents.legal_search.gpts_regulation import gpts_id  # type: ignore
     from pbc_regulations.agents.legal_search.agent_chat_core import chat_with_react_as_function_call  # type: ignore
+    from pbc_regulations.settings import LEGAL_SEARCH_MODEL_NAME  # type: ignore
 else:
     from .gpts_regulation import gpts_id
     from .agent_chat_core import chat_with_react_as_function_call
+    from ...settings import LEGAL_SEARCH_MODEL_NAME
 
 SYSTEM_PROMPT = """
             你是一个法律法规问答助手，针对用户的提问精准的找到相当的法律法规条款，依据的是工具调用返回的信息。
@@ -51,8 +53,7 @@ SYSTEM_PROMPT = """
 # PROMPT = "9:30打卡算迟到么"
 PROMPT = "中华人民共和国反洗钱法第二条说了啥"
 PROMPT = "违规发行预付卡违反了什么法律"
-MODEL_NAME = "deepseek-r1-distill-qwen-32b"
-MODEL_NAME = "qwen3-30b-a3b-instruct-2507"
+MODEL_NAME = LEGAL_SEARCH_MODEL_NAME
 DEFAULT_CONVERSATION_ID = "123"
 
 
