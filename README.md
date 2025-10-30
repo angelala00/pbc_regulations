@@ -7,15 +7,16 @@ python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --build-page-structure
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --download-from-structure --verify-local
 
-### Unified portal (`python -m pbc_regulations`)
-```
-python -m pbc_regulations --host 0.0.0.0 --port 8000
-```
-### Policy text extractor (`python -m pbc_regulations.extractor`)
+### Policy text extractor
 python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
 python -m pbc_regulations.extractor.extract_policy_texts --task zhengwugongkai_chinese_regulations --stage-extract
 
-### Policy finder API (`python -m pbc_regulations.searcher.api_server`)
+### structure
+python -m pbc_regulations.structure
+
+
+### Unified portal
+python -m pbc_regulations --host 0.0.0.0 --port 8000
 
 
 
