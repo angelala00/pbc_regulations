@@ -3,6 +3,8 @@ import httpx
 import json
 import time
 import uuid
+
+from ...settings import LEGAL_SEARCH_API_KEY, LEGAL_SEARCH_BASE_URL
 from .tool_register import dispatch_tool
 
 
@@ -11,8 +13,8 @@ match_history = {}
 
 
 client = openai.AsyncOpenAI(
-    api_key="sk-7c21d72220454c3c93c957657ea51546",
-    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    api_key=LEGAL_SEARCH_API_KEY,
+    base_url=LEGAL_SEARCH_BASE_URL,
     http_client=httpx.AsyncClient(
         timeout=60.0,
         verify=False
