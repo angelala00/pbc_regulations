@@ -30,6 +30,7 @@ import xml.etree.ElementTree as ET
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
+from dotenv import load_dotenv
 
 try:  # Optional dependency used for PDF extraction.
     from pdfminer.high_level import extract_text as _default_pdf_extractor
@@ -277,7 +278,20 @@ class OCRConfig:
     max_pages: int
 
 
+_DOTENV_LOADED = False
+
+
+def _ensure_dotenv_loaded() -> None:
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+    env_path = Path(__file__).resolve().parent.parent / ".env"
+    load_dotenv(env_path, override=False)
+    _DOTENV_LOADED = True
+
+
 def _getenv(name: str, default: Optional[str] = None) -> Optional[str]:
+    _ensure_dotenv_loaded()
     value = os.getenv(name)
     if value is None:
         return default

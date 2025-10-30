@@ -169,29 +169,35 @@ def _prepare_policy_finder(
             task_configs.append(new_task)
             task_map[name] = new_task
 
-    resolved_paths: List[Path] = []
+    available_paths: List[Path] = []
     missing: List[str] = []
     for task in task_configs:
         override = overrides.get(task.name)
         resolved = _resolve_extract_path(task.name, override, task_map.get(task.name), config_dir)
-        resolved_paths.append(resolved)
-        if not resolved.exists():
+        if resolved.exists():
+            available_paths.append(resolved)
+        else:
             missing.append(str(resolved))
 
+    if not available_paths:
+        message = "Missing search extract file(s): " + ", ".join(missing) if missing else "No search extract files available"
+        return None, None, message
+
+    warning: Optional[str] = None
     if missing:
-        return None, None, "Missing search extract file(s): " + ", ".join(missing)
+        warning = "Missing search extract file(s): " + ", ".join(missing)
 
     try:
-        finder = PolicyFinder(*(str(path) for path in resolved_paths))
+        finder = PolicyFinder(*(str(path) for path in available_paths))
     except Exception as exc:  # pragma: no cover - defensive
         return None, None, f"Failed to load search index: {exc}"
 
     try:
-        clause_lookup = ClauseLookup(resolved_paths)
+        clause_lookup = ClauseLookup(available_paths)
     except Exception as exc:  # pragma: no cover - defensive
         return finder, None, f"Failed to load clause lookup: {exc}"
 
-    return finder, clause_lookup, None
+    return finder, clause_lookup, warning
 
 
 def _coerce_search_topk(
