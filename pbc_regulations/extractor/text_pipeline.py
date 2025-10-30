@@ -30,7 +30,7 @@ import xml.etree.ElementTree as ET
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 try:  # Optional dependency used for PDF extraction.
     from pdfminer.high_level import extract_text as _default_pdf_extractor
@@ -285,8 +285,22 @@ def _ensure_dotenv_loaded() -> None:
     global _DOTENV_LOADED
     if _DOTENV_LOADED:
         return
-    env_path = Path(__file__).resolve().parent.parent / ".env"
-    load_dotenv(env_path, override=False)
+    candidates = []
+    discovered = find_dotenv(usecwd=True)
+    if discovered:
+        candidates.append(Path(discovered))
+    package_env = Path(__file__).resolve().parent.parent / ".env"
+    if package_env.exists():
+        candidates.append(package_env)
+    seen = set()
+    for path in candidates:
+        resolved = Path(path).resolve()
+        if resolved in seen:
+            continue
+        load_dotenv(resolved, override=False)
+        seen.add(resolved)
+    if not seen:
+        load_dotenv(override=False)
     _DOTENV_LOADED = True
 
 
