@@ -118,7 +118,13 @@ def format_json(datasets: Mapping[str, DatasetTitles]) -> str:
     """Return dataset titles formatted as JSON grouped by predefined categories."""
 
     grouped = {
-        name: titles
+        name: [
+            {
+                "title": title,
+                "summary": "",
+            }
+            for title in titles
+        ]
         for name, titles in build_grouped_titles(datasets)
     }
     return json.dumps(grouped, ensure_ascii=False, indent=2)
