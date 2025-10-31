@@ -9,6 +9,10 @@ from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional,
 from openai import OpenAI
 
 from pbc_regulations import settings
+from pbc_regulations.config_paths import (
+    discover_project_root,
+    resolve_artifact_dir,
+)
 
 
 UNWANTED_STAGE_FIELDS = {
@@ -46,7 +50,7 @@ SUMMARY_SYSTEM_PROMPT = (
     "\n"
     "请严格遵守以下规则：\n"
     "\n"
-    "1. **只输出一句话摘要**，不超过 30 个中文字符。\n"
+    "1. **只输出一句话摘要**，150 - 200 个字。\n"
     "2. 摘要内容必须能体现该法律的**主要管理对象、主要调整范围或主要适用场景**。\n"
     "3. 不得加入原文以外的推测或背景信息，不得解释目的、背景或历史。\n"
     "4. 不得输出多句，不得换行，不得添加额外说明。\n"
@@ -57,6 +61,7 @@ SUMMARY_SYSTEM_PROMPT = (
     "\n"
     "摘要：XXXXXX。"
 )
+SUMMARY_SYSTEM_PROMPT = ("将下面文件总结成150-200字的摘要")
 
 
 MAX_SUMMARY_SOURCE_CHARS = 4000
@@ -88,8 +93,6 @@ def _ensure_stage_defaults(data: MutableMapping[str, Any]) -> None:
 
         if key not in data or not isinstance(data[key], str):
             data[key] = default
-
-from pbc_regulations.config_paths import discover_project_root
 
 
 @dataclass
@@ -269,48 +272,12 @@ def collect_dataset_entries(
     ]
 
 
-def _candidate_text_directories(
-    project_root: Path, datasets: Iterable[str]
-) -> List[Path]:
-    bases = [
-        project_root / "files" / "texts",
-        project_root / "files" / "text",
-        project_root / "files" / "structured" / "texts",
-        project_root / "files" / "structured",
-        project_root / "files",
-        project_root / "artifacts" / "texts",
-        project_root / "artifacts",
-    ]
-    dataset_list = [dataset for dataset in datasets if dataset]
-    for dataset in dataset_list:
-        bases.append(project_root / "files" / "texts" / dataset)
-        bases.append(project_root / "files" / dataset)
-        bases.append(project_root / "artifacts" / "texts" / dataset)
-        bases.append(project_root / "artifacts" / dataset)
-    seen: set[Path] = set()
-    ordered: List[Path] = []
-    for base in bases:
-        try:
-            resolved = base.resolve()
-        except OSError:
-            resolved = base
-        if resolved not in seen:
-            seen.add(resolved)
-            ordered.append(resolved)
-    return ordered
-
-
 def _load_entry_text(
-    project_root: Path,
+    artifact_dir: Path,
     entry: Mapping[str, Any],
-    filenames: Optional[Iterable[str]],
-    datasets: Optional[Iterable[str]],
-    explicit_paths: Optional[Iterable[str]],
 ) -> str:
     path_candidates: List[Path] = []
     path_values: List[str] = []
-    if explicit_paths:
-        path_values.extend(explicit_paths)
     text_path_value = entry.get("text_path")
     if isinstance(text_path_value, str) and text_path_value.strip():
         path_values.append(text_path_value.strip())
@@ -318,14 +285,7 @@ def _load_entry_text(
         candidate = Path(raw_path)
         path_candidates.append(candidate)
         if not candidate.is_absolute():
-            path_candidates.append((project_root / candidate).resolve())
-    directories = _candidate_text_directories(
-        project_root, datasets if datasets is not None else []
-    )
-    filenames_list = [name for name in filenames or [] if name]
-    for filename in filenames_list:
-        for directory in directories:
-            path_candidates.append(directory / filename)
+            path_candidates.append((artifact_dir / candidate).resolve())
     seen: set[Path] = set()
     for candidate in path_candidates:
         try:
@@ -374,12 +334,14 @@ def _summarize_text_with_llm(text: str) -> Optional[str]:
             api_key=settings.LEGAL_SEARCH_API_KEY,
             base_url=settings.LEGAL_SEARCH_BASE_URL,
         )
+        messages_tmp=[
+            {"role": "system", "content": SUMMARY_SYSTEM_PROMPT},
+            {"role": "user", "content": text},
+        ]
+        # print(f"====messages:{messages_tmp}")
         response = client.chat.completions.create(
             model=settings.LEGAL_SEARCH_MODEL_NAME,
-            messages=[
-                {"role": "system", "content": SUMMARY_SYSTEM_PROMPT},
-                {"role": "user", "content": text},
-            ],
+            messages=messages_tmp,
             temperature=0.0,
         )
     except Exception:
@@ -399,18 +361,16 @@ def _summarize_text_with_llm(text: str) -> Optional[str]:
     return None
 
 
-def _populate_missing_summaries(entries: Sequence[Dict[str, Any]], project_root: Path) -> None:
+def _populate_missing_summaries(entries: Sequence[Dict[str, Any]], artifact_dir: Path) -> None:
     for entry in entries:
-        filenames = entry.pop("_text_filenames", [])
-        datasets = entry.pop("_datasets", [])
-        explicit_paths = entry.pop("_text_paths", [])
         summary = entry.get("summary") if isinstance(entry.get("summary"), str) else ""
         if summary.strip():
             continue
-        text = _load_entry_text(project_root, entry, filenames, datasets, explicit_paths)
+        text = _load_entry_text(artifact_dir, entry)
         if not text:
             continue
         generated = _summarize_text_with_llm(text)
+        # print(f"====title:{entry.get('title')},generated:{generated}")
         if generated:
             entry["summary"] = generated
 
@@ -599,14 +559,15 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     project_root = discover_project_root()
+    artifact_dir = resolve_artifact_dir(project_root)
     extract_dir = (
         args.extract_dir
         if args.extract_dir is not None
-        else project_root / "files" / "extract_uniq"
+        else artifact_dir / "extract_uniq"
     )
     if not extract_dir.exists():
         raise SystemExit(f"Extract directory not found: {extract_dir}")
-    structured_dir = project_root / "files" / "structured"
+    structured_dir = artifact_dir / "structured"
     structured_dir.mkdir(parents=True, exist_ok=True)
 
     if args.stage_fill_info:
@@ -621,7 +582,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             default_output = structured_dir / f"stage_fill_info.{args.export}.json"
         else:
             entries = collect_dataset_entries(extract_dir, include_sources=True)
-            _populate_missing_summaries(entries, project_root)
+            _populate_missing_summaries(entries, artifact_dir)
             output_text = format_stage_fill_info(entries)
             default_output = default_stage_path
     else:
