@@ -6,3 +6,5 @@ __pycache__/
 *.DS_Store
 files/
 .env
+.venv/
+files.zip
