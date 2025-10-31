@@ -39,8 +39,11 @@ class EntryComparison:
     serial: Optional[int]
     title: str
     selected_path: Path
+    selected_key: Tuple[str, ...]
     original_first_path: Path
+    original_first_key: Tuple[str, ...]
     priority_first_path: Path
+    priority_first_key: Tuple[str, ...]
 
 
 def _load_json(path: Path) -> Dict[str, object]:
@@ -90,6 +93,33 @@ def _extract_selected_path(summary_entry: Dict[str, object], state_dir: Path) ->
         return _normalize_summary_path(source_path_value, state_dir)
 
     return None
+
+
+def _path_comparison_key(path: Path) -> Tuple[str, ...]:
+    """Build a tuple that tolerates mirrored directory structures.
+
+    The extractor may record absolute paths that point either to the ``downloads``
+    tree or to a ``files/downloads`` mirror, depending on which copy of the
+    dataset was used during extraction.  For comparison purposes we collapse both
+    representations to the portion starting at ``downloads`` so that logically
+    identical files are treated as equal even if they live in different mirror
+    roots.
+    """
+
+    resolved = path.resolve(strict=False)
+    parts = resolved.parts
+
+    for anchor in ("downloads", "attachments"):
+        if anchor in parts:
+            idx = parts.index(anchor)
+            return parts[idx:]
+
+    if "files" in parts:
+        idx = parts.index("files")
+        if idx + 1 < len(parts):
+            return parts[idx + 1 :]
+
+    return parts
 
 
 def _match_entry(
@@ -170,14 +200,23 @@ def compare_entries(state_path: Path, summary_path: Path) -> Tuple[List[EntryCom
         except OSError:
             normalized_selected = selected_path
 
+        selected_key = _path_comparison_key(normalized_selected)
+        original_first_path = original_first.path.resolve(strict=False)
+        original_first_key = _path_comparison_key(original_first_path)
+        priority_first_path = priority_first.path.resolve(strict=False)
+        priority_first_key = _path_comparison_key(priority_first_path)
+
         comparisons.append(
             EntryComparison(
                 entry_index=index,
                 serial=entry_obj.get("serial") if isinstance(entry_obj.get("serial"), int) else None,
                 title=str(entry_obj.get("title") or ""),
                 selected_path=normalized_selected,
-                original_first_path=original_first.path.resolve(strict=False),
-                priority_first_path=priority_first.path.resolve(strict=False),
+                selected_key=selected_key,
+                original_first_path=original_first_path,
+                original_first_key=original_first_key,
+                priority_first_path=priority_first_path,
+                priority_first_key=priority_first_key,
             )
         )
 
@@ -193,38 +232,64 @@ def main() -> None:
         action="store_true",
         help="List entries where the selected path differs from the original order first candidate",
     )
+    parser.add_argument(
+        "--only-diff",
+        action="store_true",
+        help="Only output entries where the selected path differs from the original-order first document",
+    )
 
     args = parser.parse_args()
 
     comparisons, warnings = compare_entries(args.state, args.summary)
 
     total = len(comparisons)
+    show_diff = args.show_diff or args.only_diff
+
     if total == 0:
         print("No comparable entries found.")
         for warning in warnings:
             print(f"WARNING: {warning}")
         return
 
-    matches = [item for item in comparisons if item.selected_path == item.original_first_path]
-    diff_entries = [item for item in comparisons if item.selected_path != item.original_first_path]
+    matches = [item for item in comparisons if item.selected_key == item.original_first_key]
+    diff_entries = [item for item in comparisons if item.selected_key != item.original_first_key]
 
-    priority_matches = [item for item in comparisons if item.selected_path == item.priority_first_path]
+    priority_matches = [item for item in comparisons if item.selected_key == item.priority_first_key]
 
-    print(f"Total comparable entries: {total}")
-    print(f"Selected path matches original-order first document: {len(matches)} ({len(matches) / total:.1%})")
-    print(f"Selected path matches priority-order first document: {len(priority_matches)} ({len(priority_matches) / total:.1%})")
-    print(f"Selected path differs from original-order first document: {len(diff_entries)}")
+    if not args.only_diff:
+        print(f"Total comparable entries: {total}")
+        print(
+            "Selected path matches original-order first document: "
+            f"{len(matches)} ({len(matches) / total:.1%})"
+        )
+        print(
+            "Selected path matches priority-order first document: "
+            f"{len(priority_matches)} ({len(priority_matches) / total:.1%})"
+        )
+        print(f"Selected path differs from original-order first document: {len(diff_entries)}")
+    elif not diff_entries:
+        print("No entries differ from the original-order first document.")
+    else:
+        print(
+            "Entries with differing first choices: "
+            f"{len(diff_entries)} out of {total} comparable entries"
+        )
 
     if warnings:
         print("\nWarnings:")
         for warning in warnings:
             print(f"  - {warning}")
 
-    if args.show_diff and diff_entries:
-        print("\nEntries with differing first choices:")
+    if show_diff and diff_entries:
+        if not args.only_diff:
+            print("\nEntries with differing first choices:")
         for item in diff_entries:
             serial_repr = f"serial={item.serial}" if item.serial is not None else "serial=<none>"
-            print("- Entry {index} ({serial}): {title}".format(index=item.entry_index, serial=serial_repr, title=item.title))
+            print(
+                "- Entry {index} ({serial}): {title}".format(
+                    index=item.entry_index, serial=serial_repr, title=item.title
+                )
+            )
             print(f"    Selected (priority logic): {item.selected_path}")
             print(f"    First by priority order:   {item.priority_first_path}")
             print(f"    First by original order:   {item.original_first_path}")
