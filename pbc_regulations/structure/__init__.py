@@ -4,7 +4,11 @@ import argparse
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, MutableMapping, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Sequence, Tuple
+
+from openai import OpenAI
+
+from pbc_regulations import settings
 
 
 UNWANTED_STAGE_FIELDS = {
@@ -35,6 +39,27 @@ DEFAULT_STAGE_VALUES: Mapping[str, Any] = {
     "number": "",
     "related": [],
 }
+
+
+SUMMARY_SYSTEM_PROMPT = (
+    "你是一名法律文献分析助手。你的任务是根据给定的法律、规章、规范性文件或政策文本，生成**一句话摘要**，用于帮助快速判断该法律适用于哪些情形。\n"
+    "\n"
+    "请严格遵守以下规则：\n"
+    "\n"
+    "1. **只输出一句话摘要**，不超过 30 个中文字符。\n"
+    "2. 摘要内容必须能体现该法律的**主要管理对象、主要调整范围或主要适用场景**。\n"
+    "3. 不得加入原文以外的推测或背景信息，不得解释目的、背景或历史。\n"
+    "4. 不得输出多句，不得换行，不得添加额外说明。\n"
+    "5. 用简洁明确的表达，例如：“规范……”“规定……”“管理……”“明确……”。\n"
+    "6. 若原文无法判断适用范围，输出：“内容不明确，无法摘要。”\n"
+    "\n"
+    "输出格式固定如下：\n"
+    "\n"
+    "摘要：XXXXXX。"
+)
+
+
+MAX_SUMMARY_SOURCE_CHARS = 4000
 
 
 def _ensure_stage_defaults(data: MutableMapping[str, Any]) -> None:
@@ -176,10 +201,29 @@ def _merge_entries(existing: MutableMapping[str, Any], new: Mapping[str, Any]) -
         existing[key] = value
 
 
-def collect_dataset_entries(extract_dir: Path) -> List[Dict[str, Any]]:
+def _attach_entry_sources(
+    entry: Dict[str, Any], metadata: Optional[Dict[str, set[str]]]
+) -> Dict[str, Any]:
+    if metadata:
+        datasets = sorted(metadata.get("datasets", set()))
+        filenames = sorted(metadata.get("filenames", set()))
+        paths = sorted(metadata.get("paths", set())) if "paths" in metadata else []
+        if datasets:
+            entry["_datasets"] = datasets
+        if filenames:
+            entry["_text_filenames"] = filenames
+        if paths:
+            entry["_text_paths"] = paths
+    return entry
+
+
+def collect_dataset_entries(
+    extract_dir: Path, *, include_sources: bool = False
+) -> List[Dict[str, Any]]:
     """Collect merged entry data for all datasets within ``extract_dir``."""
 
     entries_by_title: Dict[str, Dict[str, Any]] = {}
+    text_sources: Dict[str, Dict[str, set[str]]] = {} if include_sources else {}
     for state_path in sorted(extract_dir.glob("*_extract.json")):
         dataset_name = state_path.stem.removesuffix("_extract")
         dataset_level = DATASET_LEVELS.get(dataset_name, dataset_name)
@@ -205,10 +249,170 @@ def collect_dataset_entries(extract_dir: Path) -> List[Dict[str, Any]]:
             if "level" not in existing:
                 existing["level"] = dataset_level
             _ensure_stage_defaults(existing)
+            if include_sources:
+                metadata = text_sources.setdefault(
+                    normalized_title,
+                    {"datasets": set(), "filenames": set()},
+                )
+                metadata["datasets"].add(dataset_name)
+                text_filename = entry.get("text_filename")
+                if isinstance(text_filename, str) and text_filename.strip():
+                    metadata["filenames"].add(text_filename.strip())
+                text_path_value = entry.get("text_path")
+                if isinstance(text_path_value, str) and text_path_value.strip():
+                    metadata.setdefault("paths", set()).add(text_path_value.strip())
     return [
-        entries_by_title[key]
+        _attach_entry_sources(
+            entries_by_title[key], text_sources.get(key) if include_sources else None
+        )
         for key in sorted(entries_by_title, key=lambda title: title.lower())
     ]
+
+
+def _candidate_text_directories(
+    project_root: Path, datasets: Iterable[str]
+) -> List[Path]:
+    bases = [
+        project_root / "files" / "texts",
+        project_root / "files" / "text",
+        project_root / "files" / "structured" / "texts",
+        project_root / "files" / "structured",
+        project_root / "files",
+        project_root / "artifacts" / "texts",
+        project_root / "artifacts",
+    ]
+    dataset_list = [dataset for dataset in datasets if dataset]
+    for dataset in dataset_list:
+        bases.append(project_root / "files" / "texts" / dataset)
+        bases.append(project_root / "files" / dataset)
+        bases.append(project_root / "artifacts" / "texts" / dataset)
+        bases.append(project_root / "artifacts" / dataset)
+    seen: set[Path] = set()
+    ordered: List[Path] = []
+    for base in bases:
+        try:
+            resolved = base.resolve()
+        except OSError:
+            resolved = base
+        if resolved not in seen:
+            seen.add(resolved)
+            ordered.append(resolved)
+    return ordered
+
+
+def _load_entry_text(
+    project_root: Path,
+    entry: Mapping[str, Any],
+    filenames: Optional[Iterable[str]],
+    datasets: Optional[Iterable[str]],
+    explicit_paths: Optional[Iterable[str]],
+) -> str:
+    path_candidates: List[Path] = []
+    path_values: List[str] = []
+    if explicit_paths:
+        path_values.extend(explicit_paths)
+    text_path_value = entry.get("text_path")
+    if isinstance(text_path_value, str) and text_path_value.strip():
+        path_values.append(text_path_value.strip())
+    for raw_path in path_values:
+        candidate = Path(raw_path)
+        path_candidates.append(candidate)
+        if not candidate.is_absolute():
+            path_candidates.append((project_root / candidate).resolve())
+    directories = _candidate_text_directories(
+        project_root, datasets if datasets is not None else []
+    )
+    filenames_list = [name for name in filenames or [] if name]
+    for filename in filenames_list:
+        for directory in directories:
+            path_candidates.append(directory / filename)
+    seen: set[Path] = set()
+    for candidate in path_candidates:
+        try:
+            resolved = candidate.resolve()
+        except OSError:
+            resolved = candidate
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        if resolved.exists() and resolved.is_file():
+            try:
+                text = resolved.read_text("utf-8")
+            except OSError:
+                continue
+            if len(text) > MAX_SUMMARY_SOURCE_CHARS:
+                text = text[:MAX_SUMMARY_SOURCE_CHARS]
+            return text.strip()
+    return ""
+
+
+def _normalize_summary_text(raw: str) -> str:
+    cleaned = raw.strip()
+    if not cleaned:
+        return ""
+    cleaned = cleaned.replace("\n", " ").replace("\r", " ").strip()
+    cleaned = cleaned.rstrip("。")
+    fallback = "内容不明确，无法摘要。"
+    if cleaned.startswith("摘要："):
+        core = cleaned[len("摘要：") :].strip()
+    else:
+        core = cleaned
+    if core == "内容不明确，无法摘要":
+        return fallback
+    if len(core) > 30:
+        core = core[:30]
+    if not core:
+        return ""
+    return f"摘要：{core}。"
+
+
+def _summarize_text_with_llm(text: str) -> Optional[str]:
+    if not text.strip():
+        return None
+    try:
+        client = OpenAI(
+            api_key=settings.LEGAL_SEARCH_API_KEY,
+            base_url=settings.LEGAL_SEARCH_BASE_URL,
+        )
+        response = client.chat.completions.create(
+            model=settings.LEGAL_SEARCH_MODEL_NAME,
+            messages=[
+                {"role": "system", "content": SUMMARY_SYSTEM_PROMPT},
+                {"role": "user", "content": text},
+            ],
+            temperature=0.0,
+        )
+    except Exception:
+        return None
+    choices = getattr(response, "choices", None)
+    if not choices:
+        return None
+    for choice in choices:
+        message = getattr(choice, "message", None)
+        if not message:
+            continue
+        content = getattr(message, "content", None)
+        if isinstance(content, str) and content.strip():
+            normalized = _normalize_summary_text(content)
+            if normalized:
+                return normalized
+    return None
+
+
+def _populate_missing_summaries(entries: Sequence[Dict[str, Any]], project_root: Path) -> None:
+    for entry in entries:
+        filenames = entry.pop("_text_filenames", [])
+        datasets = entry.pop("_datasets", [])
+        explicit_paths = entry.pop("_text_paths", [])
+        summary = entry.get("summary") if isinstance(entry.get("summary"), str) else ""
+        if summary.strip():
+            continue
+        text = _load_entry_text(project_root, entry, filenames, datasets, explicit_paths)
+        if not text:
+            continue
+        generated = _summarize_text_with_llm(text)
+        if generated:
+            entry["summary"] = generated
 
 
 def format_stage_fill_info(entries: Sequence[Mapping[str, Any]]) -> str:
@@ -416,7 +620,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             output_text = json.dumps(exported, ensure_ascii=False, indent=2)
             default_output = structured_dir / f"stage_fill_info.{args.export}.json"
         else:
-            entries = collect_dataset_entries(extract_dir)
+            entries = collect_dataset_entries(extract_dir, include_sources=True)
+            _populate_missing_summaries(entries, project_root)
             output_text = format_stage_fill_info(entries)
             default_output = default_stage_path
     else:
