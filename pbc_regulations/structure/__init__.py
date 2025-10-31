@@ -72,8 +72,10 @@ CATEGORY_ORDER: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
 )
 
 
-def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
-    """Format dataset titles as an ASCII tree grouped by predefined categories."""
+def build_grouped_titles(
+    datasets: Mapping[str, DatasetTitles]
+) -> List[Tuple[str, List[str]]]:
+    """Return dataset titles grouped according to :data:`CATEGORY_ORDER`."""
 
     display: List[Tuple[str, List[str]]] = []
     used: set[str] = set()
@@ -92,6 +94,13 @@ def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
         dataset = datasets[dataset_name]
         display.append((dataset.name, dataset.sorted_titles()))
 
+    return display
+
+
+def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
+    """Format dataset titles as an ASCII tree grouped by predefined categories."""
+
+    display = build_grouped_titles(datasets)
     lines: List[str] = ["."]
     for index, (group_name, titles) in enumerate(display):
         is_last_dataset = index == len(display) - 1
@@ -103,6 +112,16 @@ def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
             title_branch = "└──" if is_last_title else "├──"
             lines.append(f"{prefix}{title_branch} {title}")
     return "\n".join(lines)
+
+
+def format_json(datasets: Mapping[str, DatasetTitles]) -> str:
+    """Return dataset titles formatted as JSON grouped by predefined categories."""
+
+    grouped = [
+        {"name": name, "titles": titles}
+        for name, titles in build_grouped_titles(datasets)
+    ]
+    return json.dumps(grouped, ensure_ascii=False, indent=2)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -120,7 +139,13 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--output",
         type=Path,
         default=None,
-        help="Optional output file path (defaults to files/structured/law.tree.txt).",
+        help="Optional output file path (default depends on selected format).",
+    )
+    parser.add_argument(
+        "--format",
+        choices=("tree", "json"),
+        default="tree",
+        help="Output format: tree (default) or json.",
     )
     return parser.parse_args(argv)
 
@@ -136,15 +161,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not extract_dir.exists():
         raise SystemExit(f"Extract directory not found: {extract_dir}")
     datasets = collect_dataset_titles(extract_dir)
-    tree_text = format_tree(datasets)
-    output_path = (
-        args.output
-        if args.output is not None
-        else project_root / "files" / "structured" / "law.tree.txt"
-    )
+    if args.format == "json":
+        output_text = format_json(datasets)
+        default_output = project_root / "files" / "structured" / "law.tree.json"
+    else:
+        output_text = format_tree(datasets)
+        default_output = project_root / "files" / "structured" / "law.tree.txt"
+    output_path = args.output if args.output is not None else default_output
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(tree_text, "utf-8")
-    print(f"Wrote {output_path} ({len(tree_text.splitlines())} lines)")
+    output_path.write_text(output_text, "utf-8")
+    print(f"Wrote {output_path} ({len(output_text.splitlines())} lines)")
     return 0
 
 
