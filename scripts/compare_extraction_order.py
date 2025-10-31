@@ -193,12 +193,19 @@ def main() -> None:
         action="store_true",
         help="List entries where the selected path differs from the original order first candidate",
     )
+    parser.add_argument(
+        "--only-diff",
+        action="store_true",
+        help="Only output entries where the selected path differs from the original-order first document",
+    )
 
     args = parser.parse_args()
 
     comparisons, warnings = compare_entries(args.state, args.summary)
 
     total = len(comparisons)
+    show_diff = args.show_diff or args.only_diff
+
     if total == 0:
         print("No comparable entries found.")
         for warning in warnings:
@@ -210,21 +217,40 @@ def main() -> None:
 
     priority_matches = [item for item in comparisons if item.selected_path == item.priority_first_path]
 
-    print(f"Total comparable entries: {total}")
-    print(f"Selected path matches original-order first document: {len(matches)} ({len(matches) / total:.1%})")
-    print(f"Selected path matches priority-order first document: {len(priority_matches)} ({len(priority_matches) / total:.1%})")
-    print(f"Selected path differs from original-order first document: {len(diff_entries)}")
+    if not args.only_diff:
+        print(f"Total comparable entries: {total}")
+        print(
+            "Selected path matches original-order first document: "
+            f"{len(matches)} ({len(matches) / total:.1%})"
+        )
+        print(
+            "Selected path matches priority-order first document: "
+            f"{len(priority_matches)} ({len(priority_matches) / total:.1%})"
+        )
+        print(f"Selected path differs from original-order first document: {len(diff_entries)}")
+    elif not diff_entries:
+        print("No entries differ from the original-order first document.")
+    else:
+        print(
+            "Entries with differing first choices: "
+            f"{len(diff_entries)} out of {total} comparable entries"
+        )
 
     if warnings:
         print("\nWarnings:")
         for warning in warnings:
             print(f"  - {warning}")
 
-    if args.show_diff and diff_entries:
-        print("\nEntries with differing first choices:")
+    if show_diff and diff_entries:
+        if not args.only_diff:
+            print("\nEntries with differing first choices:")
         for item in diff_entries:
             serial_repr = f"serial={item.serial}" if item.serial is not None else "serial=<none>"
-            print("- Entry {index} ({serial}): {title}".format(index=item.entry_index, serial=serial_repr, title=item.title))
+            print(
+                "- Entry {index} ({serial}): {title}".format(
+                    index=item.entry_index, serial=serial_repr, title=item.title
+                )
+            )
             print(f"    Selected (priority logic): {item.selected_path}")
             print(f"    First by priority order:   {item.priority_first_path}")
             print(f"    First by original order:   {item.original_first_path}")
