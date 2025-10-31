@@ -391,6 +391,98 @@ def test_process_state_data_extracts_text(tmp_path, fake_pdf_extractor):
     assert entry_four_docs == []
 
 
+def test_process_state_data_filters_by_entry_id(tmp_path):
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+
+    first_doc = downloads / "first.docx"
+    _write_docx(first_doc, "文档一内容")
+    second_doc = downloads / "second.docx"
+    _write_docx(second_doc, "文档二内容")
+
+    state_data = {
+        "entries": [
+            {
+                "serial": 1,
+                "entry_id": "demo:1",
+                "title": "制度一",
+                "documents": [
+                    {
+                        "url": "http://example.com/first.docx",
+                        "type": "doc",
+                        "local_path": str(first_doc),
+                    }
+                ],
+            },
+            {
+                "serial": 2,
+                "entry_id": "demo:2",
+                "title": "制度二",
+                "documents": [
+                    {
+                        "url": "http://example.com/second.docx",
+                        "type": "doc",
+                        "local_path": str(second_doc),
+                    }
+                ],
+            },
+        ]
+    }
+
+    output_dir = tmp_path / "texts"
+    report = process_state_data(state_data, output_dir, entry_id_filter={"demo:2"})
+
+    assert len(report.records) == 1
+    record = report.records[0]
+    assert record.serial == 2
+    assert record.title == "制度二"
+    assert len(list(output_dir.iterdir())) == 1
+
+    first_entry_docs = [doc for doc in state_data["entries"][0]["documents"] if doc.get("type") == "text"]
+    second_entry_docs = [doc for doc in state_data["entries"][1]["documents"] if doc.get("type") == "text"]
+
+    assert not first_entry_docs
+    assert len(second_entry_docs) == 1
+    assert second_entry_docs[0]["local_path"].endswith(record.text_path.name)
+
+
+def test_process_state_data_allows_missing_entry_id_when_serial_matches(tmp_path):
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+
+    doc_path = downloads / "single.docx"
+    _write_docx(doc_path, "唯一文档内容")
+
+    state_data = {
+        "entries": [
+            {
+                "serial": 2,
+                "title": "制度二",
+                "documents": [
+                    {
+                        "url": "http://example.com/single.docx",
+                        "type": "doc",
+                        "local_path": str(doc_path),
+                    }
+                ],
+            }
+        ]
+    }
+
+    output_dir = tmp_path / "texts"
+    report = process_state_data(
+        state_data,
+        output_dir,
+        serial_filter={2},
+        entry_id_filter={"demo_task:2"},
+    )
+
+    assert len(report.records) == 1
+    record = report.records[0]
+    assert record.serial == 2
+    assert record.title == "制度二"
+    assert record.text_path.exists()
+
 def test_process_state_data_skips_existing_success(tmp_path, monkeypatch):
     downloads = tmp_path / "downloads"
     downloads.mkdir()

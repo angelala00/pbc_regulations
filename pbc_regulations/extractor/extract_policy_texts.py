@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
-from pbc_regulations.extractor import stage_dedupe, stage_extract
+from pbc_regulations.extractor import stage_dedupe, stage_extract, text_pipeline
 from pbc_regulations.extractor.text_pipeline import (
     EntryTextRecord,
     ProcessReport,
@@ -41,6 +41,7 @@ def run(
     *,
     progress_callback: Optional[Callable[[EntryTextRecord, int, int], None]] = None,
     serial_filter: Optional[Set[int]] = None,
+    entry_id_filter: Optional[Set[str]] = None,
     existing_summary_entries: Optional[List[Dict[str, Any]]] = None,
     record_callback: Optional[Callable[[EntryTextRecord, int, int, Dict[str, Any]], None]] = None,
     verify_local: bool = False,
@@ -50,14 +51,23 @@ def run(
     total_entries = 0
     raw_entries = data.get("entries")
     if isinstance(raw_entries, list):
-        if serial_filter:
-            total_entries = sum(
-                1
-                for entry in raw_entries
-                if isinstance(entry, dict) and isinstance(entry.get("serial"), int) and entry.get("serial") in serial_filter
-            )
-        else:
-            total_entries = len(raw_entries)
+        def _matches_filters(entry: Dict[str, Any]) -> bool:
+            if not isinstance(entry, dict):
+                return False
+            if serial_filter:
+                serial_value = entry.get("serial")
+                if not isinstance(serial_value, int) or serial_value not in serial_filter:
+                    return False
+            if entry_id_filter:
+                identifier = text_pipeline._extract_entry_identifier(entry)
+                if identifier is None:
+                    if not serial_filter:
+                        return False
+                elif identifier not in entry_id_filter:
+                    return False
+            return True
+
+        total_entries = sum(1 for entry in raw_entries if _matches_filters(entry)) if (serial_filter or entry_id_filter) else len(raw_entries)
 
     processed_count = 0
 
@@ -75,6 +85,7 @@ def run(
         state_path=state_path,
         progress_callback=_handle_progress if progress_callback is not None else None,
         serial_filter=serial_filter,
+        entry_id_filter=entry_id_filter,
         existing_summary_entries=existing_summary_entries,
         verify_local=verify_local,
         task_slug=task_slug,
@@ -237,10 +248,11 @@ def _write_summary(
     payload: Dict[str, Any],
     *,
     serial_filter: Optional[Set[int]] = None,
+    entry_id_filter: Optional[Set[str]] = None,
 ) -> None:
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     payload_to_write = payload
-    if serial_filter and summary_path.exists():
+    if (serial_filter or entry_id_filter) and summary_path.exists():
         try:
             existing_text = summary_path.read_text(encoding="utf-8")
             existing_payload = json.loads(existing_text)
@@ -328,6 +340,13 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
         help="仅处理指定序号（serial）的条目，可重复使用该参数",
     )
     parser.add_argument(
+        "--document-id",
+        action="append",
+        dest="document_ids",
+        default=None,
+        help="仅处理指定文档 ID，可重复使用该参数",
+    )
+    parser.add_argument(
         "--task",
         action="append",
         default=None,
@@ -350,6 +369,13 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
         help="执行提取阶段，基于去重后的 state 生成摘要",
     )
     args = parser.parse_args()
+
+    normalized_entry_ids = [
+        value.strip()
+        for value in (args.document_ids or [])
+        if isinstance(value, str) and value.strip()
+    ]
+    entry_id_filter: Optional[Set[str]] = set(normalized_entry_ids) or None
 
     if args.stage_dedupe or args.stage_extract:
         if args.state_file is not None:
@@ -375,6 +401,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
                 artifact_dir,
                 summary_root=summary_root,
                 serial_filters=args.serial_filters,
+                document_ids=normalized_entry_ids,
                 verify_local=args.verify_local,
                 assign_unique_slug=assign_unique_slug,
                 unique_output_dir=_unique_output_dir,
@@ -438,13 +465,19 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
                 state_data=state_data,
                 output_dir=output_dir,
             )
-            _write_summary(summary_path, payload, serial_filter=serial_filter)
+            _write_summary(
+                summary_path,
+                payload,
+                serial_filter=serial_filter,
+                entry_id_filter=entry_id_filter,
+            )
 
         report, state_data = run(
             state_path,
             output_dir,
             progress_callback=_print_progress,
             serial_filter=serial_filter,
+            entry_id_filter=entry_id_filter,
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=args.verify_local,
@@ -459,7 +492,12 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
                 state_data=state_data,
                 output_dir=output_dir,
             )
-            _write_summary(summary_path, payload, serial_filter=serial_filter)
+            _write_summary(
+                summary_path,
+                payload,
+                serial_filter=serial_filter,
+                entry_id_filter=entry_id_filter,
+            )
             print(f"结果摘要已写入: {summary_path}")
         return
 
@@ -534,13 +572,19 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
                 state_data=state_data,
                 output_dir=output_dir,
             )
-            _write_summary(summary_path, payload, serial_filter=serial_filter)
+            _write_summary(
+                summary_path,
+                payload,
+                serial_filter=serial_filter,
+                entry_id_filter=entry_id_filter,
+            )
 
         report, state_data = run(
             state_path,
             output_dir,
             progress_callback=_print_progress,
             serial_filter=serial_filter,
+            entry_id_filter=entry_id_filter,
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=args.verify_local,
@@ -552,7 +596,12 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
             state_data=state_data,
             output_dir=output_dir,
         )
-        _write_summary(summary_path, payload, serial_filter=serial_filter)
+        _write_summary(
+            summary_path,
+            payload,
+            serial_filter=serial_filter,
+            entry_id_filter=entry_id_filter,
+        )
 
         print(_format_summary(report))
         print(f"结果摘要已写入: {summary_path}")

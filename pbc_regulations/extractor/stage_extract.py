@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from pbc_regulations.common.policy_entries import load_entries
@@ -26,6 +27,39 @@ def _normalize_serial_filter(serial_filters: Optional[Sequence[int]]) -> Optiona
         return None
     normalized = {value for value in serial_filters if isinstance(value, int)}
     return normalized or None
+
+
+def _parse_serial_from_identifier(identifier: str) -> Optional[int]:
+    match = re.search(r"(\d+)$", identifier)
+    if not match:
+        return None
+    try:
+        return int(match.group(1))
+    except (TypeError, ValueError):  # pragma: no cover - defensive
+        return None
+
+
+def _normalize_entry_filters(
+    document_ids: Optional[Sequence[str]],
+) -> Tuple[Optional[Set[str]], Optional[Set[int]]]:
+    if not document_ids:
+        return None, None
+
+    entry_ids: Set[str] = set()
+    serials: Set[int] = set()
+
+    for value in document_ids:
+        if not isinstance(value, str):
+            continue
+        trimmed = value.strip()
+        if not trimmed:
+            continue
+        entry_ids.add(trimmed)
+        serial = _parse_serial_from_identifier(trimmed)
+        if serial is not None:
+            serials.add(serial)
+
+    return (entry_ids or None, serials or None)
 
 
 def _load_policy_serials(unique_state_path: Path, slug: str) -> Optional[Set[int]]:
@@ -66,6 +100,7 @@ def run_stage_extract(
     *,
     summary_root: Optional[Path],
     serial_filters: Optional[Sequence[int]],
+    document_ids: Optional[Sequence[str]] = None,
     verify_local: bool,
     assign_unique_slug: Callable[[str, Dict[str, int]], str],
     unique_output_dir: Optional[Callable[[Path], Path]] = None,
@@ -94,6 +129,7 @@ def run_stage_extract(
 
     used_slugs: Dict[str, int] = {}
     base_serial_filter = _normalize_serial_filter(serial_filters)
+    base_entry_id_filter, entry_serial_filter = _normalize_entry_filters(document_ids)
 
     for plan in plan_list:
         slug = assign_unique_slug(plan.slug, used_slugs)
@@ -133,6 +169,14 @@ def run_stage_extract(
         plan_serial_filter: Optional[Set[int]] = (
             set(base_serial_filter) if base_serial_filter is not None else None
         )
+        plan_entry_id_filter: Optional[Set[str]] = (
+            set(base_entry_id_filter) if base_entry_id_filter is not None else None
+        )
+        if entry_serial_filter is not None:
+            if plan_serial_filter is None:
+                plan_serial_filter = set(entry_serial_filter)
+            else:
+                plan_serial_filter &= entry_serial_filter
         policy_serials = _load_policy_serials(unique_state_path, slug)
         if policy_serials is not None:
             if plan_serial_filter is None:
@@ -178,13 +222,19 @@ def run_stage_extract(
                 state_data=state_data,
                 output_dir=output_dir,
             )
-            write_summary(summary_path, payload, serial_filter=plan_serial_filter)
+            write_summary(
+                summary_path,
+                payload,
+                serial_filter=plan_serial_filter,
+                entry_id_filter=plan_entry_id_filter,
+            )
 
         report, state_data = run_extract(
             unique_state_path,
             output_dir,
             progress_callback=_print_progress,
             serial_filter=plan_serial_filter,
+            entry_id_filter=plan_entry_id_filter,
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=verify_local,
@@ -196,7 +246,12 @@ def run_stage_extract(
             state_data=state_data,
             output_dir=output_dir,
         )
-        write_summary(summary_path, payload, serial_filter=plan_serial_filter)
+        write_summary(
+            summary_path,
+            payload,
+            serial_filter=plan_serial_filter,
+            entry_id_filter=plan_entry_id_filter,
+        )
 
         print(format_summary(report))
         print(f"结果摘要已写入: {summary_path}")

@@ -1449,6 +1449,16 @@ def _build_text_content(text: str) -> str:
     return text
 
 
+def _extract_entry_identifier(entry: Dict[str, Any]) -> Optional[str]:
+    for key in ("entry_id", "entryId", "id", "document_id", "documentId"):
+        value = entry.get(key)
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped:
+                return stripped
+    return None
+
+
 def process_state_data(
     state_data: Dict[str, Any],
     output_dir: Path,
@@ -1456,6 +1466,7 @@ def process_state_data(
     state_path: Optional[Path] = None,
     progress_callback: Optional[Callable[[EntryTextRecord], None]] = None,
     serial_filter: Optional[Set[int]] = None,
+    entry_id_filter: Optional[Set[str]] = None,
     existing_summary_entries: Optional[List[Dict[str, Any]]] = None,
     verify_local: bool = False,
     task_slug: Optional[str] = None,
@@ -1471,6 +1482,7 @@ def process_state_data(
         return ProcessReport(records=[])
 
     active_serials: Optional[Set[int]] = serial_filter if serial_filter else None
+    active_entry_ids: Optional[Set[str]] = entry_id_filter if entry_id_filter else None
 
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -1478,6 +1490,13 @@ def process_state_data(
         if active_serials is not None:
             serial_value = entry.get("serial")
             if not isinstance(serial_value, int) or serial_value not in active_serials:
+                continue
+        if active_entry_ids is not None:
+            identifier = _extract_entry_identifier(entry)
+            if identifier is None:
+                if active_serials is None:
+                    continue
+            elif identifier not in active_entry_ids:
                 continue
         summary_entry = _find_summary_entry(index, entry, existing_summary_entries)
         filename = _build_structured_text_filename(entry, index, used_names, task_slug=task_slug)

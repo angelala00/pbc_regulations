@@ -51,15 +51,24 @@ def test_stage_extract_applies_policy_serial_filter(tmp_path, monkeypatch):
     def _build_summary_payload(**_kwargs):
         return {"entries": []}
 
-    def _write_summary(summary_path, payload, *, serial_filter):
+    def _write_summary(summary_path, payload, *, serial_filter, entry_id_filter=None):
         captured["summary_serial_filter"] = serial_filter
+        captured["summary_entry_id_filter"] = entry_id_filter
         summary_path.write_text(json.dumps(payload), encoding="utf-8")
 
     def _format_summary(_report):
         return "done"
 
-    def _run_extract(*_args, serial_filter=None, verify_local=None, task_slug=None, **_kwargs):
+    def _run_extract(
+        *_args,
+        serial_filter=None,
+        entry_id_filter=None,
+        verify_local=None,
+        task_slug=None,
+        **_kwargs,
+    ):
         captured["run_serial_filter"] = serial_filter
+        captured["run_entry_id_filter"] = entry_id_filter
         captured["verify_local"] = verify_local
         captured["task_slug"] = task_slug
         return ProcessReport(records=[]), {}
@@ -82,5 +91,81 @@ def test_stage_extract_applies_policy_serial_filter(tmp_path, monkeypatch):
 
     assert captured["run_serial_filter"] == {1}
     assert captured["summary_serial_filter"] == {1}
+    assert captured["run_entry_id_filter"] is None
+    assert captured["summary_entry_id_filter"] is None
     assert captured["verify_local"] is False
     assert captured["task_slug"] == slug
+
+
+def test_stage_extract_document_id_filters_serial(tmp_path, monkeypatch):
+    artifact_dir = tmp_path / "artifacts"
+    unique_dir = artifact_dir / "extract_uniq"
+    downloads_dir = artifact_dir / "downloads"
+    slug = "demo_task"
+
+    downloads_dir.mkdir(parents=True)
+    state_path = downloads_dir / f"{slug}_state.json"
+    state_path.write_text("{}", encoding="utf-8")
+
+    unique_state_path = unique_dir / slug / "state.json"
+    unique_state_path.parent.mkdir(parents=True)
+    unique_state_path.write_text(
+        json.dumps({"entries": [{"serial": 1}, {"serial": 2}]}),
+        encoding="utf-8",
+    )
+
+    plan = _DummyPlan(display_name="Demo Task", state_file=state_path, slug=slug)
+
+    monkeypatch.setattr(
+        stage_extract,
+        "_load_policy_serials",
+        lambda path, plan_slug: {1, 2},
+    )
+
+    captured = {}
+
+    def _load_existing_summary_entries(summary_path):
+        return None
+
+    def _build_summary_payload(**_kwargs):
+        return {"entries": []}
+
+    def _write_summary(summary_path, payload, *, serial_filter, entry_id_filter=None):
+        captured["summary_serial_filter"] = serial_filter
+        captured["summary_entry_id_filter"] = entry_id_filter
+        summary_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    def _format_summary(_report):
+        return "done"
+
+    def _run_extract(
+        *_args,
+        serial_filter=None,
+        entry_id_filter=None,
+        **_kwargs,
+    ):
+        captured["run_serial_filter"] = serial_filter
+        captured["run_entry_id_filter"] = entry_id_filter
+        return ProcessReport(records=[]), {}
+
+    stage_extract.run_stage_extract(
+        [plan],
+        artifact_dir,
+        summary_root=None,
+        serial_filters=None,
+        document_ids=["demo_task:2"],
+        verify_local=False,
+        assign_unique_slug=_assign_slug,
+        unique_output_dir=lambda path: path / "extract_uniq",
+        load_existing_summary_entries=_load_existing_summary_entries,
+        build_summary_payload=_build_summary_payload,
+        write_summary=_write_summary,
+        format_summary=_format_summary,
+        run_extract=_run_extract,
+        task_plan_factory=lambda name, state_file, slug: _DummyPlan(name, state_file, slug),
+    )
+
+    assert captured["run_serial_filter"] == {2}
+    assert captured["summary_serial_filter"] == {2}
+    assert captured["run_entry_id_filter"] == {"demo_task:2"}
+    assert captured["summary_entry_id_filter"] == {"demo_task:2"}
