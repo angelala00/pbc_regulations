@@ -12,7 +12,7 @@ python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
 python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normative_document --stage-extract --document-id tiaofasi_normative_document:408
 
 ### structure
-python -m pbc_regulations.structure
+python -m pbc_regulations.structure --format json
 
 
 ### Unified portal
