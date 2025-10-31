@@ -444,7 +444,6 @@ td.summary-cell {
 }
 
 td.summary-cell--extract,
-td.summary-cell--extract-unique,
 td.summary-cell--downloads {
   min-width: 14rem;
 }

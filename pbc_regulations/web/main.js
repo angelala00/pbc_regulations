@@ -150,7 +150,6 @@
     if (!task || typeof task !== "object") {
       return '<span class="summary-placeholder">—</span>';
     }
-    const totalCount = toInt(task.entries_total);
     let uniqueCount = null;
     const uniqueValue = task.unique_entries_total;
     if (typeof uniqueValue === "number" && Number.isFinite(uniqueValue)) {
@@ -183,6 +182,70 @@
       chips.push(
         buildSummaryChip(`条目 ${uniqueCount}`, {
           kind: uniqueCount ? null : "muted",
+        })
+      );
+    }
+    const uniqueSummary =
+      task && task.extract_unique_summary &&
+      typeof task.extract_unique_summary === "object"
+        ? task.extract_unique_summary
+        : null;
+    const summaryTotal = uniqueSummary ? toFiniteInt(uniqueSummary.total) : null;
+    const totalForCounts =
+      uniqueCount !== null
+        ? uniqueCount
+        : summaryTotal !== null
+        ? summaryTotal
+        : null;
+    let extractedCount = null;
+    if (uniqueSummary) {
+      if (Object.prototype.hasOwnProperty.call(uniqueSummary, "success")) {
+        extractedCount = toInt(uniqueSummary.success);
+      }
+    }
+    let pendingCount = null;
+    if (uniqueSummary) {
+      if (Object.prototype.hasOwnProperty.call(uniqueSummary, "pending")) {
+        pendingCount = Math.max(toInt(uniqueSummary.pending), 0);
+      }
+    }
+    if (pendingCount === null && summaryTotal !== null && extractedCount !== null) {
+      pendingCount = Math.max(summaryTotal - extractedCount, 0);
+    }
+    if (pendingCount === null && totalForCounts !== null && extractedCount !== null) {
+      pendingCount = Math.max(totalForCounts - extractedCount, 0);
+    }
+    if (extractedCount === null && summaryTotal !== null && pendingCount !== null) {
+      extractedCount = Math.max(summaryTotal - pendingCount, 0);
+    }
+    if (extractedCount === null && totalForCounts !== null && pendingCount !== null) {
+      extractedCount = Math.max(totalForCounts - pendingCount, 0);
+    }
+    const effectiveTotal =
+      totalForCounts !== null
+        ? totalForCounts
+        : summaryTotal !== null
+        ? summaryTotal
+        : extractedCount !== null && pendingCount !== null
+        ? extractedCount + pendingCount
+        : null;
+    if (extractedCount !== null) {
+      let extractedKind = null;
+      if (effectiveTotal && extractedCount >= effectiveTotal) {
+        extractedKind = "success";
+      } else if (!extractedCount) {
+        extractedKind = "muted";
+      }
+      chips.push(
+        buildSummaryChip(`已提取 ${extractedCount}`, {
+          kind: extractedKind,
+        })
+      );
+    }
+    if (pendingCount !== null && pendingCount > 0) {
+      chips.push(
+        buildSummaryChip(`待处理 ${pendingCount}`, {
+          kind: "warning",
         })
       );
     }
@@ -475,13 +538,6 @@
     return buildExtractSummaryCellFor(task);
   }
 
-  function buildExtractUniqueSummaryCell(task) {
-    return buildExtractSummaryCellFor(task, {
-      summaryKey: "extract_unique_summary",
-      totalKey: "unique_entries_total",
-    });
-  }
-
   function summarizeUrl(url) {
     try {
       const parsed = new URL(url);
@@ -668,24 +724,21 @@
     }
     const totals = tasks.reduce(
       (acc, task) => {
-        acc.entries += task.entries_total || 0;
-        const summary = task && task.extract_summary;
-        if (summary && typeof summary === "object") {
-          acc.extracted += toInt(summary.success);
-        }
-        const uniqueSummary = task && task.extract_unique_summary;
-        if (uniqueSummary && typeof uniqueSummary === "object") {
-          acc.extractedUnique += toInt(uniqueSummary.success);
+        if (task && typeof task === "object") {
+          acc.entries += toInt(task.entries_total);
+          const uniqueSummary = task.extract_unique_summary;
+          if (uniqueSummary && typeof uniqueSummary === "object") {
+            acc.extractedUnique += toInt(uniqueSummary.success);
+          }
         }
         return acc;
       },
-      { entries: 0, extracted: 0, extractedUnique: 0 }
+      { entries: 0, extractedUnique: 0 }
     );
 
     const cards = [
       { label: "Tasks", value: tasks.length },
       { label: "Entries", value: totals.entries },
-      { label: "Extracted", value: totals.extracted },
       { label: "Entries (unique)", value: summaryMeta.uniqueEntries },
       { label: "Extracted (unique)", value: totals.extractedUnique },
       { label: "Entries (active)", value: summaryMeta.scopedEntries },
@@ -712,7 +765,7 @@
   function setTableState(message, className) {
     const cellClass = className ? ` class="${className}"` : "";
     tableBody.innerHTML =
-      `<tr><td colspan="6"${cellClass}>${escapeHtml(message)}</td></tr>`;
+      `<tr><td colspan="5"${cellClass}>${escapeHtml(message)}</td></tr>`;
   }
 
   function renderTasks(tasks, emptyMessage = "No tasks found") {
@@ -738,7 +791,6 @@
         const pageCellHtml = buildPageSummaryCell(task);
         const downloadCellHtml = buildDownloadSummaryCell(task);
         const extractCellHtml = buildExtractSummaryCell(task);
-        const extractUniqueCellHtml = buildExtractUniqueSummaryCell(task);
 
         return `
           <tr>
@@ -750,7 +802,6 @@
             <td class="summary-cell summary-cell--downloads">${downloadCellHtml}</td>
             <td class="summary-cell summary-cell--unique">${uniqueCellHtml}</td>
             <td class="summary-cell summary-cell--extract">${extractCellHtml}</td>
-            <td class="summary-cell summary-cell--extract-unique">${extractUniqueCellHtml}</td>
           </tr>
         `;
       })
