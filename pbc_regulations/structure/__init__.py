@@ -33,11 +33,11 @@ def normalize_title(title: str) -> str:
 
 
 def collect_dataset_titles(extract_dir: Path) -> Dict[str, DatasetTitles]:
-    """Scan ``*_uniq_state.json`` files inside ``extract_dir`` and collect titles."""
+    """Scan ``*_extract.json`` files inside ``extract_dir`` and collect titles."""
 
     datasets: Dict[str, DatasetTitles] = {}
-    for state_path in sorted(extract_dir.glob("*_uniq_state.json")):
-        dataset_name = state_path.stem.replace("_uniq_state", "")
+    for state_path in sorted(extract_dir.glob("*_extract.json")):
+        dataset_name = state_path.stem.removesuffix("_extract")
         dataset = datasets.setdefault(dataset_name, DatasetTitles(dataset_name))
         try:
             data = json.loads(state_path.read_text("utf-8"))
@@ -133,13 +133,13 @@ def format_json(datasets: Mapping[str, DatasetTitles]) -> str:
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="python -m pbc_regulations.structure",
-        description="Build a simple law tree from uniq_state files.",
+        description="Build a simple law tree from extract summary files.",
     )
     parser.add_argument(
         "--extract-dir",
         type=Path,
         default=None,
-        help="Optional custom directory containing *_uniq_state.json files.",
+        help="Optional custom directory containing *_extract.json files.",
     )
     parser.add_argument(
         "--output",
