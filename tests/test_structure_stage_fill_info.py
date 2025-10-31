@@ -1,8 +1,13 @@
 import json
+import os
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+os.environ.setdefault("LEGAL_SEARCH_API_KEY", "test-key")
+os.environ.setdefault("LEGAL_SEARCH_BASE_URL", "https://example.com/v1")
+os.environ.setdefault("LEGAL_SEARCH_MODEL_NAME", "demo-model")
+
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -164,3 +169,43 @@ def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
     export_data = json.loads(export_path.read_text("utf-8"))
     assert isinstance(export_data, list)
     assert export_data == [{"title": "Policy", "summary": "Summary"}]
+
+
+def test_main_stage_fill_info_generates_summary(tmp_path, monkeypatch):
+    project_root = tmp_path
+    extract_dir = project_root / "files" / "extract_uniq"
+    text_dir = project_root / "files" / "texts"
+    text_dir.mkdir(parents=True, exist_ok=True)
+    text_file = text_dir / "demo.txt"
+    text_file.write_text("示例法律原文", "utf-8")
+
+    entries = [
+        {
+            "title": "Generated Policy",
+            "summary": "",
+            "level": "national",
+            "text_filename": "demo.txt",
+        }
+    ]
+    _write_extract(extract_dir / "tiaofasi_national_law_extract.json", entries)
+
+    monkeypatch.setattr(structure, "discover_project_root", lambda: project_root)
+
+    captured: dict = {}
+
+    def _fake_summarize(text: str):
+        captured["text"] = text
+        return "摘要：自动生成摘要。"
+
+    monkeypatch.setattr(structure, "_summarize_text_with_llm", _fake_summarize)
+
+    result = structure.main(["--stage-fill-info"])
+    assert result == 0
+
+    stage_path = project_root / "files" / "structured" / "stage_fill_info.json"
+    stage_data = json.loads(stage_path.read_text("utf-8"))
+    assert isinstance(stage_data, list)
+    assert len(stage_data) == 1
+    entry = stage_data[0]
+    assert entry["summary"] == "摘要：自动生成摘要。"
+    assert captured["text"].startswith("示例法律原文")
