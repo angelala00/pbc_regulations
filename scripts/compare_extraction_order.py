@@ -39,8 +39,11 @@ class EntryComparison:
     serial: Optional[int]
     title: str
     selected_path: Path
+    selected_key: Tuple[str, ...]
     original_first_path: Path
+    original_first_key: Tuple[str, ...]
     priority_first_path: Path
+    priority_first_key: Tuple[str, ...]
 
 
 def _load_json(path: Path) -> Dict[str, object]:
@@ -90,6 +93,33 @@ def _extract_selected_path(summary_entry: Dict[str, object], state_dir: Path) ->
         return _normalize_summary_path(source_path_value, state_dir)
 
     return None
+
+
+def _path_comparison_key(path: Path) -> Tuple[str, ...]:
+    """Build a tuple that tolerates mirrored directory structures.
+
+    The extractor may record absolute paths that point either to the ``downloads``
+    tree or to a ``files/downloads`` mirror, depending on which copy of the
+    dataset was used during extraction.  For comparison purposes we collapse both
+    representations to the portion starting at ``downloads`` so that logically
+    identical files are treated as equal even if they live in different mirror
+    roots.
+    """
+
+    resolved = path.resolve(strict=False)
+    parts = resolved.parts
+
+    for anchor in ("downloads", "attachments"):
+        if anchor in parts:
+            idx = parts.index(anchor)
+            return parts[idx:]
+
+    if "files" in parts:
+        idx = parts.index("files")
+        if idx + 1 < len(parts):
+            return parts[idx + 1 :]
+
+    return parts
 
 
 def _match_entry(
@@ -170,14 +200,23 @@ def compare_entries(state_path: Path, summary_path: Path) -> Tuple[List[EntryCom
         except OSError:
             normalized_selected = selected_path
 
+        selected_key = _path_comparison_key(normalized_selected)
+        original_first_path = original_first.path.resolve(strict=False)
+        original_first_key = _path_comparison_key(original_first_path)
+        priority_first_path = priority_first.path.resolve(strict=False)
+        priority_first_key = _path_comparison_key(priority_first_path)
+
         comparisons.append(
             EntryComparison(
                 entry_index=index,
                 serial=entry_obj.get("serial") if isinstance(entry_obj.get("serial"), int) else None,
                 title=str(entry_obj.get("title") or ""),
                 selected_path=normalized_selected,
-                original_first_path=original_first.path.resolve(strict=False),
-                priority_first_path=priority_first.path.resolve(strict=False),
+                selected_key=selected_key,
+                original_first_path=original_first_path,
+                original_first_key=original_first_key,
+                priority_first_path=priority_first_path,
+                priority_first_key=priority_first_key,
             )
         )
 
@@ -212,10 +251,10 @@ def main() -> None:
             print(f"WARNING: {warning}")
         return
 
-    matches = [item for item in comparisons if item.selected_path == item.original_first_path]
-    diff_entries = [item for item in comparisons if item.selected_path != item.original_first_path]
+    matches = [item for item in comparisons if item.selected_key == item.original_first_key]
+    diff_entries = [item for item in comparisons if item.selected_key != item.original_first_key]
 
-    priority_matches = [item for item in comparisons if item.selected_path == item.priority_first_path]
+    priority_matches = [item for item in comparisons if item.selected_key == item.priority_first_key]
 
     if not args.only_diff:
         print(f"Total comparable entries: {total}")
