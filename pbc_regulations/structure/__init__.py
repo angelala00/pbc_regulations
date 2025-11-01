@@ -50,7 +50,7 @@ SUMMARY_SYSTEM_PROMPT = (
     "\n"
     "请严格遵守以下规则：\n"
     "\n"
-    "1. **只输出一句话摘要**，150 - 200 个字。\n"
+    "1. **只输出一句话摘要**，100 - 150 个字。\n"
     "2. 摘要内容必须能体现该法律的**主要管理对象、主要调整范围或主要适用场景**。\n"
     "3. 不得加入原文以外的推测或背景信息，不得解释目的、背景或历史。\n"
     "4. 不得输出多句，不得换行，不得添加额外说明。\n"
@@ -61,7 +61,7 @@ SUMMARY_SYSTEM_PROMPT = (
     "\n"
     "摘要：XXXXXX。"
 )
-SUMMARY_SYSTEM_PROMPT = ("将下面文件总结成150-200字的摘要")
+# SUMMARY_SYSTEM_PROMPT = ("将下面文件总结成150-200字的摘要")
 
 
 MAX_SUMMARY_SOURCE_CHARS = 4000
@@ -319,8 +319,8 @@ def _normalize_summary_text(raw: str) -> str:
         core = cleaned
     if core == "内容不明确，无法摘要":
         return fallback
-    if len(core) > 30:
-        core = core[:30]
+    # if len(core) > 30:
+    #     core = core[:30]
     if not core:
         return ""
     return f"摘要：{core}。"
@@ -370,7 +370,7 @@ def _populate_missing_summaries(entries: Sequence[Dict[str, Any]], artifact_dir:
         if not text:
             continue
         generated = _summarize_text_with_llm(text)
-        # print(f"====title:{entry.get('title')},generated:{generated}")
+        print(f"====title:{entry.get('title')},generated:{generated}")
         if generated:
             entry["summary"] = generated
 
