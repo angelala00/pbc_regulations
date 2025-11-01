@@ -42,6 +42,7 @@ DEFAULT_STAGE_VALUES: Mapping[str, Any] = {
     "tags": [],
     "number": "",
     "related": [],
+    "document_id": "",
 }
 
 
@@ -141,6 +142,18 @@ def collect_dataset_titles(extract_dir: Path) -> Dict[str, DatasetTitles]:
     return {name: datasets[name] for name in sorted(datasets)}
 
 
+def _extract_document_identifier(entry: Mapping[str, Any]) -> str:
+    """Return a normalized identifier for ``entry`` if available."""
+
+    for key in ("document_id", "documentId", "entry_id", "entryId", "id"):
+        value = entry.get(key)
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped:
+                return stripped
+    return ""
+
+
 def _clean_entry(
     entry: Mapping[str, Any], *, dataset_level: str | None = None
 ) -> Tuple[str, Dict[str, Any]]:
@@ -164,6 +177,13 @@ def _clean_entry(
         data["level"] = dataset_level
     elif "level" not in data or not isinstance(data["level"], str):
         data["level"] = ""
+
+    document_id = _extract_document_identifier(entry)
+    if document_id:
+        data["document_id"] = document_id
+    elif isinstance(data.get("document_id"), str):
+        data["document_id"] = data["document_id"].strip()
+
     return normalized_title, data
 
 
@@ -281,6 +301,20 @@ def _load_entry_text(
     text_path_value = entry.get("text_path")
     if isinstance(text_path_value, str) and text_path_value.strip():
         path_values.append(text_path_value.strip())
+    raw_text_paths = entry.get("_text_paths")
+    if isinstance(raw_text_paths, Sequence):
+        for value in raw_text_paths:
+            if isinstance(value, str) and value.strip():
+                path_values.append(value.strip())
+    text_filename_value = entry.get("text_filename")
+    if isinstance(text_filename_value, str) and text_filename_value.strip():
+        candidate = artifact_dir / "texts" / text_filename_value.strip()
+        path_candidates.append(candidate)
+    text_filenames = entry.get("_text_filenames")
+    if isinstance(text_filenames, Sequence):
+        for value in text_filenames:
+            if isinstance(value, str) and value.strip():
+                path_candidates.append(artifact_dir / "texts" / value.strip())
     for raw_path in path_values:
         candidate = Path(raw_path)
         path_candidates.append(candidate)
@@ -379,6 +413,54 @@ def format_stage_fill_info(entries: Sequence[Mapping[str, Any]]) -> str:
     """Return flattened entries formatted as JSON for the stage fill info step."""
 
     return json.dumps(list(entries), ensure_ascii=False, indent=2)
+
+
+def _index_stage_entries(
+    entries: Sequence[Dict[str, Any]]
+) -> Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]], List[Dict[str, Any]]]:
+    """Index existing stage entries by identifier and normalized title."""
+
+    by_id: Dict[str, Dict[str, Any]] = {}
+    by_title: Dict[str, Dict[str, Any]] = {}
+    remainder: List[Dict[str, Any]] = []
+    for entry in entries:
+        document_id = entry.get("document_id")
+        if isinstance(document_id, str):
+            document_id = document_id.strip()
+        else:
+            document_id = ""
+        if document_id:
+            by_id[document_id] = entry
+            continue
+        title = entry.get("title")
+        normalized_title = normalize_title(title) if isinstance(title, str) else ""
+        if normalized_title:
+            by_title[normalized_title] = entry
+            continue
+        remainder.append(entry)
+    return by_id, by_title, remainder
+
+
+def _sorted_stage_entries(
+    by_id: Mapping[str, Dict[str, Any]],
+    by_title: Mapping[str, Dict[str, Any]],
+    remainder: Sequence[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Return stage entries sorted deterministically for persistence."""
+
+    combined: List[Dict[str, Any]] = []
+    combined.extend(by_id.values())
+    combined.extend(by_title.values())
+    combined.extend(remainder)
+
+    def _sort_key(entry: Mapping[str, Any]) -> Tuple[str, str]:
+        title_value = entry.get("title")
+        normalized_title = normalize_title(title_value) if isinstance(title_value, str) else ""
+        document_id = entry.get("document_id")
+        normalized_id = document_id.strip() if isinstance(document_id, str) else ""
+        return (normalized_title.lower(), normalized_id.lower())
+
+    return sorted(combined, key=_sort_key)
 
 
 def load_stage_fill_info(path: Path) -> List[Dict[str, Any]]:
@@ -582,8 +664,55 @@ def main(argv: Sequence[str] | None = None) -> int:
             default_output = structured_dir / f"stage_fill_info.{args.export}.json"
         else:
             entries = collect_dataset_entries(extract_dir, include_sources=True)
-            _populate_missing_summaries(entries, artifact_dir)
-            output_text = format_stage_fill_info(entries)
+            if default_stage_path.exists():
+                existing_entries = load_stage_fill_info(default_stage_path)
+            else:
+                existing_entries = []
+            indexed_by_id, indexed_by_title, remainder_entries = _index_stage_entries(
+                existing_entries
+            )
+            combined_entries = _sorted_stage_entries(
+                indexed_by_id, indexed_by_title, remainder_entries
+            )
+            if not default_stage_path.exists():
+                default_stage_path.write_text(
+                    json.dumps(combined_entries, ensure_ascii=False, indent=2), "utf-8"
+                )
+
+            for entry in entries:
+                document_id = _extract_document_identifier(entry)
+                raw_title = entry.get("title")
+                normalized_title = (
+                    normalize_title(raw_title) if isinstance(raw_title, str) else ""
+                )
+                if document_id and document_id in indexed_by_id:
+                    print(f"Document {document_id} already processed; skipping.")
+                    continue
+                if (
+                    not document_id
+                    and normalized_title
+                    and normalized_title in indexed_by_title
+                ):
+                    print(f"Document {normalized_title} already processed; skipping.")
+                    continue
+                _populate_missing_summaries([entry], artifact_dir)
+                if document_id:
+                    indexed_by_id[document_id] = entry
+                elif normalized_title:
+                    indexed_by_title[normalized_title] = entry
+                else:
+                    remainder_entries.append(entry)
+                combined_entries = _sorted_stage_entries(
+                    indexed_by_id, indexed_by_title, remainder_entries
+                )
+                default_stage_path.write_text(
+                    json.dumps(combined_entries, ensure_ascii=False, indent=2), "utf-8"
+                )
+
+            combined_entries = _sorted_stage_entries(
+                indexed_by_id, indexed_by_title, remainder_entries
+            )
+            output_text = json.dumps(combined_entries, ensure_ascii=False, indent=2)
             default_output = default_stage_path
     else:
         datasets = collect_dataset_titles(extract_dir)
