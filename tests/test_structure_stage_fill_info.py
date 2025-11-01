@@ -84,6 +84,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert regulation["tags"] == ["账户管理", "反诈", "涉诈治理", "支付安全"]
     assert regulation["number"] == "银发〔2016〕261号"
     assert regulation["related"] == ["银发〔2019〕85号", "银发〔2016〕86号"]
+    assert regulation["document_id"] == ""
     for key in [
         "need_ocr",
         "needs_ocr",
@@ -110,6 +111,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert second["doc_type"] == ""
     assert second["number"] == ""
     assert second["year"] is None
+    assert second["document_id"] == ""
 
     other_entry = by_title["Other"]
     assert other_entry["level"] == "other_dataset"
@@ -120,6 +122,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert other_entry["doc_type"] == ""
     assert other_entry["number"] == ""
     assert other_entry["year"] is None
+    assert other_entry["document_id"] == ""
 
 
 def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
@@ -132,10 +135,19 @@ def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
             "level": "national",
             "reused": False,
             "page_count": 2,
+            "document_id": "demo:1",
         },
-        {"title": "Policy", "level": "updated", "source_type": "demo"},
+        {
+            "title": "Policy",
+            "level": "updated",
+            "source_type": "demo",
+            "id": "demo:1",
+        },
     ]
     _write_extract(extract_dir / "tiaofasi_national_law_extract.json", entries)
+
+    config_path = project_root / "pbc_config.json"
+    config_path.write_text(json.dumps({"artifact_dir": "./files"}), "utf-8")
 
     monkeypatch.setattr(structure, "discover_project_root", lambda: project_root)
 
@@ -161,6 +173,7 @@ def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
     assert policy_entry["doc_type"] == ""
     assert policy_entry["number"] == ""
     assert policy_entry["year"] is None
+    assert policy_entry["document_id"] == "demo:1"
 
     export_result = structure.main(["--stage-fill-info", "--export", "stra_summary"])
     assert export_result == 0
@@ -169,6 +182,63 @@ def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
     export_data = json.loads(export_path.read_text("utf-8"))
     assert isinstance(export_data, list)
     assert export_data == [{"title": "Policy", "summary": "Summary"}]
+
+
+def test_stage_fill_info_resumes_without_duplicates(tmp_path, monkeypatch, capsys):
+    project_root = tmp_path
+    extract_dir = project_root / "files" / "extract_uniq"
+    entries = [
+        {
+            "title": "Policy",
+            "summary": "Summary",
+            "level": "national",
+            "document_id": "demo:resume",
+        }
+    ]
+    _write_extract(extract_dir / "tiaofasi_national_law_extract.json", entries)
+
+    config_path = project_root / "pbc_config.json"
+    config_path.write_text(json.dumps({"artifact_dir": "./files"}), "utf-8")
+
+    monkeypatch.setattr(structure, "discover_project_root", lambda: project_root)
+
+    first_result = structure.main(["--stage-fill-info"])
+    assert first_result == 0
+
+    stage_path = project_root / "files" / "structured" / "stage_fill_info.json"
+    stage_text = stage_path.read_text("utf-8")
+    stage_data = json.loads(stage_text)
+    assert stage_data and len(stage_data) == 1
+    entry = stage_data[0]
+    assert entry["title"] == "Policy"
+    assert entry["summary"] == "Summary"
+    assert entry["level"] == "国家法律"
+    assert entry["category"] == []
+    assert entry["tags"] == []
+    assert entry["related"] == []
+    assert entry["issuer"] == ""
+    assert entry["doc_type"] == ""
+    assert entry["number"] == ""
+    assert entry["year"] is None
+    assert entry["document_id"] == "demo:resume"
+
+    updated_entries = [
+        {
+            "title": "Policy",
+            "summary": "Updated",
+            "level": "national",
+            "document_id": "demo:resume",
+        }
+    ]
+    _write_extract(extract_dir / "tiaofasi_national_law_extract.json", updated_entries)
+
+    second_result = structure.main(["--stage-fill-info"])
+    assert second_result == 0
+
+    assert stage_path.read_text("utf-8") == stage_text
+
+    captured = capsys.readouterr()
+    assert "already processed" in captured.out
 
 
 def test_main_stage_fill_info_generates_summary(tmp_path, monkeypatch):
@@ -188,6 +258,9 @@ def test_main_stage_fill_info_generates_summary(tmp_path, monkeypatch):
         }
     ]
     _write_extract(extract_dir / "tiaofasi_national_law_extract.json", entries)
+
+    config_path = project_root / "pbc_config.json"
+    config_path.write_text(json.dumps({"artifact_dir": "./files"}), "utf-8")
 
     monkeypatch.setattr(structure, "discover_project_root", lambda: project_root)
 
