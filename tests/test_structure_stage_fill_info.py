@@ -84,7 +84,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert regulation["tags"] == ["账户管理", "反诈", "涉诈治理", "支付安全"]
     assert regulation["number"] == "银发〔2016〕261号"
     assert regulation["related"] == ["银发〔2019〕85号", "银发〔2016〕86号"]
-    assert regulation["document_id"] == ""
+    assert "document_id" not in regulation
     for key in [
         "need_ocr",
         "needs_ocr",
@@ -111,7 +111,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert second["doc_type"] == ""
     assert second["number"] == ""
     assert second["year"] is None
-    assert second["document_id"] == ""
+    assert "document_id" not in second
 
     other_entry = by_title["Other"]
     assert other_entry["level"] == "other_dataset"
@@ -122,7 +122,7 @@ def test_collect_dataset_entries_merges_data(tmp_path):
     assert other_entry["doc_type"] == ""
     assert other_entry["number"] == ""
     assert other_entry["year"] is None
-    assert other_entry["document_id"] == ""
+    assert "document_id" not in other_entry
 
 
 def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
@@ -173,7 +173,7 @@ def test_main_stage_fill_info_and_export(tmp_path, monkeypatch):
     assert policy_entry["doc_type"] == ""
     assert policy_entry["number"] == ""
     assert policy_entry["year"] is None
-    assert policy_entry["document_id"] == "demo:1"
+    assert "document_id" not in policy_entry
 
     export_result = structure.main(["--stage-fill-info", "--export", "stra_summary"])
     assert export_result == 0
@@ -220,7 +220,7 @@ def test_stage_fill_info_resumes_without_duplicates(tmp_path, monkeypatch, capsy
     assert entry["doc_type"] == ""
     assert entry["number"] == ""
     assert entry["year"] is None
-    assert entry["document_id"] == "demo:resume"
+    assert "document_id" not in entry
 
     updated_entries = [
         {
