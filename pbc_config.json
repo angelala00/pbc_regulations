@@ -42,9 +42,7 @@
     },
     {
       "name": "scattered",
-      "chinese_name": "零散制度收集",
-      "start_url": "pages/scattered/catelog.json",
-      "parser": "pbc_regulations.crawler.parser_scattered"
+      "chinese_name": "零散制度收集"
     }
   ]
 }
