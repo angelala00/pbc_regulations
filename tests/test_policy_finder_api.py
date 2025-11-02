@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Dict
 
 import pytest
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 
@@ -187,6 +188,25 @@ def policy_app(sample_extract_files, policy_whitelist_path):
     lookup = ClauseLookup(list(extract_paths.values()))
     app = create_app(finder, lookup)
     return app, finder, lookup
+
+
+@pytest.fixture
+def policy_catalog_app(sample_extract_files, policy_whitelist_path, tmp_path, monkeypatch):
+    catalog_payload = {"nodes": [{"id": "demo", "title": "示例"}]}
+    catalog_path = tmp_path / "law.tree.json"
+    catalog_path.write_text(json.dumps(catalog_payload, ensure_ascii=False), "utf-8")
+    monkeypatch.setenv("POLICY_CATALOG_PATH", str(catalog_path))
+
+    extract_paths = sample_extract_files
+    ordered_extract_paths = [
+        str(extract_paths[name])
+        for name in DEFAULT_SEARCH_TASKS
+        if name in extract_paths
+    ]
+    finder = PolicyFinder(*ordered_extract_paths)
+    lookup = ClauseLookup(list(extract_paths.values()))
+    app = create_app(finder, lookup)
+    return app, finder, lookup, catalog_payload
 
 
 def test_get_search_endpoint(policy_api):
@@ -452,3 +472,41 @@ def test_get_duplicate_policy(policy_app):
     assert response.status_code == 200
     data = json.loads(response.body.decode("utf-8"))
     assert data["policy"]["duplicate_of"] == duplicate_entry.duplicate_of
+
+
+def test_policy_catalog_returns_law_tree(policy_catalog_app):
+    app, _finder, _lookup, catalog_payload = policy_catalog_app
+    route = _get_route(app, "/policies/catalog", "GET")
+    response = route.endpoint(view="ai")
+    assert isinstance(response, JSONResponse)
+    assert response.status_code == 200
+    payload = json.loads(response.body.decode("utf-8"))
+    assert payload == catalog_payload
+
+
+def test_policy_catalog_requires_ai_view(policy_catalog_app):
+    app, _finder, _lookup, _payload = policy_catalog_app
+    route = _get_route(app, "/policies/catalog", "GET")
+    with pytest.raises(HTTPException) as exc_info:
+        route.endpoint(view="other")
+    assert exc_info.value.status_code == 400
+    assert exc_info.value.detail == "invalid_view"
+
+
+def test_policy_catalog_missing_file(sample_extract_files, policy_whitelist_path, tmp_path, monkeypatch):
+    missing_path = tmp_path / "missing.json"
+    monkeypatch.setenv("POLICY_CATALOG_PATH", str(missing_path))
+    extract_paths = sample_extract_files
+    ordered_extract_paths = [
+        str(extract_paths[name])
+        for name in DEFAULT_SEARCH_TASKS
+        if name in extract_paths
+    ]
+    finder = PolicyFinder(*ordered_extract_paths)
+    lookup = ClauseLookup(list(extract_paths.values()))
+    app = create_app(finder, lookup)
+    route = _get_route(app, "/policies/catalog", "GET")
+    with pytest.raises(HTTPException) as exc_info:
+        route.endpoint(view="ai")
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "catalog_not_found"
