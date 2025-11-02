@@ -330,9 +330,10 @@ def _summarize_text_with_llm(text: str) -> Optional[str]:
         response = client.chat.completions.create(
             model=settings.LEGAL_SEARCH_MODEL_NAME,
             messages=messages_tmp,
-            temperature=0.0,
+            temperature=1,
         )
-    except Exception:
+    except Exception as e:
+        print(f"Exception:{e}")
         return None
     choices = getattr(response, "choices", None)
     if not choices:

@@ -13,6 +13,7 @@ python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normati
 
 ### structure
 python -m pbc_regulations.structure --stage-fill-info
+python -m pbc_regulations.structure --stage-output --format summary-only
 
 
 ### Unified portal
