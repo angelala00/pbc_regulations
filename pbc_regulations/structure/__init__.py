@@ -523,20 +523,54 @@ def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
     return "\n".join(lines)
 
 
-def format_json(datasets: Mapping[str, DatasetTitles]) -> str:
-    """Return dataset titles formatted as JSON grouped by predefined categories."""
+def _build_stage_tree(entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
+    """Return a tree structure grouped by level for ``entries``."""
 
-    grouped = {
-        name: [
-            {
-                "title": title,
-                "summary": "",
-            }
-            for title in titles
-        ]
-        for name, titles in build_grouped_titles(datasets)
+    ordered_levels = [category_name for category_name, _ in CATEGORY_ORDER]
+    grouped: Dict[str, List[Dict[str, str]]] = {
+        level: [] for level in ordered_levels
     }
-    return json.dumps(grouped, ensure_ascii=False, indent=2)
+    extra_levels: Dict[str, List[Dict[str, str]]] = {}
+
+    for entry in entries:
+        title_value = entry.get("title") if isinstance(entry.get("title"), str) else ""
+        normalized_title = normalize_title(title_value) if title_value else ""
+        if not normalized_title:
+            continue
+        summary_value = entry.get("summary") if isinstance(entry.get("summary"), str) else ""
+        summary = summary_value.strip()
+        level_value = entry.get("level") if isinstance(entry.get("level"), str) else ""
+
+        target = grouped.get(level_value)
+        node = {"title": normalized_title, "summary": summary}
+        if target is not None:
+            target.append(node)
+            continue
+
+        fallback_key = level_value if level_value else "其他"
+        bucket = extra_levels.setdefault(fallback_key, [])
+        bucket.append(node)
+
+    def _sort_nodes(nodes: List[Dict[str, str]]) -> None:
+        nodes.sort(key=lambda item: item["title"].lower())
+
+    for values in grouped.values():
+        _sort_nodes(values)
+    for values in extra_levels.values():
+        _sort_nodes(values)
+
+    children: List[Dict[str, Any]] = []
+    for level in ordered_levels:
+        nodes = grouped[level]
+        if nodes:
+            children.append({"name": level, "children": nodes})
+
+    for level in sorted(extra_levels):
+        nodes = extra_levels[level]
+        if nodes:
+            children.append({"name": level, "children": nodes})
+
+    return {"name": ".", "children": children}
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -564,14 +598,21 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--format",
-        choices=("tree", "json"),
+        choices=("tree", "summary-only"),
         default="tree",
-        help="Output format: tree (default) or json.",
+        help=(
+            "Output format: tree (default). Use summary-only together with --stage-output."
+        ),
     )
     parser.add_argument(
         "--stage-fill-info",
         action="store_true",
         help="Generate structured JSON containing full entry information.",
+    )
+    parser.add_argument(
+        "--stage-output",
+        action="store_true",
+        help="Generate aggregated tree output from stage fill info data.",
     )
     parser.add_argument(
         "--export",
@@ -595,6 +636,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit(f"Extract directory not found: {extract_dir}")
     structured_dir = artifact_dir / "structured"
     structured_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.stage_fill_info and args.stage_output:
+        raise SystemExit("--stage-fill-info cannot be combined with --stage-output")
 
     if args.stage_fill_info:
         default_stage_path = structured_dir / "stage_fill_info.json"
@@ -648,14 +692,24 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             output_text = json.dumps(combined_entries, ensure_ascii=False, indent=2)
             default_output = default_stage_path
+    elif args.stage_output:
+        if args.format != "summary-only":
+            raise SystemExit("--stage-output currently supports only --format summary-only")
+        stage_path = (
+            args.input if args.input is not None else structured_dir / "stage_fill_info.json"
+        )
+        if not stage_path.exists():
+            raise SystemExit(f"Stage fill info file not found: {stage_path}")
+        entries = load_stage_fill_info(stage_path)
+        tree = _build_stage_tree(entries)
+        output_text = json.dumps(tree, ensure_ascii=False, indent=2)
+        default_output = structured_dir / "law.tree.json"
     else:
         datasets = collect_dataset_titles(extract_dir)
-        if args.format == "json":
-            output_text = format_json(datasets)
-            default_output = structured_dir / "law.tree.json"
-        else:
-            output_text = format_tree(datasets)
-            default_output = structured_dir / "law.tree.txt"
+        if args.format != "tree":
+            raise SystemExit("--format summary-only must be used with --stage-output")
+        output_text = format_tree(datasets)
+        default_output = structured_dir / "law.tree.txt"
     output_path = args.output if args.output is not None else default_output
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(output_text, "utf-8")
