@@ -22,7 +22,7 @@
 
 ### 门户与前端层
 - **`portal/`**：整合命令行入口与 Web 服务。CLI 加载任务配置、准备检索与可用的扩展路由，并通过 FastAPI 组合仪表盘、搜索及其它 API，专注于聚合能力而不介入抓取或抽取细节。【F:pbc_regulations/portal/cli.py†L1-L193】【F:pbc_regulations/portal/dashboard_data.py†L1-L152】
-- **`web/`**：纯前端静态资源，为门户仪表盘及 API Explorer 提供界面模板与交互脚本，可由任意静态服务器托管，无需 Python 依赖。【F:pbc_regulations/web/index.html†L1-L106】
+- **`portal/web/`**：纯前端静态资源，为门户仪表盘及 API Explorer 提供界面模板与交互脚本，可由任意静态服务器托管，无需 Python 依赖。【F:pbc_regulations/portal/web/index.html†L1-L106】
 
 ### 层间依赖原则
 1. 基础设施层被所有上层复用，确保命名与路径策略统一。

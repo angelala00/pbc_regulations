@@ -12,18 +12,18 @@ if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
     from pbc_regulations.portal.dashboard_data import TaskOverview
 
 
-WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+WEB_DIR = Path(__file__).resolve().parent / "web"
 
 
 def _load_template(filename: str) -> str:
     if not WEB_DIR.is_dir():
         raise FileNotFoundError(
-            "The web directory does not exist. Expected frontend assets in 'web/'."
+            "The web directory does not exist. Expected frontend assets in 'portal/web/'."
         )
     template_path = WEB_DIR / filename
     if not template_path.is_file():
         raise FileNotFoundError(
-            f"The dashboard front-end template 'web/{filename}' was not found."
+            f"The dashboard front-end template 'portal/web/{filename}' was not found."
         )
     return template_path.read_text(encoding="utf-8")
 
