@@ -77,19 +77,6 @@
         "Append one or more slugs with the ?slugs= parameter. Repeat the parameter or provide a comma-separated list.",
       body: "",
     },
-    {
-      id: "knowledge-query-post",
-      name: "Knowledge query",
-      method: "POST",
-      path: "/api/knowledge/query",
-      description:
-        "Query the mock knowledge dictionary by supplying one or more keys.",
-      query: "",
-      hint:
-        "Provide a JSON body with key_list, key, or keys fields. Values can repeat or use comma-separated strings.",
-      body: '{"key_list": ["数字人民币监管", "合规"]}',
-      headers: "{}",
-    },
   ];
 
   if (shouldIncludePolicyFinderEndpoints) {

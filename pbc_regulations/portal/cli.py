@@ -46,18 +46,6 @@ from pbc_regulations.searcher.task_constants import (
 DEFAULT_SEARCH_TOPK = 5
 MAX_SEARCH_TOPK = 50
 
-# The knowledge package was removed, but keep portal import compatibility.
-try:  # pragma: no cover - import guarded for optional dependency
-    from pbc_regulations.knowledge.api import create_knowledge_router as _create_knowledge_router
-except ModuleNotFoundError as exc:  # pragma: no cover - defensive import guard
-    _create_knowledge_router = None
-    _KNOWLEDGE_IMPORT_ERROR: Optional[BaseException] = exc
-except Exception as exc:  # pragma: no cover - defensive import guard
-    _create_knowledge_router = None
-    _KNOWLEDGE_IMPORT_ERROR = exc
-else:
-    _KNOWLEDGE_IMPORT_ERROR = None
-
 _SEARCH_TASK_DEFINITIONS = [
     {
         "name": ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS,
@@ -299,21 +287,6 @@ def _serve_portal(
         search_config_payload["reason"] = search_reason
 
     extra_routers: List[Tuple[object, Dict[str, Any]]] = []
-
-    if _create_knowledge_router is None:
-        if _KNOWLEDGE_IMPORT_ERROR is not None:
-            print(
-                "Knowledge API router unavailable: "
-                f"{_KNOWLEDGE_IMPORT_ERROR}",
-                file=sys.stderr,
-            )
-    else:
-        try:
-            knowledge_router = _create_knowledge_router()
-        except Exception as exc:  # pragma: no cover - defensive to avoid breaking the portal
-            print(f"Failed to initialize knowledge API router: {exc}", file=sys.stderr)
-        else:
-            extra_routers.append((knowledge_router, {"prefix": ""}))
 
     try:
         legal_search_router = create_legal_search_router()
