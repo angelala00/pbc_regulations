@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, Response
+
+from pbc_regulations.config_paths import discover_project_root, resolve_artifact_dir
 
 from .clause_lookup import ClauseLookup
 from .clause_queries import (
@@ -27,6 +31,9 @@ ParseSearchParams = Callable[..., Tuple[str, int, bool]]
 SearchPayloadBuilder = Callable[[PolicyFinder, str, int, bool], Dict[str, Any]]
 BadRequestFactory = Callable[[str], JSONResponse]
 FinderDependency = Callable[..., PolicyFinder]
+
+_POLICY_CATALOG_ENV_VAR = "POLICY_CATALOG_PATH"
+_POLICY_CATALOG_FILENAME = "law.tree.json"
 
 LOGGER = logging.getLogger("searcher.api")
 
@@ -53,6 +60,7 @@ def create_routes(
     bad_request: Optional[BadRequestFactory] = None,
     clause_lookup_dependency: Optional[Callable[..., Optional[ClauseLookup]]] = None,
     policy_whitelist_path: Optional[Path] = None,
+    policy_catalog_path: Optional[Path] = None,
 ) -> APIRouter:
     """Return a router exposing policy search and catalog endpoints."""
 
@@ -65,6 +73,17 @@ def create_routes(
     )
 
     entry_cache = PolicyEntryCache()
+
+    if policy_catalog_path is not None:
+        resolved_catalog_path = Path(policy_catalog_path)
+    else:
+        env_catalog = os.environ.get(_POLICY_CATALOG_ENV_VAR, "").strip()
+        if env_catalog:
+            resolved_catalog_path = Path(env_catalog).expanduser()
+        else:
+            project_root = discover_project_root()
+            artifact_dir = resolve_artifact_dir(project_root)
+            resolved_catalog_path = artifact_dir / "structured" / _POLICY_CATALOG_FILENAME
 
     def _default_bad_request(message: str) -> JSONResponse:
         LOGGER.debug("Bad request: %s", message)
@@ -95,7 +114,7 @@ def create_routes(
         ) -> ClauseLookup:
             return lookup
 
-    available_endpoints = ["/policies", "/policies/{policy_id}", "/clause"]
+    available_endpoints = ["/policies", "/policies/{policy_id}", "/policies/catalog", "/clause"]
     search_routes_enabled = parse_search_params is not None and search_payload_builder is not None
 
     if search_routes_enabled:
@@ -218,6 +237,33 @@ def create_routes(
             payload["scope"] = effective_scope
         if query:
             payload["query"] = query
+        return JSONResponse(status_code=200, content=payload)
+
+    @router.get("/policies/catalog")
+    def get_policy_catalog(view: Optional[str] = Query(None)) -> JSONResponse:
+        normalized_view = (view or "").strip().lower()
+        if normalized_view != "ai":
+            raise HTTPException(status_code=400, detail="invalid_view")
+        try:
+            with resolved_catalog_path.open("r", encoding="utf-8") as handle:
+                payload = json.load(handle)
+        except FileNotFoundError as exc:
+            LOGGER.warning("Policy catalog file not found at %s", resolved_catalog_path)
+            raise HTTPException(status_code=404, detail="catalog_not_found") from exc
+        except json.JSONDecodeError as exc:
+            LOGGER.error(
+                "Failed to decode policy catalog JSON from %s: %s",
+                resolved_catalog_path,
+                exc,
+            )
+            raise HTTPException(status_code=500, detail="catalog_invalid") from exc
+        except Exception as exc:  # pragma: no cover - defensive branch
+            LOGGER.error(
+                "Unexpected error while loading policy catalog from %s: %s",
+                resolved_catalog_path,
+                exc,
+            )
+            raise HTTPException(status_code=500, detail="catalog_unavailable") from exc
         return JSONResponse(status_code=200, content=payload)
 
     @router.get("/policies/{policy_id}")
