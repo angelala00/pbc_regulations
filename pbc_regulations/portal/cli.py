@@ -26,7 +26,6 @@ from pbc_regulations.portal.dashboard_app import (
     create_dashboard_app,
     uvicorn,
 )
-from pbc_regulations.asker.api import create_asker_router
 from pbc_regulations.agents.legal_search.api import create_legal_search_router
 from pbc_regulations.searcher.api_server import create_routes
 from pbc_regulations.searcher.clause_lookup import ClauseLookup
@@ -315,13 +314,6 @@ def _serve_portal(
             print(f"Failed to initialize knowledge API router: {exc}", file=sys.stderr)
         else:
             extra_routers.append((knowledge_router, {"prefix": ""}))
-
-    try:
-        asker_router = create_asker_router()
-    except Exception as exc:  # pragma: no cover - defensive to keep the portal usable
-        print(f"Failed to initialize asker API router: {exc}", file=sys.stderr)
-    else:
-        extra_routers.append((asker_router, {"prefix": ""}))
 
     try:
         legal_search_router = create_legal_search_router()

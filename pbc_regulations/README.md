@@ -19,7 +19,6 @@
 
 ### 知识与检索服务层
 - **（已移除）`knowledge/`**：原提供基于 JSON 词典的知识查询 API，现已下线，门户保持兼容性以在缺少该服务时继续运行。
-- **`asker/`**：承载智能问答逻辑，对外提供单轮制度问答和多轮会话式问答两个接口，当前实现返回模拟结果并保持轻量会话状态，后续可平滑替换为真实模型服务。【F:pbc_regulations/asker/api.py†L1-L106】
 - **`searcher/`**：实现政策全文检索与条款定位。`policy_finder` 负责载入抽取结果并进行评分、条款解析；`api_server` 基于 FastAPI 暴露检索接口，并复用配置解析与任务常量等基础设施能力，以供门户或外部系统调用。【F:pbc_regulations/searcher/policy_finder.py†L1-L55】【F:pbc_regulations/searcher/api_server.py†L1-L59】【F:pbc_regulations/searcher/task_constants.py†L1-L28】
 
 ### 门户与前端层

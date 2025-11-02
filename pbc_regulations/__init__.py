@@ -5,10 +5,10 @@ from __future__ import annotations
 import importlib
 from typing import TYPE_CHECKING, Any
 
-__all__ = ["asker", "icrawler", "extractor", "searcher", "scripts", "web"]
+__all__ = ["icrawler", "extractor", "searcher", "scripts", "web"]
 
 if TYPE_CHECKING:  # pragma: no cover
-    from . import asker, extractor, icrawler, scripts, searcher, web  # noqa: F401
+    from . import extractor, icrawler, scripts, searcher, web  # noqa: F401
 
 
 def __getattr__(name: str) -> Any:
