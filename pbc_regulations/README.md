@@ -18,12 +18,12 @@
 - **`extractor/`**：围绕去重后的 state 文件生成正文与摘要。`text_pipeline` 描述 Word/PDF/HTML 的通用抽取流程，`stage_extract` 串联唯一索引、进度回写与摘要输出，显式依赖领域模型而与爬虫解耦，可作为独立清洗阶段运行。【F:pbc_regulations/extractor/__init__.py†L1-L26】【F:pbc_regulations/extractor/text_pipeline.py†L1-L52】【F:pbc_regulations/extractor/stage_extract.py†L1-L198】
 
 ### 知识与检索服务层
-- **`knowledge/`**：提供基于 JSON 词典的知识查询 API，内建 API key 校验，为门户知识问答路由提供可独立部署的后端。【F:pbc_regulations/knowledge/api.py†L1-L85】
+- **（已移除）`knowledge/`**：原提供基于 JSON 词典的知识查询 API，现已下线，门户保持兼容性以在缺少该服务时继续运行。
 - **`asker/`**：承载智能问答逻辑，对外提供单轮制度问答和多轮会话式问答两个接口，当前实现返回模拟结果并保持轻量会话状态，后续可平滑替换为真实模型服务。【F:pbc_regulations/asker/api.py†L1-L106】
 - **`searcher/`**：实现政策全文检索与条款定位。`policy_finder` 负责载入抽取结果并进行评分、条款解析；`api_server` 基于 FastAPI 暴露检索接口，并复用配置解析与任务常量等基础设施能力，以供门户或外部系统调用。【F:pbc_regulations/searcher/policy_finder.py†L1-L55】【F:pbc_regulations/searcher/api_server.py†L1-L59】【F:pbc_regulations/searcher/task_constants.py†L1-L28】
 
 ### 门户与前端层
-- **`portal/`**：整合命令行入口与 Web 服务。CLI 加载任务配置、准备检索与知识路由，并通过 FastAPI 组合仪表盘、搜索、知识 API，专注于聚合能力而不介入抓取或抽取细节。【F:pbc_regulations/portal/cli.py†L1-L193】【F:pbc_regulations/portal/dashboard_data.py†L1-L152】
+- **`portal/`**：整合命令行入口与 Web 服务。CLI 加载任务配置、准备检索与可用的扩展路由，并通过 FastAPI 组合仪表盘、搜索及其它 API，专注于聚合能力而不介入抓取或抽取细节。【F:pbc_regulations/portal/cli.py†L1-L193】【F:pbc_regulations/portal/dashboard_data.py†L1-L152】
 - **`web/`**：纯前端静态资源，为门户仪表盘及 API Explorer 提供界面模板与交互脚本，可由任意静态服务器托管，无需 Python 依赖。【F:pbc_regulations/web/index.html†L1-L106】
 
 ### 层间依赖原则
@@ -38,7 +38,7 @@
 - 门户层对爬虫的调用已全面通过公开 API (`prepare_tasks`、`prepare_task_layout`、`prepare_http_options`、`prepare_cache_behavior` 等) 完成，并使用 `TaskConfigurationError` 统一异常语义，消除了对私有实现的依赖。【F:pbc_regulations/crawler/runner.py†L1-L208】【F:pbc_regulations/portal/dashboard_data.py†L1-L152】
 - `crawler.pbc_monitor` 现暴露 `load_parser_module`、`set_parser_module`、`listing_cache_is_fresh` 等显式接口，门户模块改为调用这些稳定入口且使用自身 logger，避免对爬虫全局状态的耦合。【F:pbc_regulations/crawler/pbc_monitor.py†L1-L80】【F:pbc_regulations/portal/dashboard_rendering.py†L1-L129】
 - 抽取层 (`extractor/stage_dedupe.py`) 复用 `utils.policy_entries` 的领域函数（如 `norm_text`、`extract_docno`、`guess_doctype`、`guess_agency`、`pick_best_path`、`tokenize_zh`、`is_probable_policy`），统一维护领域规则，避免跨层语义漂移。【F:pbc_regulations/extractor/stage_dedupe.py†L1-L210】【F:pbc_regulations/utils/policy_entries.py†L1-L275】
-- 其余目录（`knowledge/`、`searcher/`、`portal/cli.py` 等）维持只依赖允许的下层模块，未发现新的越层调用或循环依赖。【F:pbc_regulations/knowledge/api.py†L1-L85】【F:pbc_regulations/searcher/api_server.py†L1-L59】【F:pbc_regulations/portal/cli.py†L1-L193】
+- 其余目录（如 `searcher/`、`portal/cli.py` 等）维持只依赖允许的下层模块，未发现新的越层调用或循环依赖。【F:pbc_regulations/searcher/api_server.py†L1-L59】【F:pbc_regulations/portal/cli.py†L1-L193】
 
 ### 后续建议
 - 为新增的 runner API 与 parser 管理函数补充文档，明确外部可依赖的稳定契约，方便 CLI、门户或服务层共享。
