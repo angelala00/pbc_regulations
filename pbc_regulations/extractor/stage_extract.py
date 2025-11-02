@@ -7,7 +7,7 @@ from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
-from pbc_regulations.common.policy_entries import load_entries
+from pbc_regulations.utils.policy_entries import load_entries
 from pbc_regulations.extractor.text_pipeline import EntryTextRecord, ProcessReport
 from pbc_regulations.extractor.uniq_index import build_state_lookup, load_records_from_directory
 

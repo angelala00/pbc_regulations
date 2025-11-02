@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional,
 
 from pbc_regulations.utils.paths import relativize_artifact_payload
 
-from pbc_regulations.common.policy_entries import (
+from pbc_regulations.utils.policy_entries import (
     SEARCH_TASK_PRIORITY,
     extract_docno,
     guess_agency,

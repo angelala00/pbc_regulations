@@ -22,7 +22,7 @@ import xml.etree.ElementTree as ET
 
 from bs4 import BeautifulSoup
 
-from pbc_regulations.common.policy_entries import (
+from pbc_regulations.utils.policy_entries import (
     Entry,
     extract_docno,
     guess_agency,

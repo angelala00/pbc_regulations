@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
-from pbc_regulations.utils import canonicalize_task_name
+from .tasks import canonicalize_task_name
 
 STOPWORDS = {
     "关于",
