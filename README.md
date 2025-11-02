@@ -21,6 +21,7 @@ python -m pbc_regulations --host 0.0.0.0 --port 8000
 
 
 
+http://localhost:8000/api/policies/catalog?view=ai
 http://localhost:8000/api/policies
 http://localhost:8000/api/policies?scope=all
 http://localhost:8000/api/policies/中华人民共和国反洗钱法?include=meta
