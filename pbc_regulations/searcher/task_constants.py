@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from pbc_regulations.common.policy_entries import (
+from pbc_regulations.utils.policy_entries import (
     SEARCH_TASK_PRIORITY as _COMMON_SEARCH_TASK_PRIORITY,
 )
 
