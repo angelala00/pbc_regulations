@@ -90,44 +90,6 @@
       body: '{"key_list": ["数字人民币监管", "合规"]}',
       headers: "{}",
     },
-    {
-      id: "asker-institution",
-      name: "Asker institution",
-      method: "POST",
-      path: "/api/asker/institution",
-      description:
-        "Submit a single-turn question to the mocked institution asker service.",
-      query: "",
-      hint:
-        "Provide a JSON body with the question field and optionally policy_hint for additional guidance.",
-      body: '{"question": "数字人民币监管的主要政策有哪些？", "policy_hint": "央行相关法规"}',
-      headers: "{\"Content-Type\": \"application/json\"}",
-    },
-    {
-      id: "asker-institution-session",
-      name: "Asker institution (session)",
-      method: "POST",
-      path: "/api/asker/institution/session",
-      description:
-        "Continue a multi-turn institution conversation or start a new session.",
-      query: "",
-      hint:
-        "Include message and optionally session_id or policy_hint. Omit session_id to begin a new session.",
-      body: '{"message": "继续介绍近期的监管动态", "session_id": "session-123"}',
-      headers: "{\"Content-Type\": \"application/json\"}",
-    },
-    {
-      id: "asker-legal",
-      name: "Asker legal",
-      method: "POST",
-      path: "/api/asker/legal",
-      description:
-        "Retrieve a drafted legal style answer with references using the legal asker endpoint.",
-      query: "",
-      hint: "Send the legal question in the question field of the JSON payload.",
-      body: '{"question": "数字人民币个人钱包有哪些合规要求？"}',
-      headers: "{\"Content-Type\": \"application/json\"}",
-    },
   ];
 
   if (shouldIncludePolicyFinderEndpoints) {
