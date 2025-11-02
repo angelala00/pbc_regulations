@@ -525,7 +525,7 @@ def format_tree(datasets: Mapping[str, DatasetTitles]) -> str:
 
 
 def _build_stage_tree(entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
-    """Return a tree structure grouped by level for ``entries``."""
+    """Return a mapping of grouped titles keyed by level for ``entries``."""
 
     ordered_levels = [category_name for category_name, _ in CATEGORY_ORDER]
     grouped: Dict[str, List[Dict[str, str]]] = {
@@ -560,18 +560,18 @@ def _build_stage_tree(entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
     for values in extra_levels.values():
         _sort_nodes(values)
 
-    children: List[Dict[str, Any]] = []
+    children: Dict[str, List[Dict[str, str]]] = {}
     for level in ordered_levels:
         nodes = grouped[level]
         if nodes:
-            children.append({"name": level, "children": nodes})
+            children[level] = nodes
 
     for level in sorted(extra_levels):
         nodes = extra_levels[level]
         if nodes:
-            children.append({"name": level, "children": nodes})
+            children[level] = nodes
 
-    return {"name": ".", "children": children}
+    return children
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -613,7 +613,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--stage-output",
         action="store_true",
-        help="Generate aggregated tree output from stage fill info data.",
+        help="Generate aggregated summary output from stage fill info data.",
     )
     parser.add_argument(
         "--export",
