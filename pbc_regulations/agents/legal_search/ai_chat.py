@@ -18,7 +18,6 @@ _OPENAI_AGENT_PROMPTS: Dict[str, str] = {
     "supervision-ai": _GENERIC_ASSISTANT_PROMPT,
     "report-handling": _GENERIC_ASSISTANT_PROMPT,
     "inspection-management": _GENERIC_ASSISTANT_PROMPT,
-    "case-knowledge": _GENERIC_ASSISTANT_PROMPT,
     "legal-qa": _GENERIC_ASSISTANT_PROMPT,
 }
 
