@@ -5,7 +5,7 @@ import time
 import uuid
 
 from ...settings import LEGAL_SEARCH_API_KEY, LEGAL_SEARCH_BASE_URL
-from .tool_register import dispatch_tool
+from .tool_register import dispatch_tool, _TOOL_DESC_DICT
 
 
 match_history = {}
@@ -143,6 +143,7 @@ async def chat_with_react_as_function_call(
                                             chunk=chunk,
                                             tool_call_id=tool_call_id,
                                             name=tool_name,
+                                            desc=_TOOL_DESC_DICT['regulationassistant'][tool_name]['desc']
                                         )
 
                                         if args_delta:
@@ -151,6 +152,7 @@ async def chat_with_react_as_function_call(
                                                 chunk=chunk,
                                                 tool_call_id=tool_call_id,
                                                 args_delta=args_delta,
+                                                desc=str(_TOOL_DESC_DICT['regulationassistant'][tool_name]['desc'])+str(args_delta)
                                             )
 
                                         start_ts = time.time()
@@ -296,6 +298,7 @@ async def chat_with_react_as_function_call(
         print(f"调用失败，conversation_id:{conversation_id}, e:{e}")
         raise
     finally:
+        print(f"sum_content2:{sum_content}")
         print(f"调用完成，conversation_id:{conversation_id}")
 
 def save_match_history():

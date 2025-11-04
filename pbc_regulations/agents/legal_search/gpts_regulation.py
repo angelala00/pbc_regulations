@@ -10,7 +10,7 @@ BASE_URL = "http://localhost:8000"
 
 gpts_id = "regulationassistant"
 
-@register_tool(gpts_id)
+@register_tool(gpts_id,desc="正在检索法律目录")
 async def fetch_document_catalog() -> str:
     """
     获取全部制度文档目录信息。读取指定文档前可以先检索目录来判断应该查询哪个具体的文档。
@@ -47,7 +47,7 @@ async def fetch_document_catalog() -> str:
         return f"发生错误：{exc}"
 
 
-@register_tool(gpts_id)
+@register_tool(gpts_id, desc="正在阅读法律")
 async def fetch_document_content(
         file_names: (List[str], '需要获取的制度文件名称列表', True)
 ) -> str:

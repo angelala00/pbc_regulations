@@ -8,11 +8,13 @@ ToolFn = Callable[..., Union[Any, Awaitable[Any]]]
 
 _TOOL_HOOKS = {}
 _TOOL_DESCRIPTIONS: Dict[str, List[dict]] = defaultdict(list)
+_TOOL_DESC_DICT: Dict[str, Dict[str,dict]] = defaultdict(dict)
 
 
 def register_tool(
         arg: Optional[Union[str, ToolFn]] = None, /, *,
         name: Optional[str] = None,
+        desc: Optional[str] = None,
         group: Optional[str] = None,
         groups: Optional[Iterable[str]] = None,
 ):
@@ -75,7 +77,8 @@ def register_tool(
         print(f"[registered tool] [{str(tool_def)}]")
         for g in group_set:
             print(f"to [{g}]")
-            _TOOL_DESCRIPTIONS[g].append({"type": "function", "function": tool_def})
+            _TOOL_DESCRIPTIONS[g].append({"type": "function", "function": tool_def, "desc": desc})
+            _TOOL_DESC_DICT[g][tool_name] = {"desc": desc}
         return func
 
     if callable(arg) and not isinstance(arg, str):
@@ -87,6 +90,7 @@ async def dispatch_tool(tool_name: str, tool_params: dict) -> str:
     if tool_name not in _TOOL_HOOKS:
         return f"Tool `{tool_name}` not found. Please use a provided tool."
     tool_call = _TOOL_HOOKS[tool_name]
+    # print(f"tool_calltool_calltool_calltool_call:{tool_call}")
     try:
         ret = await tool_call(**tool_params)
     except:

@@ -12,9 +12,10 @@ else:
     from .gpts_regulation import gpts_id
     from .agent_chat_core import chat_with_react_as_function_call
     from ...settings import LEGAL_SEARCH_MODEL_NAME
+    from .tool_register import get_tools,_TOOL_DESC_DICT
 
 SYSTEM_PROMPT = """
-            你是一个法律法规问答助手，针对用户的提问精准的找到相当的法律法规条款，依据的是工具调用返回的信息。
+            你是一个法律法规问答助手，针对用户的提问精准的找到相关的法律法规条款，依据的是工具调用返回的信息。
             【工具定义】
                 １、工具名称：fetch_document_catalog。
                     描述：获取全部法律法规文档目录信息。读取指定文档前可以先检索目录来判断应该查询哪个具体的法律。
@@ -39,8 +40,8 @@ SYSTEM_PROMPT = """
                 返回 JSON 格式示例（如工具无参数，arguments可为空）:
                     ```json{{
                         "policies": [{{
-                            "title":"",
-                            "clause":""
+                            "title":"title",
+                            "clause":"第n条 内容简述"
                         }}]
                     }}
                     ```
@@ -84,3 +85,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     main()
+
+print(f"get_tools:{get_tools('regulationassistant')}")
+
+print(f"_TOOL_DESC_DICT:{_TOOL_DESC_DICT['regulationassistant']['fetch_document_catalog']}")
