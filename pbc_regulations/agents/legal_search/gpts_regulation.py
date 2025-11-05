@@ -10,7 +10,7 @@ BASE_URL = "http://localhost:8000"
 
 gpts_id = "regulationassistant"
 
-@register_tool(gpts_id,desc="正在查看法律目录",ing_desc="",end_desc="")
+@register_tool(gpts_id,desc="查看法律目录",ing_desc="",end_desc="")
 async def fetch_document_catalog() -> str:
     """
     获取全部制度文档目录信息。读取指定文档前可以先检索目录来判断应该查询哪个具体的文档。
@@ -56,8 +56,8 @@ def extract_file_names(result: str) -> List[str]:
     pattern = r"(.*?)的内容(?:获取失败)?:"
     return [m.strip() for m in re.findall(pattern, result) if m.strip()]
 
-@register_tool(gpts_id, desc="正在查法律",ing_desc="",
-    end_desc=lambda result: "正在阅读法律 " + "、".join(extract_file_names(result or "")),
+@register_tool(gpts_id, desc="查询法律原文",ing_desc="",
+    end_desc=lambda result: "我需要仔细阅读法律 " + "、".join(extract_file_names(result or "")),
 )
 async def fetch_document_content(
         file_ids: (List[str], '需要获取的制度文件ID列表', True)
