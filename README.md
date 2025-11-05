@@ -5,7 +5,7 @@
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --cache-start-page
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --cache-listing --refresh-pages
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --build-page-structure
-python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --download-from-structure --verify-local
+python -m pbc_regulations.crawler --task scattered --download-from-structure --verify-local
 
 ### Policy text extractor
 python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
