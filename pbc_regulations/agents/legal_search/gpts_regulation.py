@@ -71,9 +71,9 @@ async def fetch_document_content(
 
         async with httpx.AsyncClient(timeout=60.0, trust_env=False) as client:
             contents: List[str] = []
-            for file_name in file_ids:
-                encoded_name = quote(file_name, safe="")
-                url = f"{BASE_URL}/api/policies/{encoded_name}"
+            for file_id in file_ids:
+                encoded_id = quote(file_id, safe="")
+                url = f"{BASE_URL}/api/policies/{encoded_id}"
                 params = {"include": "text"}
                 try:
                     response = await client.get(url, params=params)
