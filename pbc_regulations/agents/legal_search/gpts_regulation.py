@@ -57,7 +57,7 @@ def extract_file_names(result: str) -> List[str]:
     return [m.strip() for m in re.findall(pattern, result) if m.strip()]
 
 @register_tool(gpts_id, desc="正在查法律",ing_desc="",
-    end_desc=lambda result: "正在阅读法律" + "、".join(extract_file_names(result or "")),
+    end_desc=lambda result: "正在阅读法律 " + "、".join(extract_file_names(result or "")),
 )
 async def fetch_document_content(
         file_ids: (List[str], '需要获取的制度文件ID列表', True)
@@ -69,9 +69,25 @@ async def fetch_document_content(
         if not file_ids:
             return "未提供需要获取的制度文件ID"
 
+        id_to_name = {}
+        try:
+            catalog_raw = await fetch_document_catalog()
+            catalog_entries = json.loads(catalog_raw)
+            if isinstance(catalog_entries, list):
+                for entry in catalog_entries:
+                    if isinstance(entry, dict):
+                        entry_id = entry.get("id")
+                        entry_title = entry.get("title")
+                        if isinstance(entry_id, str) and isinstance(entry_title, str):
+                            id_to_name[entry_id] = entry_title
+        except Exception as exc:
+            # 目录解析失败时退化为使用ID作为名称
+            print(f"解析目录失败：{exc}")
+
         async with httpx.AsyncClient(timeout=60.0, trust_env=False) as client:
             contents: List[str] = []
             for file_id in file_ids:
+                file_name = id_to_name.get(file_id, file_id)
                 encoded_id = quote(file_id, safe="")
                 url = f"{BASE_URL}/api/policies/{encoded_id}"
                 params = {"include": "text"}
