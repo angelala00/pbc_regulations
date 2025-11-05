@@ -152,7 +152,7 @@ async def chat_with_react_as_function_call(
                                                 chunk=chunk,
                                                 tool_call_id=tool_call_id,
                                                 args_delta=args_delta,
-                                                desc=str(_TOOL_DESC_DICT['regulationassistant'][tool_name]['desc'])+str(args_delta)
+                                                desc=str(_TOOL_DESC_DICT['regulationassistant'][tool_name]['ing_desc']).format(**raw_arguments)
                                             )
 
                                         start_ts = time.time()
@@ -182,6 +182,13 @@ async def chat_with_react_as_function_call(
                                             )
                                         latency_ms = int((time.time() - start_ts) * 1000)
                                         sanitized_output = normalize_output(tool_output_payload)
+                                        desc = _TOOL_DESC_DICT['regulationassistant'][tool_name]['end_desc']
+                                        if callable(desc):
+                                            print(f"333desc:{desc}")
+                                            desc = desc(tool_response)
+                                            print(f"222desc:{desc}")
+                                        else:
+                                            desc = str(desc)
                                         yield build_event(
                                             "tool_call_end",
                                             chunk=chunk,
@@ -189,6 +196,7 @@ async def chat_with_react_as_function_call(
                                             status=tool_status,
                                             output=sanitized_output,
                                             latency_ms=latency_ms,
+                                            desc=desc
                                         )
 
                                         follow_up_content = (

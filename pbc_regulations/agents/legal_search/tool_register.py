@@ -15,6 +15,8 @@ def register_tool(
         arg: Optional[Union[str, ToolFn]] = None, /, *,
         name: Optional[str] = None,
         desc: Optional[str] = None,
+        ing_desc: Optional[str] = None,
+        end_desc: Union[str, Callable[[str], str]] = None,
         group: Optional[str] = None,
         groups: Optional[Iterable[str]] = None,
 ):
@@ -78,7 +80,7 @@ def register_tool(
         for g in group_set:
             print(f"to [{g}]")
             _TOOL_DESCRIPTIONS[g].append({"type": "function", "function": tool_def, "desc": desc})
-            _TOOL_DESC_DICT[g][tool_name] = {"desc": desc}
+            _TOOL_DESC_DICT[g][tool_name] = {"desc": desc,"ing_desc": ing_desc,"end_desc": end_desc}
         return func
 
     if callable(arg) and not isinstance(arg, str):

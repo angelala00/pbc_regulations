@@ -10,7 +10,7 @@ BASE_URL = "http://localhost:8000"
 
 gpts_id = "regulationassistant"
 
-@register_tool(gpts_id,desc="正在检索法律目录")
+@register_tool(gpts_id,desc="正在查看法律目录",ing_desc="",end_desc="")
 async def fetch_document_catalog() -> str:
     """
     获取全部制度文档目录信息。读取指定文档前可以先检索目录来判断应该查询哪个具体的文档。
@@ -49,21 +49,29 @@ async def fetch_document_catalog() -> str:
         print(f"发生错误：{exc}")
         return f"发生错误：{exc}"
 
+import re
+from typing import List
 
-@register_tool(gpts_id, desc="正在阅读法律")
+def extract_file_names(result: str) -> List[str]:
+    pattern = r"(.*?)的内容(?:获取失败)?:"
+    return [m.strip() for m in re.findall(pattern, result) if m.strip()]
+
+@register_tool(gpts_id, desc="正在查法律",ing_desc="",
+    end_desc=lambda result: "正在阅读法律" + "、".join(extract_file_names(result or "")),
+)
 async def fetch_document_content(
-        files: (List[str], '需要获取的制度文件ID列表', True)
+        file_ids: (List[str], '需要获取的制度文件ID列表', True)
 ) -> str:
     """
     获取指定制度文档内容。
     """
     try:
-        if not files:
+        if not file_ids:
             return "未提供需要获取的制度文件ID"
 
         async with httpx.AsyncClient(timeout=60.0, trust_env=False) as client:
             contents: List[str] = []
-            for file_name in files:
+            for file_name in file_ids:
                 encoded_name = quote(file_name, safe="")
                 url = f"{BASE_URL}/api/policies/{encoded_name}"
                 params = {"include": "text"}
@@ -72,6 +80,7 @@ async def fetch_document_content(
                     response.raise_for_status()
                 except httpx.HTTPStatusError as http_err:
                     failure = f"{file_name}的内容获取失败：{http_err.response.status_code} {http_err.response.text}"
+                    print(failure)
                     contents.append(failure)
                     continue
 
