@@ -4,12 +4,12 @@
 
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --cache-start-page
 python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --cache-listing --refresh-pages
-python -m pbc_regulations.crawler --task zhengwugongkai_administrative_normative_documents --build-page-structure
-python -m pbc_regulations.crawler --task scattered --download-from-structure --verify-local
+python -m pbc_regulations.crawler --task tiaofasi_normative_document --build-page-structure
+python -m pbc_regulations.crawler --task tiaofasi_normative_document --download-from-structure --verify-local
 
 ### Policy text extractor
 python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
-python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normative_document --stage-extract --document-id tiaofasi_normative_document:408
+python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normative_document --stage-extract --document-id tiaofasi_normative_document:186
 
 ### structure
 python -m pbc_regulations.structure --stage-fill-info
@@ -35,6 +35,8 @@ http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第�
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第一条，第三条，\n《中华人民共和国票据法》第（八）条
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第一条，第三条，\n《中华人民共和国票据法》第八条，第三款
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第四点，第五项
+
+中国人民银行公告〔2015〕第43号（非银行支付机构网络支付业务管理办法）：第十五条
 
 curl -N -X POST http://localhost:8000/api/legal_search/ai_chat   -H 'Content-Type: application/json'   -d '{ "query": "违规发行预付卡违反了什么法律？" }'
 

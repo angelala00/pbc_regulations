@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from .clause_lookup import ClauseLookup
 
 _CLAUSE_KEY_TITLE_PATTERN = re.compile(r"《([^》]+)》")
-_CLAUSE_KEY_SEGMENT_STRIP = " ，,、;；。\u3000\n\r\t"
+_CLAUSE_KEY_SEGMENT_STRIP = " ，,、;；。：:\u3000\n\r\t"
 _CLAUSE_KEY_CONNECTORS = "及和与或跟其"
 _CLAUSE_KEY_DELIMITERS = set(_CLAUSE_KEY_SEGMENT_STRIP + _CLAUSE_KEY_CONNECTORS)
 
@@ -92,6 +92,18 @@ def parse_clause_key_argument(value: str) -> List[Tuple[str, str]]:
                 if stripped_clause:
                     queries.append((title, stripped_clause))
         return queries
+    colon_index = max(text.rfind("："), text.rfind(":"))
+    if colon_index > 0:
+        title = text[:colon_index].strip().strip("《》\"'：:，,")
+        clause_block = text[colon_index + 1 :].strip()
+        if title and clause_block and "第" in clause_block:
+            clauses = _split_clause_block(clause_block) or [clause_block]
+            for clause_text in clauses:
+                stripped_clause = clause_text.strip(_CLAUSE_KEY_SEGMENT_STRIP)
+                if stripped_clause:
+                    queries.append((title, stripped_clause))
+            if queries:
+                return queries
     divider = text.find("第")
     if divider <= 0:
         return []
