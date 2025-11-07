@@ -41,7 +41,8 @@ SYSTEM_PROMPT = """
                     ```json{{
                         "policies": [{{
                             "title":"title",
-                            "clause":"第n条 内容简述"
+                            "clause":"第n条 内容简述",
+                            "id":"文档ID"
                         }}]
                     }}
                     ```
