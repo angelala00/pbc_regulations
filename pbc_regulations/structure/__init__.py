@@ -146,8 +146,42 @@ def collect_dataset_titles(extract_dir: Path) -> Dict[str, DatasetTitles]:
     return {name: datasets[name] for name in sorted(datasets)}
 
 
+def _build_entry_doc_id(
+    dataset_task: str | None, entry: Mapping[str, Any]
+) -> Optional[str]:
+    """Return task:serial identifier if available."""
+
+    task_slug = ""
+    if isinstance(dataset_task, str) and dataset_task.strip():
+        task_slug = dataset_task.strip()
+    else:
+        task_value = entry.get("task")
+        if isinstance(task_value, str) and task_value.strip():
+            task_slug = task_value.strip()
+        else:
+            task_slug_value = entry.get("task_slug")
+            if isinstance(task_slug_value, str) and task_slug_value.strip():
+                task_slug = task_slug_value.strip()
+
+    serial_value = entry.get("serial")
+    serial = ""
+    if isinstance(serial_value, (int, str)) and str(serial_value).strip():
+        serial = str(serial_value).strip()
+    else:
+        entry_index = entry.get("entry_index")
+        if isinstance(entry_index, (int, str)) and str(entry_index).strip():
+            serial = str(entry_index).strip()
+
+    if task_slug and serial:
+        return f"{task_slug}:{serial}"
+    return None
+
+
 def _clean_entry(
-    entry: Mapping[str, Any], *, dataset_level: str | None = None
+    entry: Mapping[str, Any],
+    *,
+    dataset_level: str | None = None,
+    dataset_task: str | None = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """Return a normalized title and cleaned entry data for ``entry``."""
 
@@ -169,6 +203,11 @@ def _clean_entry(
         data["level"] = dataset_level
     elif "level" not in data or not isinstance(data["level"], str):
         data["level"] = ""
+
+    if "doc_id" not in data:
+        doc_id = _build_entry_doc_id(dataset_task, entry)
+        if doc_id:
+            data["doc_id"] = doc_id
 
     return normalized_title, data
 
@@ -221,13 +260,18 @@ def collect_dataset_entries(extract_dir: Path) -> List[Dict[str, Any]]:
             data = json.loads(state_path.read_text("utf-8"))
         except Exception as exc:  # pragma: no cover - diagnostic only
             raise RuntimeError(f"Failed to load {state_path}: {exc}") from exc
+        dataset_task = data.get("task")
+        if not isinstance(dataset_task, str) or not dataset_task.strip():
+            dataset_task = dataset_name
         entries = data.get("entries") if isinstance(data, dict) else None
         if not isinstance(entries, Sequence):
             continue
         for entry in entries:
             if not isinstance(entry, Mapping):
                 continue
-            normalized_title, cleaned = _clean_entry(entry, dataset_level=dataset_level)
+            normalized_title, cleaned = _clean_entry(
+                entry, dataset_level=dataset_level, dataset_task=dataset_task
+            )
             if not normalized_title:
                 continue
             existing = entries_by_title.setdefault(normalized_title, {})
@@ -406,6 +450,13 @@ def _sorted_stage_entries(
         return (normalized_title.lower(),)
 
     return sorted(combined, key=_sort_key)
+
+
+def _assign_sequence_numbers(entries: Sequence[MutableMapping[str, Any]]) -> None:
+    """Assign 1-based sequence numbers to entries in-place."""
+
+    for index, entry in enumerate(entries, start=1):
+        entry["seq"] = index
 
 
 def load_stage_fill_info(path: Path) -> List[Dict[str, Any]]:
@@ -663,6 +714,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             combined_entries = _sorted_stage_entries(
                 indexed_by_id, indexed_by_title, remainder_entries
             )
+            _assign_sequence_numbers(combined_entries)
             if not default_stage_path.exists():
                 default_stage_path.write_text(
                     json.dumps(combined_entries, ensure_ascii=False, indent=2), "utf-8"
@@ -674,7 +726,28 @@ def main(argv: Sequence[str] | None = None) -> int:
                     normalize_title(raw_title) if isinstance(raw_title, str) else ""
                 )
                 if normalized_title and normalized_title in indexed_by_title:
-                    print(f"Document {normalized_title} already processed; skipping.")
+                    existing_entry = indexed_by_title[normalized_title]
+                    updated = False
+                    new_doc_id = entry.get("doc_id")
+                    existing_doc_id = existing_entry.get("doc_id")
+                    if isinstance(new_doc_id, str) and new_doc_id.strip():
+                        if not isinstance(existing_doc_id, str) or not existing_doc_id.strip():
+                            existing_entry["doc_id"] = new_doc_id
+                            updated = True
+                    if updated:
+                        combined_entries = _sorted_stage_entries(
+                            indexed_by_id, indexed_by_title, remainder_entries
+                        )
+                        _assign_sequence_numbers(combined_entries)
+                        default_stage_path.write_text(
+                            json.dumps(combined_entries, ensure_ascii=False, indent=2),
+                            "utf-8",
+                        )
+                        print(
+                            f"Document {normalized_title} already processed; updated metadata."
+                        )
+                    else:
+                        print(f"Document {normalized_title} already processed; skipping.")
                     continue
                 _populate_missing_summaries([entry], artifact_dir)
                 if normalized_title:
@@ -684,6 +757,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 combined_entries = _sorted_stage_entries(
                     indexed_by_id, indexed_by_title, remainder_entries
                 )
+                _assign_sequence_numbers(combined_entries)
                 default_stage_path.write_text(
                     json.dumps(combined_entries, ensure_ascii=False, indent=2), "utf-8"
                 )
@@ -691,6 +765,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             combined_entries = _sorted_stage_entries(
                 indexed_by_id, indexed_by_title, remainder_entries
             )
+            _assign_sequence_numbers(combined_entries)
             output_text = json.dumps(combined_entries, ensure_ascii=False, indent=2)
             default_output = default_stage_path
     elif args.stage_output:
