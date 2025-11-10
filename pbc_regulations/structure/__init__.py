@@ -290,6 +290,16 @@ def collect_dataset_entries(extract_dir: Path) -> List[Dict[str, Any]]:
     return collected_entries
 
 
+def _extract_document_id(entry: Mapping[str, Any]) -> str:
+    """Return a normalized document identifier if available."""
+
+    for key in ("doc_id", "document_id", "documentId"):
+        value = entry.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
 def _load_entry_text(
     artifact_dir: Path,
     entry: Mapping[str, Any],
@@ -592,9 +602,14 @@ def _build_stage_tree(entries: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
         summary_value = entry.get("summary") if isinstance(entry.get("summary"), str) else ""
         summary = summary_value.strip()
         level_value = entry.get("level") if isinstance(entry.get("level"), str) else ""
+        document_id = _extract_document_id(entry)
 
         target = grouped.get(level_value)
-        node = {"title": normalized_title, "summary": summary}
+        node = {
+            "title": normalized_title,
+            "summary": summary,
+            "document_id": document_id,
+        }
         if target is not None:
             target.append(node)
             continue
