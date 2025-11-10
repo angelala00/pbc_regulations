@@ -549,12 +549,17 @@ _DOCUMENT_PRIORITIES = {
 
 _ATTACHMENT_PREFIX_PATTERN = re.compile(r"^\s*(附件|附表|附录|附图)", re.IGNORECASE)
 _PENALIZED_TYPES = {"doc", "docx", "word"}
+_DOCUMENT_SUFFIXES = {".pdf", ".doc", ".docx", ".wps", ".txt"}
 
 
 def _normalize_title_for_priority(value: Optional[str]) -> Optional[str]:
     if not isinstance(value, str):
         return None
-    collapsed = "".join(ch.lower() for ch in value if ch.isalnum())
+    trimmed = value.strip()
+    base, ext = os.path.splitext(trimmed)
+    if ext.lower() in _DOCUMENT_SUFFIXES:
+        trimmed = base.rstrip(" .。．")
+    collapsed = "".join(ch.lower() for ch in trimmed if ch.isalnum())
     return collapsed or None
 
 
@@ -1059,7 +1064,8 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
         normalized = _normalize_type(declared_type if isinstance(declared_type, str) else None, resolved.suffix)
         doc_title = document.get("title") if isinstance(document.get("title"), str) else None
         match_bonus = _title_match_bonus(entry_title, doc_title)
-        priority = float(_DOCUMENT_PRIORITIES.get(normalized or "", -1)) + match_bonus
+        base_priority = float(_DOCUMENT_PRIORITIES.get(normalized or "", -1))
+        priority = base_priority * 10.0 + match_bonus
         priority += _attachment_penalty(normalized, match_bonus, doc_title, has_entry_title)
         candidates.append(
             DocumentCandidate(
