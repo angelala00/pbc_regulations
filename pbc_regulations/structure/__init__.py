@@ -672,7 +672,27 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Export stage fill info into a simplified structure.",
     )
+    parser.add_argument(
+        "--doc-id",
+        dest="doc_ids",
+        action="append",
+        default=None,
+        help="Optional doc_id filter (task:serial). Can be provided multiple times.",
+    )
     return parser.parse_args(argv)
+
+
+def _normalize_doc_ids(values: Optional[Sequence[str]]) -> set[str]:
+    doc_ids: set[str] = set()
+    if not values:
+        return doc_ids
+    for value in values:
+        if not isinstance(value, str):
+            continue
+        normalized = value.strip()
+        if normalized:
+            doc_ids.add(normalized)
+    return doc_ids
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -694,6 +714,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.stage_fill_info:
         default_stage_path = structured_dir / "stage_fill_info.json"
+        doc_id_filters = _normalize_doc_ids(args.doc_ids)
         if args.export:
             input_path = args.input if args.input is not None else default_stage_path
             if not input_path.exists():
@@ -725,15 +746,31 @@ def main(argv: Sequence[str] | None = None) -> int:
                 normalized_title = (
                     normalize_title(raw_title) if isinstance(raw_title, str) else ""
                 )
+                entry_doc_id_raw = entry.get("doc_id")
+                entry_doc_id = (
+                    entry_doc_id_raw.strip()
+                    if isinstance(entry_doc_id_raw, str)
+                    else ""
+                )
+                if doc_id_filters and entry_doc_id not in doc_id_filters:
+                    continue
                 if normalized_title and normalized_title in indexed_by_title:
                     existing_entry = indexed_by_title[normalized_title]
                     updated = False
-                    new_doc_id = entry.get("doc_id")
-                    existing_doc_id = existing_entry.get("doc_id")
-                    if isinstance(new_doc_id, str) and new_doc_id.strip():
-                        if not isinstance(existing_doc_id, str) or not existing_doc_id.strip():
-                            existing_entry["doc_id"] = new_doc_id
-                            updated = True
+                    if doc_id_filters:
+                        _populate_missing_summaries([entry], artifact_dir)
+                        _merge_entries(existing_entry, entry)
+                        _ensure_stage_defaults(existing_entry)
+                        updated = True
+                        message = "refreshed from filter"
+                    else:
+                        new_doc_id = entry.get("doc_id")
+                        existing_doc_id = existing_entry.get("doc_id")
+                        if isinstance(new_doc_id, str) and new_doc_id.strip():
+                            if not isinstance(existing_doc_id, str) or not existing_doc_id.strip():
+                                existing_entry["doc_id"] = new_doc_id
+                                updated = True
+                                message = "updated metadata"
                     if updated:
                         combined_entries = _sorted_stage_entries(
                             indexed_by_id, indexed_by_title, remainder_entries
@@ -744,7 +781,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                             "utf-8",
                         )
                         print(
-                            f"Document {normalized_title} already processed; updated metadata."
+                            f"Document {normalized_title} already processed; {message}."
                         )
                     else:
                         print(f"Document {normalized_title} already processed; skipping.")
