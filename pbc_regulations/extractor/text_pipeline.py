@@ -21,7 +21,7 @@ import os
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
 from zipfile import ZipFile
 
 import re
@@ -170,6 +170,9 @@ _HTML_MAIN_CLASSES = (
 
 
 _DOCX_APP_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/extended-properties}"
+
+
+_PDF_PAGE_MIN_TEXT_CHARS = 12
 
 
 def _score_html_text(text: str) -> int:
@@ -364,7 +367,12 @@ def _load_ocr_config() -> Optional[OCRConfig]:
     )
 
 
-def _render_pdf_pages_as_png(path: Path, scale: float, max_pages: int) -> List[Tuple[int, bytes]]:
+def _render_pdf_pages_as_png(
+    path: Path,
+    scale: float,
+    max_pages: int,
+    page_indices: Optional[Sequence[int]] = None,
+) -> List[Tuple[int, bytes]]:
     if _pdfium is None:
         return []
     try:
@@ -375,8 +383,13 @@ def _render_pdf_pages_as_png(path: Path, scale: float, max_pages: int) -> List[T
 
     rendered: List[Tuple[int, bytes]] = []
     total_pages = len(document)
-    for index in range(total_pages):
-        if index >= max_pages:
+    if page_indices is None:
+        target_indices = list(range(total_pages))
+    else:
+        unique_sorted = sorted({index for index in page_indices if index >= 0})
+        target_indices = [index for index in unique_sorted if index < total_pages]
+    for index in target_indices:
+        if len(rendered) >= max_pages:
             break
         try:
             page = document[index]
@@ -493,14 +506,17 @@ def _call_remote_ocr(page_image: bytes, config: OCRConfig, page_index: int) -> O
     return None
 
 
-def _perform_remote_pdf_ocr(path: Path) -> Tuple[Optional[str], Optional[str], Optional[str]]:
+def _perform_remote_pdf_ocr(
+    path: Path,
+    page_indices: Optional[Sequence[int]] = None,
+) -> Tuple[Optional[str], Optional[str], Optional[str], Optional[Dict[int, str]]]:
     config = _load_ocr_config()
     if config is None:
-        return None, "ocr_not_configured", None
-    images = _render_pdf_pages_as_png(path, config.render_scale, config.max_pages)
+        return None, "ocr_not_configured", None, None
+    images = _render_pdf_pages_as_png(path, config.render_scale, config.max_pages, page_indices=page_indices)
     if not images:
-        return None, "ocr_render_unavailable", config.model
-    fragments: List[str] = []
+        return None, "ocr_render_unavailable", config.model, None
+    fragments: Dict[int, str] = {}
     total_pages = len(images)
     for position, (page_index, page_bytes) in enumerate(images, start=1):
         print(
@@ -509,11 +525,16 @@ def _perform_remote_pdf_ocr(path: Path) -> Tuple[Optional[str], Optional[str], O
         )
         text = _call_remote_ocr(page_bytes, config, page_index)
         if text:
-            fragments.append(text)
-    combined = "\n\n".join(fragment.strip() for fragment in fragments if fragment.strip()).strip()
+            fragments[page_index] = text.strip()
+    ordered = [
+        fragments[index].strip()
+        for index in sorted(fragments)
+        if fragments[index].strip()
+    ]
+    combined = "\n\n".join(ordered).strip()
     if combined:
-        return combined, None, config.model
-    return None, "ocr_no_text", config.model
+        return combined, None, config.model, fragments
+    return None, "ocr_no_text", config.model, None
 
 
 _DOCUMENT_PRIORITIES = {
@@ -701,6 +722,43 @@ def _estimate_pdf_pages_from_text(text: str) -> Optional[int]:
     if not segments:
         return None
     return len(segments)
+
+
+def _split_pdf_text_into_pages(text: str) -> List[str]:
+    if not text:
+        return []
+    pages = text.split("\f")
+    while pages and pages[-1] == "":
+        pages.pop()
+    return pages
+
+
+def _pdf_page_text_density(page_text: str) -> int:
+    if not page_text:
+        return 0
+    return len("".join(segment.strip() for segment in page_text.splitlines()))
+
+
+def _merge_pdf_pages_with_ocr(
+    existing_pages: List[str],
+    ocr_pages: Dict[int, str],
+    total_pages: Optional[int],
+) -> List[str]:
+    merged = list(existing_pages)
+    max_index = max(ocr_pages.keys(), default=-1)
+    required_length = max(len(merged), max_index + 1)
+    if total_pages:
+        required_length = max(required_length, total_pages)
+    if required_length > len(merged):
+        merged.extend([""] * (required_length - len(merged)))
+    for index, text in ocr_pages.items():
+        if index < 0:
+            continue
+        if index >= len(merged):
+            merged.extend([""] * (index + 1 - len(merged)))
+        normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+        merged[index] = normalized.strip()
+    return merged
 
 
 def _determine_pdf_page_count(path: Path) -> Optional[int]:
@@ -1060,12 +1118,16 @@ def _attempt_extract(candidate: DocumentCandidate) -> ExtractionAttempt:
             return ExtractionAttempt(candidate, text=None, error="pdf_parse_error", requires_ocr=False)
         raw_text = text or ""
         stripped = raw_text.strip()
-        page_count = _estimate_pdf_pages_from_text(raw_text)
-        requires_ocr = not bool(stripped)
+        estimated_page_count = _estimate_pdf_pages_from_text(raw_text)
+        physical_page_count = _determine_pdf_page_count(path)
+        page_count = physical_page_count or estimated_page_count
+        page_segments = _split_pdf_text_into_pages(raw_text)
+        if page_count and page_count > len(page_segments):
+            page_segments.extend([""] * (page_count - len(page_segments)))
         if not stripped:
             if page_count is None:
                 page_count = _determine_pdf_page_count(path)
-            ocr_text, ocr_error, ocr_engine = _perform_remote_pdf_ocr(path)
+            ocr_text, ocr_error, ocr_engine, _ = _perform_remote_pdf_ocr(path)
             if ocr_text:
                 normalized_text = _normalize_pdf_text(ocr_text)
                 return ExtractionAttempt(
@@ -1085,12 +1147,50 @@ def _attempt_extract(candidate: DocumentCandidate) -> ExtractionAttempt:
                 ocr_engine=ocr_engine,
                 page_count=page_count,
             )
+
         normalized_text = _normalize_pdf_text(raw_text)
+        text_densities = [_pdf_page_text_density(page) for page in page_segments]
+        has_confident_text_page = any(density >= _PDF_PAGE_MIN_TEXT_CHARS for density in text_densities)
+        pages_to_ocr: List[int] = []
+        if has_confident_text_page:
+            pages_to_ocr = [
+                index for index, density in enumerate(text_densities) if density < _PDF_PAGE_MIN_TEXT_CHARS
+            ]
+
+        if pages_to_ocr:
+            _, ocr_error, ocr_engine, ocr_pages = _perform_remote_pdf_ocr(path, page_indices=pages_to_ocr)
+            if ocr_pages:
+                merged_pages = _merge_pdf_pages_with_ocr(page_segments, ocr_pages, page_count)
+                combined_text = "\f".join(merged_pages)
+                normalized_text = _normalize_pdf_text(combined_text)
+                missing_pages = [index for index in pages_to_ocr if index not in ocr_pages]
+                requires_ocr_flag = bool(missing_pages)
+                error_code = None
+                if requires_ocr_flag:
+                    error_code = ocr_error or "ocr_partial"
+                return ExtractionAttempt(
+                    candidate,
+                    text=normalized_text,
+                    error=error_code,
+                    requires_ocr=requires_ocr_flag,
+                    ocr_engine=ocr_engine,
+                    page_count=page_count,
+                )
+            error_code = ocr_error or "ocr_unavailable"
+            return ExtractionAttempt(
+                candidate,
+                text=normalized_text,
+                error=error_code,
+                requires_ocr=True,
+                ocr_engine=ocr_engine,
+                page_count=page_count,
+            )
+
         return ExtractionAttempt(
             candidate,
             text=normalized_text,
             error=None,
-            requires_ocr=requires_ocr,
+            requires_ocr=False,
             page_count=page_count,
         )
 
