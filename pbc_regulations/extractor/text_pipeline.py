@@ -1259,18 +1259,13 @@ def extract_entry(entry: Dict[str, Any], state_dir: Path) -> EntryExtraction:
     if not candidates:
         return EntryExtraction(entry, attempts=[], selected=None, text="", status="no_source", requires_ocr=False)
 
-    # Strict type preference: Word > PDF > HTML > others.
-    best_priority = max(candidate.priority for candidate in candidates)
-    prioritized_candidates = [candidate for candidate in candidates if candidate.priority == best_priority]
-    if not prioritized_candidates:  # Fallback to the original list if priorities are undefined.
-        prioritized_candidates = candidates
-
+    # Candidates are already sorted by priority, try them in order until one works.
     attempts: List[ExtractionAttempt] = []
     requires_ocr_flag = False
     selected: Optional[ExtractionAttempt] = None
     fallback: Optional[ExtractionAttempt] = None
 
-    for candidate in prioritized_candidates:
+    for candidate in candidates:
         attempt = _attempt_extract(candidate)
         attempts.append(attempt)
         if attempt.normalized_type == "pdf" and attempt.requires_ocr:

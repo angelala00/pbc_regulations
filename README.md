@@ -12,7 +12,7 @@ python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
 python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normative_document --stage-extract --document-id tiaofasi_normative_document:186
 
 ### structure
-python -m pbc_regulations.structure --stage-fill-info
+python -m pbc_regulations.structure --stage-fill-info --doc-id zhengwugongkai_administrative_normative_documents:23
 python -m pbc_regulations.structure --stage-output --format summary-only
 
 
