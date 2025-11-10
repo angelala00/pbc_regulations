@@ -14,6 +14,7 @@ stack.
 from __future__ import annotations
 
 import base64
+import difflib
 import json
 import io
 import logging
@@ -546,6 +547,45 @@ _DOCUMENT_PRIORITIES = {
     "text": 0,
 }
 
+_ATTACHMENT_PREFIX_PATTERN = re.compile(r"^\s*(附件|附表|附录|附图)", re.IGNORECASE)
+_PENALIZED_TYPES = {"doc", "docx", "word"}
+
+
+def _normalize_title_for_priority(value: Optional[str]) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    collapsed = "".join(ch.lower() for ch in value if ch.isalnum())
+    return collapsed or None
+
+
+def _title_match_bonus(entry_title: Optional[str], document_title: Optional[str]) -> float:
+    entry_norm = _normalize_title_for_priority(entry_title)
+    doc_norm = _normalize_title_for_priority(document_title)
+    if not entry_norm or not doc_norm:
+        return 0.0
+    if entry_norm == doc_norm:
+        return 2.0
+    if entry_norm in doc_norm or doc_norm in entry_norm:
+        return 1.0
+    similarity = difflib.SequenceMatcher(None, entry_norm, doc_norm).ratio()
+    if similarity >= 0.85:
+        return 0.5
+    return 0.0
+
+
+def _attachment_penalty(
+    normalized_type: Optional[str],
+    match_bonus: float,
+    document_title: Optional[str],
+    has_entry_title: bool,
+) -> float:
+    penalty = 0.0
+    if has_entry_title and match_bonus <= 0 and normalized_type in _PENALIZED_TYPES:
+        penalty -= 1.0
+    if isinstance(document_title, str) and _ATTACHMENT_PREFIX_PATTERN.match(document_title):
+        penalty -= 0.5
+    return penalty
+
 
 _LEGACY_WORD_TEXT_PATTERN = re.compile(
     r"[\u4e00-\u9fff0-9A-Za-z（）()〔〕【】《》〈〉“”‘’、，。．,.；：？！—\-·…％%\s]{20,}"
@@ -960,7 +1000,7 @@ class DocumentCandidate:
     path: Path
     declared_type: Optional[str]
     normalized_type: Optional[str]
-    priority: int
+    priority: float
     order: int
 
 
@@ -999,6 +1039,9 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
         return []
 
     candidates: List[DocumentCandidate] = []
+    raw_entry_title = entry.get("title")
+    entry_title = raw_entry_title if isinstance(raw_entry_title, str) else None
+    has_entry_title = bool(entry_title)
     for index, document in enumerate(documents):
         if not isinstance(document, dict):
             continue
@@ -1014,7 +1057,10 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
             continue
         declared_type = document.get("type")
         normalized = _normalize_type(declared_type if isinstance(declared_type, str) else None, resolved.suffix)
-        priority = _DOCUMENT_PRIORITIES.get(normalized or "", -1)
+        doc_title = document.get("title") if isinstance(document.get("title"), str) else None
+        match_bonus = _title_match_bonus(entry_title, doc_title)
+        priority = float(_DOCUMENT_PRIORITIES.get(normalized or "", -1)) + match_bonus
+        priority += _attachment_penalty(normalized, match_bonus, doc_title, has_entry_title)
         candidates.append(
             DocumentCandidate(
                 document=document,
@@ -1663,6 +1709,8 @@ def process_state_data(
         if documents is not entry.get("documents"):
             entry["documents"] = documents
 
+        error_path = text_path.with_suffix(text_path.suffix + ".error.json")
+
         if wrote_text:
             text_document: Dict[str, Any] = {
                 "url": document_url,
@@ -1703,6 +1751,11 @@ def process_state_data(
                     documents.append(text_document)
                 else:
                     existing.update(text_document)
+            if error_path.exists():
+                try:
+                    error_path.unlink()
+                except OSError:
+                    pass
         else:
             if isinstance(documents, list):
                 filtered = []
@@ -1714,6 +1767,28 @@ def process_state_data(
                         continue
                     filtered.append(document)
                 entry["documents"] = filtered
+            error_payload: Dict[str, Any] = {
+                "entry_index": index,
+                "serial": entry.get("serial") if isinstance(entry.get("serial"), int) else None,
+                "title": entry.get("title") if isinstance(entry.get("title"), str) else "",
+                "status": extraction.status,
+                "requires_ocr": extraction.requires_ocr,
+            }
+            if extraction.selected:
+                candidate = extraction.selected.candidate
+                source_type = extraction.selected.normalized_type or candidate.declared_type
+                if source_type:
+                    error_payload["source_type"] = source_type
+                error_payload["source_path"] = str(candidate.path)
+                source_url = candidate.document.get("url")
+                if isinstance(source_url, str) and source_url:
+                    error_payload["source_url"] = source_url
+            if extraction.attempts:
+                error_payload["attempts"] = [_summarize_attempt(attempt) for attempt in extraction.attempts]
+            try:
+                error_path.write_text(json.dumps(error_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+            except OSError:
+                pass
 
         record = EntryTextRecord(
             entry_index=index,

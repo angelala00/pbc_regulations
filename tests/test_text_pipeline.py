@@ -236,6 +236,53 @@ def test_extract_entry_normalizes_html_text(tmp_path):
     assert not text.endswith("中国人民银行发布")
 
 
+def test_extract_entry_prefers_html_when_title_matches(tmp_path):
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+
+    html_path = downloads / "main.html"
+    html_path.write_text(
+        """
+<html>
+  <body>
+    <div id="zoom">
+      <p>这是正文内容。</p>
+    </div>
+  </body>
+</html>
+""",
+        encoding="utf-8",
+    )
+
+    docx_path = downloads / "annex.docx"
+    _write_docx(docx_path, "附件文档内容")
+
+    entry = {
+        "title": "制度标题",
+        "documents": [
+            {
+                "url": "http://example.com/main.html",
+                "type": "html",
+                "title": "制度标题",
+                "local_path": str(html_path),
+            },
+            {
+                "url": "http://example.com/annex.wps",
+                "type": "doc",
+                "title": "附件：制度补充材料",
+                "local_path": str(docx_path),
+            },
+        ],
+    }
+
+    extraction = text_pipeline.extract_entry(entry, downloads)
+
+    assert extraction.selected is not None
+    assert extraction.selected.normalized_type == "html"
+    assert extraction.selected.path == html_path
+    assert "正文内容" in extraction.text
+
+
 def test_extract_entry_separates_conclusion_from_article(tmp_path):
     downloads = tmp_path / "downloads"
     downloads.mkdir()
