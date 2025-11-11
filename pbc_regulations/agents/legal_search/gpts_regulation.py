@@ -1,4 +1,5 @@
 import json
+import os
 from typing import List
 from urllib.parse import quote
 
@@ -7,6 +8,14 @@ import httpx
 from .tool_register import register_tool
 
 BASE_URL = "http://localhost:8000"
+
+def _get_env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+USE_AI_CATALOG = _get_env_bool("LEGAL_SEARCH_USE_AI_CATALOG", False)
 
 gpts_id = "regulationassistant"
 
@@ -17,21 +26,41 @@ async def fetch_document_catalog() -> str:
     """
     try:
         async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
-            response = await client.get(f"{BASE_URL}/api/policies", params={"scope": "all"})
+            if USE_AI_CATALOG:
+                endpoint = f"{BASE_URL}/api/policies/catalog"
+                params = {"view": "ai"}
+            else:
+                endpoint = f"{BASE_URL}/api/policies"
+                params = {"scope": "all"}
+
+            response = await client.get(endpoint, params=params)
             response.raise_for_status()
             try:
                 payload = response.json()
             except json.JSONDecodeError:
                 return "错误：接口返回的不是合法的 JSON 数据"
 
-            titles: List[dict] = []
+            entries: List[dict] = []
+            seen = set()
 
             def collect_info(node):
                 if isinstance(node, dict):
                     title = node.get("title")
-                    id = node.get("id")
+                    doc_id = node.get("id") or node.get("document_id")
                     if isinstance(title, str):
-                        titles.append({"title":title,"id":id})
+                        entry = {"title": title}
+                        if isinstance(doc_id, str) and doc_id.strip():
+                            entry["id"] = doc_id.strip()
+                        if USE_AI_CATALOG:
+                            summary = node.get("summary")
+                            if isinstance(summary, str) and summary.strip():
+                                entry["summary"] = summary.strip()
+
+                        key = (entry["title"], entry.get("id"), entry.get("summary"))
+                        if key not in seen:
+                            seen.add(key)
+                            entries.append(entry)
+
                     for value in node.values():
                         collect_info(value)
                 elif isinstance(node, list):
@@ -40,17 +69,15 @@ async def fetch_document_catalog() -> str:
 
             collect_info(payload)
 
-            if not titles:
+            if not entries:
                 return "未在接口返回中找到 title 字段"
 
-            # print(f"titles:{titles}")
-            return json.dumps(titles, ensure_ascii=False)
+            return json.dumps(entries, ensure_ascii=False)
     except Exception as exc:
         print(f"发生错误：{exc}")
         return f"发生错误：{exc}"
 
 import re
-from typing import List
 
 def extract_file_names(result: str) -> List[str]:
     pattern = r"(.*?)的内容(?:获取失败)?:"
