@@ -520,10 +520,10 @@ async def _run_content_stage(
 async def run_two_stage_search(
     question: str,
     *,
-    catalog_chunk_size: int = 30,
+    catalog_chunk_size: int = 60,
     content_chunk_size: int = 5,
     catalog_concurrency: int = 3,
-    content_concurrency: int = 2,
+    content_concurrency: int = 3,
     conversation_prefix: Optional[str] = None,
     progress_callback: Optional[ProgressCallback] = None,
 ) -> List[Dict[str, Any]]:

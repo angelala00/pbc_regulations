@@ -17,7 +17,7 @@ async def fetch_document_catalog() -> str:
     """
     try:
         async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
-            response = await client.get(f"{BASE_URL}/api/policies", params={"scope": "witelist"})
+            response = await client.get(f"{BASE_URL}/api/policies", params={"scope": "all"})
             response.raise_for_status()
             try:
                 payload = response.json()
