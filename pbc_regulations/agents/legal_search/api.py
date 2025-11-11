@@ -32,6 +32,17 @@ from .main import MODEL_NAME, SYSTEM_PROMPT, stream_prompt
 from .two_stage_search import run_two_stage_search
 
 
+PROGRESS_STAGE_DESCRIPTIONS = {
+    "catalog_loaded": "已加载法规目录，准备筛选候选文档",
+    "catalog_batches_ready": "正在划分目录批次并发起并行检索",
+    "catalog_batches_completed": "目录检索完成，统计匹配的法规",
+    "catalog_completed": "已选出候选法规，准备解析正文条款",
+    "content_batches_ready": "正在划分条款解析批次并发起调用",
+    "content_batches_completed": "条款解析完成，汇总关键信息",
+    "content_completed": "条款提取整理完毕，生成最终回答",
+}
+
+
 def _ensure_dependencies() -> None:
     if (
         APIRouter is None
@@ -83,11 +94,15 @@ async def _iter_two_stage_pipeline_stream(
         body.update(extras)
         return f"data: {json.dumps(body, ensure_ascii=False)}\n\n".encode("utf-8")
 
-    yield _build_event("message_start", role="assistant", model=model_name)
+    yield _build_event(
+        "message_start",
+        role="assistant",
+        model=model_name,
+    )
     yield _build_event(
         "status",
         stage="pipeline_started",
-        message="正在执行两阶段法律检索流程",
+        desc="我正在检索法律",
     )
 
     progress_events: List[Tuple[str, Dict[str, Any]]] = []
@@ -105,19 +120,33 @@ async def _iter_two_stage_pipeline_stream(
         for stage, payload in progress_events:
             extras: Dict[str, Any] = {"stage": stage}
             extras.update(payload)
+            extras.setdefault(
+                "desc",
+                PROGRESS_STAGE_DESCRIPTIONS.get(stage, "继续推进检索流程"),
+            )
             yield _build_event("status", **extras)
 
         result_payload = json.dumps({"policies": policies}, ensure_ascii=False)
-        yield _build_event("content_delta", delta=result_payload)
-        yield _build_event("message_end", finish_reason="stop")
+        yield _build_event(
+            "content_delta",
+            delta=result_payload,
+        )
+        yield _build_event(
+            "message_end",
+            finish_reason="stop",
+        )
     except Exception as exc:  # pragma: no cover - defensive fallback
         yield _build_event(
             "error",
             message=str(exc),
             fatal=True,
+            desc="检索过程中发生异常，流程终止",
         )
     finally:
-        yield _build_event("done", include_message_id=False)
+        yield _build_event(
+            "done",
+            include_message_id=False,
+        )
 
 
 async def _iter_legal_search_stream(
