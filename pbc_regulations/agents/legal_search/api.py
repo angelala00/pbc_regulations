@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+import time
 import uuid
-from typing import AsyncIterator, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
 
 try:  # pragma: no cover - optional dependency during import
     from fastapi import APIRouter, HTTPException
@@ -26,11 +27,9 @@ except ImportError as exc:  # pragma: no cover - optional dependency during impo
 else:
     _PYDANTIC_IMPORT_ERROR = None
 
-from .main import (
-    MODEL_NAME,
-    SYSTEM_PROMPT,
-    stream_prompt,
-)
+from ...settings import LEGAL_SEARCH_USE_TWO_STAGE_FLOW
+from .main import MODEL_NAME, SYSTEM_PROMPT, stream_prompt
+from .two_stage_search import run_two_stage_search
 
 
 def _ensure_dependencies() -> None:
@@ -52,6 +51,73 @@ def _ensure_dependencies() -> None:
 class LegalSearchStreamRequest(BaseModel):  # type: ignore[misc]
     query: str
     stream: bool = True
+
+
+async def _iter_two_stage_pipeline_stream(
+    *,
+    prompt: str,
+    conversation_id: str,
+    model_name: str,
+) -> AsyncIterator[bytes]:
+    message_id = f"msg_{uuid.uuid4().hex}"
+    seq = 0
+
+    def _build_event(
+        event: str,
+        *,
+        include_message_id: bool = True,
+        **payload: object,
+    ) -> bytes:
+        nonlocal seq
+        seq += 1
+        body: Dict[str, Any] = {
+            "event": event,
+            "seq": seq,
+            "created": int(time.time() * 1000),
+        }
+        if include_message_id:
+            body["message_id"] = message_id
+        if conversation_id:
+            body["conversation_id"] = conversation_id
+        extras = {key: value for key, value in payload.items() if value is not None}
+        body.update(extras)
+        return f"data: {json.dumps(body, ensure_ascii=False)}\n\n".encode("utf-8")
+
+    yield _build_event("message_start", role="assistant", model=model_name)
+    yield _build_event(
+        "status",
+        stage="pipeline_started",
+        message="正在执行两阶段法律检索流程",
+    )
+
+    progress_events: List[Tuple[str, Dict[str, Any]]] = []
+
+    def _progress_callback(stage: str, payload: Dict[str, Any]) -> None:
+        progress_events.append((stage, payload.copy()))
+
+    try:
+        policies = await run_two_stage_search(
+            prompt,
+            conversation_prefix=conversation_id,
+            progress_callback=_progress_callback,
+        )
+
+        for stage, payload in progress_events:
+            extras: Dict[str, Any] = {"stage": stage}
+            extras.update(payload)
+            yield _build_event("status", **extras)
+
+        result_payload = json.dumps({"policies": policies}, ensure_ascii=False)
+        yield _build_event("content_delta", delta=result_payload)
+        yield _build_event("message_end", finish_reason="stop")
+    except Exception as exc:  # pragma: no cover - defensive fallback
+        yield _build_event(
+            "error",
+            message=str(exc),
+            fatal=True,
+        )
+    finally:
+        yield _build_event("done", include_message_id=False)
 
 
 async def _iter_legal_search_stream(
@@ -196,12 +262,19 @@ def create_legal_search_router() -> "APIRouter":
         system_prompt = SYSTEM_PROMPT
         model_name = MODEL_NAME
 
-        stream = _iter_legal_search_stream(
-            prompt=prompt,
-            conversation_id=conversation_id,
-            system_prompt=system_prompt,
-            model_name=model_name,
-        )
+        if LEGAL_SEARCH_USE_TWO_STAGE_FLOW:
+            stream = _iter_two_stage_pipeline_stream(
+                prompt=prompt,
+                conversation_id=conversation_id,
+                model_name=model_name,
+            )
+        else:
+            stream = _iter_legal_search_stream(
+                prompt=prompt,
+                conversation_id=conversation_id,
+                system_prompt=system_prompt,
+                model_name=model_name,
+            )
 
         if payload.stream:
             response = StreamingResponse(stream, media_type="text/event-stream")
