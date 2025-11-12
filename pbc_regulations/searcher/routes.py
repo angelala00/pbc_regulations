@@ -309,6 +309,7 @@ def create_routes(
         clause: Optional[str] = Query(None),
         article: Optional[str] = Query(None),
         key: Optional[str] = Query(None),
+        keys: Optional[List[str]] = Query(None),
         lookup: ClauseLookup = Depends(_require_clause_lookup),
     ) -> JSONResponse:
         if isinstance(key, str) and key.strip():
@@ -316,6 +317,16 @@ def create_routes(
             if not queries:
                 return _default_bad_request(
                     "Parameter 'key' did not contain any clause references"
+                )
+            return lookup_clause_matches(queries, lookup)
+        key_values = [value.strip() for value in (keys or []) if isinstance(value, str) and value.strip()]
+        if key_values:
+            queries: List[Tuple[str, str]] = []
+            for key_value in key_values:
+                queries.extend(parse_clause_key_argument(key_value))
+            if not queries:
+                return _default_bad_request(
+                    "Parameter 'keys' did not contain any clause references"
                 )
             return lookup_clause_matches(queries, lookup)
         title_text = title.strip() if isinstance(title, str) else ""

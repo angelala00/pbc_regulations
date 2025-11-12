@@ -339,6 +339,31 @@ def test_clause_get_handles_multiple_queries(policy_app):
     assert any(error for error in errors)
 
 
+def test_clause_get_supports_keys_list(policy_app):
+    app, _finder, lookup = policy_app
+    route = _get_route(app, "/clause", "GET")
+    keys = [
+        "《中国人民银行公告〔2023〕第3号 关于测试》第三条，第一款",
+        "《中国人民银行公告〔2023〕第3号 关于测试》第三条，第二款",
+    ]
+    response = route.endpoint(
+        title=None,
+        item=None,
+        clause=None,
+        article=None,
+        key=None,
+        keys=keys,
+        lookup=lookup,
+    )
+    assert isinstance(response, JSONResponse)
+    assert response.status_code == 200
+    data = json.loads(response.body.decode("utf-8"))
+    assert len(data["matches"]) == 2
+    clauses = {entry["query"]["clause"] for entry in data["matches"]}
+    assert any(clause.endswith("第一款") for clause in clauses)
+    assert any(clause.endswith("第二款") for clause in clauses)
+
+
 def test_list_policies_without_query(policy_app):
     app, finder, lookup = policy_app
     route = _get_route(app, "/policies", "GET")

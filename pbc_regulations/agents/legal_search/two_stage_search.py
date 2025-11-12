@@ -152,7 +152,7 @@ def _build_content_prompt(
         "    {\n"
         "      \"title\": \"法律名称\",\n"
         "      \"id\": \"文档ID\",\n"
-        "      \"clause\": \"相关条款内容\",\n"
+        "      \"clause\": \"相关条款标题\",\n"
         "      \"reason\": \"相关性说明\"\n"
         "    }\n"
         "  ]\n"

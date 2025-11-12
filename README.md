@@ -35,6 +35,7 @@ http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第�
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第一条，第三条，\n《中华人民共和国票据法》第（八）条
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第一条，第三条，\n《中华人民共和国票据法》第八条，第三款
 http://localhost:8000/api/clause?key=《中华人民共和国反洗钱法》第四点，第五项
+http://localhost:8000/api/clause?keys=《中华人民共和国反洗钱法》第一条&keys=《中华人民共和国票据法》第八条，第三款
 
 中国人民银行公告〔2015〕第43号（非银行支付机构网络支付业务管理办法）：第十五条
 
