@@ -5,10 +5,12 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, Optional, Sequence
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
+
+import httpx
 
 from .agent_chat_core import chat_with_react_as_function_call
-from .gpts_regulation import fetch_document_catalog
+from .gpts_regulation import BASE_URL, fetch_document_catalog
 from .main import MODEL_NAME
 
 ProgressCallback = Callable[[str, Dict[str, Any]], Awaitable[None] | None]
@@ -44,7 +46,7 @@ CONTENT_STAGE_SYSTEM_PROMPT = """
     {
       "title": "法律名称",
       "id": "文档ID",
-      "clause": "条款内容或概述",
+      "clause": "条款标题（请勿输出条文内容）",
       "reason": "相关性说明"
     }
   ]
@@ -152,7 +154,7 @@ def _build_content_prompt(
         "    {\n"
         "      \"title\": \"法律名称\",\n"
         "      \"id\": \"文档ID\",\n"
-        "      \"clause\": \"相关条款标题\",\n"
+        "      \"clause\": \"相关条款标题，如第n条\",\n"
         "      \"reason\": \"相关性说明\"\n"
         "    }\n"
         "  ]\n"
@@ -358,6 +360,91 @@ def _merge_policy_results(
     return filtered
 
 
+_CLAUSE_ENDPOINT = f"{BASE_URL.rstrip('/')}/api/clause"
+
+
+def _extract_clause_text_from_match(match: Dict[str, Any]) -> Optional[str]:
+    clause_text = _normalize_text(match.get("clause_text"))
+    if clause_text:
+        return clause_text
+    result = match.get("result")
+    if isinstance(result, dict):
+        for key in ("clause_text", "paragraph_text", "article_text"):
+            candidate = _normalize_text(result.get(key))
+            if candidate:
+                return candidate
+    return None
+
+
+async def _fetch_clause_texts(
+    policies: Sequence[Dict[str, Any]],
+) -> Dict[Tuple[str, str], str]:
+    deduped: List[Tuple[str, str]] = []
+    seen: set[Tuple[str, str]] = set()
+    for policy in policies:
+        title = _normalize_text(policy.get("title"))
+        clause = _normalize_text(policy.get("clause"))
+        if not title or not clause:
+            continue
+        key = (title, clause)
+        if key not in seen:
+            seen.add(key)
+            deduped.append(key)
+
+    if not deduped:
+        return {}
+
+    params = [("keys", f"{title}:{clause}") for title, clause in deduped]
+    try:
+        async with httpx.AsyncClient(timeout=30.0, trust_env=False) as client:
+            response = await client.get(_CLAUSE_ENDPOINT, params=params)
+            response.raise_for_status()
+            try:
+                payload = response.json()
+            except json.JSONDecodeError:
+                print("条款接口返回的不是合法 JSON 数据")
+                return {}
+    except Exception as exc:
+        print(f"调用条款接口失败：{exc}")
+        return {}
+
+    matches = payload.get("matches")
+    if not isinstance(matches, list):
+        return {}
+
+    lookup: Dict[Tuple[str, str], str] = {}
+    for match in matches:
+        if not isinstance(match, dict):
+            continue
+        query = match.get("query")
+        if not isinstance(query, dict):
+            continue
+        title = _normalize_text(query.get("title"))
+        clause = _normalize_text(query.get("clause"))
+        if not title or not clause:
+            continue
+        clause_text = _extract_clause_text_from_match(match)
+        if clause_text:
+            lookup[(title, clause)] = clause_text
+    return lookup
+
+
+async def _hydrate_clauses_with_api(policies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    lookup = await _fetch_clause_texts(policies)
+    if not lookup:
+        return policies
+
+    for policy in policies:
+        title = _normalize_text(policy.get("title"))
+        clause_key = _normalize_text(policy.get("clause"))
+        if not title or not clause_key:
+            continue
+        clause_text = lookup.get((title, clause_key))
+        if clause_text:
+            policy["clause"] = clause_text
+    return policies
+
+
 async def _load_catalog_entries() -> List[Dict[str, Any]]:
     catalog_raw = await fetch_document_catalog()
     try:
@@ -514,7 +601,8 @@ async def _run_content_stage(
         failures=failure_count,
         clauses=sum(len(group) for group in collected),
     )
-    return _merge_policy_results(collected, title_lookup)
+    merged = _merge_policy_results(collected, title_lookup)
+    return await _hydrate_clauses_with_api(merged)
 
 
 async def run_two_stage_search(
