@@ -43,16 +43,7 @@ from pbc_regulations.config_paths import (
     resolve_configured_state_path,
 )
 from pbc_regulations.utils import canonicalize_task_name
-from .task_constants import (
-    DEFAULT_SEARCH_TASKS,
-    SEARCH_TASK_PRIORITY,
-    TIAOFASI_ADMINISTRATIVE_REGULATION,
-    TIAOFASI_DEPARTMENTAL_RULE,
-    TIAOFASI_NATIONAL_LAW,
-    TIAOFASI_NORMATIVE_DOCUMENT,
-    ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS,
-    ZHENGWUGONGKAI_CHINESE_REGULATIONS,
-)
+from .task_constants import DEFAULT_SEARCH_TASKS, SEARCH_TASK_PRIORITY
 
 
 try:  # Optional dependency used for PDF extraction

@@ -8,41 +8,59 @@
       "name": "zhengwugongkai_chinese_regulations",
       "chinese_name": "政务公开-规章",
       "start_url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4406348/index.html",
-      "parser": "pbc_regulations.crawler.parser"
+      "parser": "pbc_regulations.crawler.parser",
+      "priority": 300,
+      "category": "部门规章"
     },
     {
       "name": "zhengwugongkai_administrative_normative_documents",
       "chinese_name": "政务公开-行政规范性文件",
       "start_url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/index.html",
-      "parser": "pbc_regulations.crawler.parser_policy"
+      "parser": "pbc_regulations.crawler.parser_policy",
+      "priority": 250,
+      "category": "规范性文件"
     },
     {
       "name": "tiaofasi_national_law",
       "chinese_name": "条法司-国家法律",
       "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/index.html",
-      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+      "parser": "pbc_regulations.crawler.parser_tiaofasi",
+      "priority": 420,
+      "category": "国家法律"
     },
     {
       "name": "tiaofasi_administrative_regulation",
       "chinese_name": "条法司-行政法规",
       "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/index.html",
-      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+      "parser": "pbc_regulations.crawler.parser_tiaofasi",
+      "priority": 450,
+      "category": "行政法规"
     },
     {
       "name": "tiaofasi_departmental_rule",
       "chinese_name": "条法司-部门规章",
       "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/index.html",
-      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+      "parser": "pbc_regulations.crawler.parser_tiaofasi",
+      "priority": 500,
+      "category": "部门规章"
     },
     {
       "name": "tiaofasi_normative_document",
       "chinese_name": "条法司-规范性文件",
       "start_url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/index.html",
-      "parser": "pbc_regulations.crawler.parser_tiaofasi"
+      "parser": "pbc_regulations.crawler.parser_tiaofasi",
+      "priority": 400,
+      "category": "规范性文件"
     },
     {
       "name": "scattered",
       "chinese_name": "零散制度收集"
     }
+  ],
+  "category_order": [
+    "国家法律",
+    "行政法规",
+    "部门规章",
+    "规范性文件"
   ]
 }

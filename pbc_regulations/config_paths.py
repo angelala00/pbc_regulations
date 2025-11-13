@@ -48,6 +48,8 @@ class TaskConfig:
     name: str
     extract_file: Optional[str] = None
     state_file: Optional[str] = None
+    priority: Optional[int] = None
+    category: Optional[str] = None
 
 
 def discover_project_root(start: Optional[Path] = None) -> Path:
@@ -110,6 +112,17 @@ def load_configured_tasks(
                 seen.append(canonical)
                 extract_file = item.get("extract_file") or item.get("extract")
                 state_file = item.get("state_file")
+                priority_value = item.get("priority")
+                priority: Optional[int] = None
+                if isinstance(priority_value, (int, float)):
+                    priority = int(priority_value)
+                elif isinstance(priority_value, str) and priority_value.strip():
+                    try:
+                        priority = int(priority_value.strip())
+                    except ValueError:
+                        priority = None
+                category_value = item.get("category")
+                category = category_value.strip() if isinstance(category_value, str) else None
                 tasks.append(
                     TaskConfig(
                         canonical,
@@ -119,6 +132,8 @@ def load_configured_tasks(
                         state_file=state_file.strip()
                         if isinstance(state_file, str) and state_file.strip()
                         else None,
+                        priority=priority,
+                        category=category,
                     )
                 )
     if not tasks and default_tasks:

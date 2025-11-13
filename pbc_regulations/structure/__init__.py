@@ -11,6 +11,7 @@ from openai import OpenAI
 from pbc_regulations import settings
 from pbc_regulations.config_paths import (
     discover_project_root,
+    load_configured_tasks,
     resolve_artifact_dir,
 )
 
@@ -513,23 +514,62 @@ def export_stage_fill_info(
             exported.append({"title": title, "summary": summary})
         return exported
     raise ValueError(f"Unsupported export type: {export}")
+def _load_category_order() -> Tuple[Tuple[str, Tuple[str, ...]], ...]:
+    project_root = discover_project_root(Path(__file__).resolve().parent)
+    config_path = project_root / "pbc_config.json"
+
+    config_data: Dict[str, Any] = {}
+    if config_path.exists():
+        try:
+            config_data = json.loads(config_path.read_text("utf-8"))
+        except Exception:
+            config_data = {}
+
+    tasks = load_configured_tasks(config_path if config_path.exists() else None)
+    if not tasks:
+        return tuple()
+
+    category_to_datasets: Dict[str, List[str]] = {}
+    uncategorized: List[str] = []
+    for task in tasks:
+        category_name = task.category.strip() if isinstance(task.category, str) else ""
+        if category_name:
+            bucket = category_to_datasets.setdefault(category_name, [])
+            bucket.append(task.name)
+        else:
+            uncategorized.append(task.name)
+
+    configured_order = config_data.get("category_order")
+    order_names: List[str] = []
+    if isinstance(configured_order, list):
+        for item in configured_order:
+            if isinstance(item, str) and item.strip():
+                order_names.append(item.strip())
+            elif isinstance(item, dict):
+                label = item.get("name")
+                if isinstance(label, str) and label.strip():
+                    order_names.append(label.strip())
+    if not order_names:
+        order_names = sorted(category_to_datasets.keys())
+
+    ordered_pairs: List[Tuple[str, Tuple[str, ...]]] = []
+    for category_name in order_names:
+        datasets = category_to_datasets.pop(category_name, [])
+        if datasets:
+            ordered_pairs.append((category_name, tuple(datasets)))
+
+    for category_name, datasets in sorted(category_to_datasets.items()):
+        if datasets:
+            ordered_pairs.append((category_name, tuple(datasets)))
+
+    if uncategorized:
+        for dataset_name in uncategorized:
+            ordered_pairs.append((dataset_name, (dataset_name,)))
+
+    return tuple(ordered_pairs)
 
 
-CATEGORY_ORDER: Tuple[Tuple[str, Tuple[str, ...]], ...] = (
-    ("国家法律", ("tiaofasi_national_law",)),
-    ("行政法规", ("tiaofasi_administrative_regulation",)),
-    (
-        "部门规章",
-        ("tiaofasi_departmental_rule", "zhengwugongkai_chinese_regulations"),
-    ),
-    (
-        "规范性文件",
-        (
-            "tiaofasi_normative_document",
-            "zhengwugongkai_administrative_normative_documents",
-        ),
-    ),
-)
+CATEGORY_ORDER: Tuple[Tuple[str, Tuple[str, ...]], ...] = _load_category_order()
 
 
 def _build_dataset_levels() -> Dict[str, str]:

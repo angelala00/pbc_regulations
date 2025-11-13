@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
+from pbc_regulations.config_paths import discover_project_root, load_configured_tasks
+
 from .tasks import canonicalize_task_name
 
 STOPWORDS = {
@@ -63,15 +65,22 @@ _REMARK_EXCLUDE_KEYWORDS = [
     "作废",
 ]
 
+def _load_task_priority_map() -> Dict[str, int]:
+    project_root = discover_project_root(Path(__file__).resolve().parent)
+    config_path = project_root / "pbc_config.json"
+    tasks = load_configured_tasks(config_path if config_path.exists() else None)
+    priority_map: Dict[str, int] = {}
+    for task in tasks:
+        if isinstance(task.priority, int):
+            priority_map[task.name] = task.priority
+    return priority_map
+
+
 # Prefer sources that are more likely to host the authoritative version of a policy.
-SEARCH_TASK_PRIORITY: Dict[str, int] = {
-    "tiaofasi_departmental_rule": 500,
-    "tiaofasi_administrative_regulation": 450,
-    "tiaofasi_national_law": 420,
-    "tiaofasi_normative_document": 400,
-    "zhengwugongkai_chinese_regulations": 300,
-    "zhengwugongkai_administrative_normative_documents": 250,
-}
+try:
+    SEARCH_TASK_PRIORITY: Dict[str, int] = _load_task_priority_map()
+except Exception:
+    SEARCH_TASK_PRIORITY = {}
 
 
 def norm_text(text: str) -> str:
