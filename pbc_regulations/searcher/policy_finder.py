@@ -3,7 +3,7 @@
 """
 policy_finder.py (improved scoring)
 Usage:
-    python policy_finder.py "<query>" [zhengwugongkai_administrative_normative_documents.json]
+    python policy_finder.py "<query>" [.json]
     [zhengwugongkai_chinese_regulations.json]
 """
 

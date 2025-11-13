@@ -10,16 +10,6 @@ from pbc_regulations.utils.policy_entries import (
     SEARCH_TASK_PRIORITY as _COMMON_SEARCH_TASK_PRIORITY,
 )
 
-ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS = (
-    "zhengwugongkai_administrative_normative_documents"
-)
-ZHENGWUGONGKAI_CHINESE_REGULATIONS = "zhengwugongkai_chinese_regulations"
-TIAOFASI_NATIONAL_LAW = "tiaofasi_national_law"
-TIAOFASI_ADMINISTRATIVE_REGULATION = "tiaofasi_administrative_regulation"
-TIAOFASI_DEPARTMENTAL_RULE = "tiaofasi_departmental_rule"
-TIAOFASI_NORMATIVE_DOCUMENT = "tiaofasi_normative_document"
-
-
 def _load_default_tasks() -> List[str]:
     """Load task names from ``pbc_config.json`` and enforce explicit config."""
 
@@ -42,10 +32,4 @@ SEARCH_TASK_PRIORITY: Dict[str, int] = dict(_COMMON_SEARCH_TASK_PRIORITY)
 __all__ = [
     "DEFAULT_SEARCH_TASKS",
     "SEARCH_TASK_PRIORITY",
-    "TIAOFASI_ADMINISTRATIVE_REGULATION",
-    "TIAOFASI_DEPARTMENTAL_RULE",
-    "TIAOFASI_NATIONAL_LAW",
-    "TIAOFASI_NORMATIVE_DOCUMENT",
-    "ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS",
-    "ZHENGWUGONGKAI_CHINESE_REGULATIONS",
 ]

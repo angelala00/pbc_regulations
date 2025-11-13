@@ -35,13 +35,16 @@ from pbc_regulations.searcher.policy_finder import (
 )
 from pbc_regulations.searcher.task_constants import (
     DEFAULT_SEARCH_TASKS,
-    TIAOFASI_ADMINISTRATIVE_REGULATION,
-    TIAOFASI_DEPARTMENTAL_RULE,
-    TIAOFASI_NATIONAL_LAW,
-    TIAOFASI_NORMATIVE_DOCUMENT,
-    ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS,
-    ZHENGWUGONGKAI_CHINESE_REGULATIONS,
 )
+
+ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS = (
+    "zhengwugongkai_administrative_normative_documents"
+)
+ZHENGWUGONGKAI_CHINESE_REGULATIONS = "zhengwugongkai_chinese_regulations"
+TIAOFASI_NATIONAL_LAW = "tiaofasi_national_law"
+TIAOFASI_ADMINISTRATIVE_REGULATION = "tiaofasi_administrative_regulation"
+TIAOFASI_DEPARTMENTAL_RULE = "tiaofasi_departmental_rule"
+TIAOFASI_NORMATIVE_DOCUMENT = "tiaofasi_normative_document"
 
 DEFAULT_SEARCH_TOPK = 5
 MAX_SEARCH_TOPK = 50

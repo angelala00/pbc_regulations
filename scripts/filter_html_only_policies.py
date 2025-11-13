@@ -40,7 +40,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--task",
-        default="zhengwugongkai_administrative_normative_documents",
+        default="",
         help="Task name to inspect",
     )
     args = parser.parse_args()
