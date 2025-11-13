@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import time
 import uuid
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple
+from typing import Any, AsyncIterator, Dict, List, Optional
 
 try:  # pragma: no cover - optional dependency during import
     from fastapi import APIRouter, HTTPException
@@ -105,26 +107,38 @@ async def _iter_two_stage_pipeline_stream(
         desc="我正在检索法律",
     )
 
-    progress_events: List[Tuple[str, Dict[str, Any]]] = []
+    progress_queue: "asyncio.Queue[Optional[Dict[str, Any]]]" = asyncio.Queue()
 
-    def _progress_callback(stage: str, payload: Dict[str, Any]) -> None:
-        progress_events.append((stage, payload.copy()))
+    async def _progress_callback(stage: str, payload: Dict[str, Any]) -> None:
+        event_payload: Dict[str, Any] = {"stage": stage}
+        event_payload.update(payload)
+        event_payload.setdefault(
+            "desc",
+            PROGRESS_STAGE_DESCRIPTIONS.get(stage, "继续推进检索流程"),
+        )
+        await progress_queue.put(event_payload)
+
+    async def _run_search() -> List[Dict[str, Any]]:
+        try:
+            return await run_two_stage_search(
+                prompt,
+                conversation_prefix=conversation_id,
+                progress_callback=_progress_callback,
+            )
+        finally:
+            await progress_queue.put(None)
+
+    search_task = asyncio.create_task(_run_search())
+    policies: Optional[List[Dict[str, Any]]] = None
 
     try:
-        policies = await run_two_stage_search(
-            prompt,
-            conversation_prefix=conversation_id,
-            progress_callback=_progress_callback,
-        )
+        while True:
+            progress_update = await progress_queue.get()
+            if progress_update is None:
+                break
+            yield _build_event("status", **progress_update)
 
-        for stage, payload in progress_events:
-            extras: Dict[str, Any] = {"stage": stage}
-            extras.update(payload)
-            extras.setdefault(
-                "desc",
-                PROGRESS_STAGE_DESCRIPTIONS.get(stage, "继续推进检索流程"),
-            )
-            yield _build_event("status", **extras)
+        policies = await search_task
 
         result_payload = json.dumps({"policies": policies}, ensure_ascii=False)
         yield _build_event(
@@ -136,6 +150,10 @@ async def _iter_two_stage_pipeline_stream(
             finish_reason="stop",
         )
     except Exception as exc:  # pragma: no cover - defensive fallback
+        if not search_task.done():
+            search_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await search_task
         yield _build_event(
             "error",
             message=str(exc),
@@ -143,6 +161,10 @@ async def _iter_two_stage_pipeline_stream(
             desc="检索过程中发生异常，流程终止",
         )
     finally:
+        if not search_task.done():
+            search_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await search_task
         yield _build_event(
             "done",
             include_message_id=False,
