@@ -113,6 +113,14 @@ def sample_extract_files(tmp_path):
                 {"type": "pdf", "local_path": "/tmp/norm_doc.pdf"},
             ],
         },
+        "scattered": {
+            "serial": 7,
+            "title": "零散制度示例政策",
+            "remark": "零散制度",
+            "documents": [
+                {"type": "pdf", "local_path": "/tmp/scattered.pdf"},
+            ],
+        },
     }
 
     extract_paths: Dict[str, Path] = {}
