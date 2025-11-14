@@ -45,6 +45,7 @@ def run(
     existing_summary_entries: Optional[List[Dict[str, Any]]] = None,
     record_callback: Optional[Callable[[EntryTextRecord, int, int, Dict[str, Any]], None]] = None,
     verify_local: bool = False,
+    force_reextract: bool = False,
     task_slug: Optional[str] = None,
 ) -> Tuple[ProcessReport, Dict[str, Any]]:
     data: Dict[str, Any] = json.loads(state_path.read_text(encoding="utf-8"))
@@ -88,6 +89,7 @@ def run(
         entry_id_filter=entry_id_filter,
         existing_summary_entries=existing_summary_entries,
         verify_local=verify_local,
+        force_reextract=force_reextract,
         task_slug=task_slug,
     )
     return report, data
@@ -307,6 +309,22 @@ def _unique_output_dir(artifact_dir: Path) -> Path:
     return artifact_dir / "extract_uniq"
 
 
+def _infer_tasks_from_document_ids(document_ids: List[str]) -> Optional[List[str]]:
+    if not document_ids:
+        return None
+    inferred: Set[str] = set()
+    for identifier in document_ids:
+        if not identifier:
+            continue
+        head, sep, _ = identifier.partition(":")
+        if not sep:
+            continue
+        task = head.strip()
+        if task:
+            inferred.add(task)
+    return sorted(inferred) or None
+
+
 def main() -> None:  # pragma: no cover - exercised via integration tests
     parser = argparse.ArgumentParser(description="从 state.json 中提取文本内容并生成 txt 文件。")
     parser.add_argument("state_file", nargs="?", type=Path, help="原始 state.json 文件路径")
@@ -357,6 +375,11 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
         action="store_true",
         help="如果本地已存在文本文件则复用，缺失时重新提取",
     )
+    parser.add_argument(
+        "--force-reextract",
+        action="store_true",
+        help="忽略摘要缓存，即使之前标记成功也重新提取文本",
+    )
     stage_group = parser.add_mutually_exclusive_group()
     stage_group.add_argument(
         "--stage-dedupe",
@@ -376,6 +399,10 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
         if isinstance(value, str) and value.strip()
     ]
     entry_id_filter: Optional[Set[str]] = set(normalized_entry_ids) or None
+    inferred_tasks = (
+        _infer_tasks_from_document_ids(normalized_entry_ids) if normalized_entry_ids else None
+    )
+    selected_tasks = args.task or inferred_tasks
 
     if args.stage_dedupe or args.stage_extract:
         if args.state_file is not None:
@@ -383,7 +410,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
         plans, artifact_dir = discover_task_plans(
             config_path=args.config,
             artifact_dir_override=args.artifact_dir,
-            selected_tasks=args.task,
+            selected_tasks=selected_tasks,
         )
         if args.stage_dedupe:
             stage_dedupe.run_stage_dedupe(
@@ -403,6 +430,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
                 serial_filters=args.serial_filters,
                 document_ids=normalized_entry_ids,
                 verify_local=args.verify_local,
+                force_reextract=args.force_reextract,
                 assign_unique_slug=assign_unique_slug,
                 unique_output_dir=_unique_output_dir,
                 load_existing_summary_entries=_load_existing_summary_entries,
@@ -481,6 +509,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=args.verify_local,
+            force_reextract=args.force_reextract,
             task_slug=summary_plan.slug,
         )
         print(_format_summary(report))
@@ -504,7 +533,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
     plans, artifact_dir = discover_task_plans(
         config_path=args.config,
         artifact_dir_override=args.artifact_dir,
-        selected_tasks=args.task,
+        selected_tasks=selected_tasks,
     )
     base_extract_dir = artifact_dir / "extract"
     base_extract_dir.mkdir(parents=True, exist_ok=True)
@@ -588,6 +617,7 @@ def main() -> None:  # pragma: no cover - exercised via integration tests
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=args.verify_local,
+            force_reextract=args.force_reextract,
             task_slug=slug,
         )
         payload = _build_summary_payload(

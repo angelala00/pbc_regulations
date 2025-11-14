@@ -1616,6 +1616,7 @@ def process_state_data(
     entry_id_filter: Optional[Set[str]] = None,
     existing_summary_entries: Optional[List[Dict[str, Any]]] = None,
     verify_local: bool = False,
+    force_reextract: bool = False,
     task_slug: Optional[str] = None,
 ) -> ProcessReport:
     """Extract text for every entry and update *state_data* in place."""
@@ -1649,13 +1650,15 @@ def process_state_data(
         filename = _build_structured_text_filename(entry, index, used_names, task_slug=task_slug)
         text_path = output_dir / filename
 
-        reused_record = _reuse_existing_text_record(
-            entry,
-            state_dir,
-            index,
-            summary_entry,
-            expected_path=text_path,
-        )
+        reused_record: Optional[EntryTextRecord] = None
+        if not force_reextract:
+            reused_record = _reuse_existing_text_record(
+                entry,
+                state_dir,
+                index,
+                summary_entry,
+                expected_path=text_path,
+            )
         if reused_record is not None:
             records.append(reused_record)
             if progress_callback is not None:

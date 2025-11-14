@@ -64,12 +64,14 @@ def test_stage_extract_applies_policy_serial_filter(tmp_path, monkeypatch):
         serial_filter=None,
         entry_id_filter=None,
         verify_local=None,
+        force_reextract=None,
         task_slug=None,
         **_kwargs,
     ):
         captured["run_serial_filter"] = serial_filter
         captured["run_entry_id_filter"] = entry_id_filter
         captured["verify_local"] = verify_local
+        captured["force_reextract"] = force_reextract
         captured["task_slug"] = task_slug
         return ProcessReport(records=[]), {}
 
@@ -94,6 +96,7 @@ def test_stage_extract_applies_policy_serial_filter(tmp_path, monkeypatch):
     assert captured["run_entry_id_filter"] is None
     assert captured["summary_entry_id_filter"] is None
     assert captured["verify_local"] is False
+    assert captured["force_reextract"] is False
     assert captured["task_slug"] == slug
 
 
@@ -142,10 +145,12 @@ def test_stage_extract_document_id_filters_serial(tmp_path, monkeypatch):
         *_args,
         serial_filter=None,
         entry_id_filter=None,
+        force_reextract=None,
         **_kwargs,
     ):
         captured["run_serial_filter"] = serial_filter
         captured["run_entry_id_filter"] = entry_id_filter
+        captured["force_reextract"] = force_reextract
         return ProcessReport(records=[]), {}
 
     stage_extract.run_stage_extract(
@@ -169,3 +174,4 @@ def test_stage_extract_document_id_filters_serial(tmp_path, monkeypatch):
     assert captured["summary_serial_filter"] == {2}
     assert captured["run_entry_id_filter"] == {"demo_task:2"}
     assert captured["summary_entry_id_filter"] == {"demo_task:2"}
+    assert captured["force_reextract"] is False

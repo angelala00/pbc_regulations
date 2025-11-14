@@ -102,6 +102,7 @@ def run_stage_extract(
     serial_filters: Optional[Sequence[int]],
     document_ids: Optional[Sequence[str]] = None,
     verify_local: bool,
+    force_reextract: bool = False,
     assign_unique_slug: Callable[[str, Dict[str, int]], str],
     unique_output_dir: Optional[Callable[[Path], Path]] = None,
     load_existing_summary_entries: Callable[[Optional[Path]], Optional[List[Dict[str, Any]]]],
@@ -238,6 +239,7 @@ def run_stage_extract(
             existing_summary_entries=existing_summary_entries,
             record_callback=_update_summary_progress,
             verify_local=verify_local,
+            force_reextract=force_reextract,
             task_slug=slug,
         )
         payload = build_summary_payload(

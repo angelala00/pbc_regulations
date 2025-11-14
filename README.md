@@ -9,12 +9,15 @@ python -m pbc_regulations.crawler --task tiaofasi_normative_document --download-
 
 ### Policy text extractor
 python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
-python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_normative_document --stage-extract --document-id tiaofasi_normative_document:186
+python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_departmental_rule --stage-extract
+python -m pbc_regulations.extractor.extract_policy_texts --stage-extract --document-id tiaofasi_departmental_rule:50 --force-reextract
 
 ### structure
 python -m pbc_regulations.structure --stage-fill-info --doc-id zhengwugongkai_administrative_normative_documents:23
 python -m pbc_regulations.structure --stage-output --format summary-only
 
+### check
+python scripts/check_extract_uniq.py --min-chars 150 --min-meaningful 60 --attachment-ratio 0.5
 
 ### Unified portal
 python -m pbc_regulations --host 0.0.0.0 --port 8000

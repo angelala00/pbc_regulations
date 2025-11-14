@@ -604,6 +604,83 @@ def test_process_state_data_skips_existing_success(tmp_path, monkeypatch):
     assert text_docs_after[0]["page_count"] == 1
 
 
+def test_process_state_data_force_reextract_ignores_cached_success(tmp_path, monkeypatch):
+    downloads = tmp_path / "downloads"
+    downloads.mkdir()
+
+    docx_path = downloads / "policy.docx"
+    _write_docx(docx_path, "Word 文本内容")
+
+    state_data = {
+        "entries": [
+            {
+                "serial": 1,
+                "title": "制度一",
+                "documents": [
+                    {
+                        "url": "http://example.com/doc.docx",
+                        "type": "doc",
+                        "local_path": str(docx_path),
+                    }
+                ],
+            }
+        ]
+    }
+
+    state_path = downloads / "policy_state.json"
+    state_path.write_text(json.dumps(state_data, ensure_ascii=False), encoding="utf-8")
+
+    output_dir = tmp_path / "texts"
+    initial_report = process_state_data(state_data, output_dir, state_path=state_path)
+
+    first_record = initial_report.records[0]
+    summary_entries = [
+        {
+            "entry_index": first_record.entry_index,
+            "serial": first_record.serial,
+            "title": first_record.title,
+            "status": first_record.status,
+            "requires_ocr": first_record.requires_ocr,
+            "text_path": str(first_record.text_path),
+            "text_filename": first_record.text_path.name,
+            "source_type": first_record.source_type,
+            "source_path": first_record.source_path,
+            "page_count": first_record.page_count,
+        }
+    ]
+
+    state_data = json.loads(state_path.read_text(encoding="utf-8"))
+    call_counter = {"count": 0}
+
+    def _force_extract(entry, state_dir):
+        call_counter["count"] += 1
+        return text_pipeline.EntryExtraction(
+            entry,
+            attempts=[],
+            selected=None,
+            text="重新提取内容",
+            status="success",
+            requires_ocr=False,
+        )
+
+    monkeypatch.setattr(text_pipeline, "extract_entry", _force_extract)
+
+    report = process_state_data(
+        state_data,
+        output_dir,
+        state_path=state_path,
+        existing_summary_entries=summary_entries,
+        force_reextract=True,
+    )
+
+    assert call_counter["count"] == 1
+    assert len(report.records) == 1
+    record = report.records[0]
+    assert record.reused is False
+    assert record.status == "success"
+    assert record.text_path.read_text(encoding="utf-8").strip() == "重新提取内容"
+
+
 def test_process_state_data_reports_progress(tmp_path):
     state_data = {
         "entries": [
