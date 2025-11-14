@@ -563,19 +563,19 @@ def _normalize_title_for_priority(value: Optional[str]) -> Optional[str]:
     return collapsed or None
 
 
-def _title_match_bonus(entry_title: Optional[str], document_title: Optional[str]) -> float:
+def _title_match_bonus(entry_title: Optional[str], document_title: Optional[str]) -> Tuple[int, float]:
     entry_norm = _normalize_title_for_priority(entry_title)
     doc_norm = _normalize_title_for_priority(document_title)
     if not entry_norm or not doc_norm:
-        return 0.0
+        return 0, 0.0
     if entry_norm == doc_norm:
-        return 2.0
+        return 3, 2.0
     if entry_norm in doc_norm or doc_norm in entry_norm:
-        return 1.0
+        return 2, 1.0
     similarity = difflib.SequenceMatcher(None, entry_norm, doc_norm).ratio()
     if similarity >= 0.85:
-        return 0.5
-    return 0.0
+        return 1, 0.5
+    return 0, 0.0
 
 
 def _attachment_penalty(
@@ -1063,9 +1063,10 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
         declared_type = document.get("type")
         normalized = _normalize_type(declared_type if isinstance(declared_type, str) else None, resolved.suffix)
         doc_title = document.get("title") if isinstance(document.get("title"), str) else None
-        match_bonus = _title_match_bonus(entry_title, doc_title)
+        match_rank, match_bonus = _title_match_bonus(entry_title, doc_title)
         base_priority = float(_DOCUMENT_PRIORITIES.get(normalized or "", -1))
-        priority = base_priority * 10.0 + match_bonus
+        priority = match_rank * 1000.0
+        priority += base_priority * 10.0 + match_bonus
         priority += _attachment_penalty(normalized, match_bonus, doc_title, has_entry_title)
         candidates.append(
             DocumentCandidate(
