@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import uuid
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, Optional, Sequence, Tuple
+import logging
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 import httpx
 
@@ -14,6 +15,8 @@ from .gpts_regulation import BASE_URL, fetch_document_catalog
 from .main import MODEL_NAME
 
 ProgressCallback = Callable[[str, Dict[str, Any]], Awaitable[None] | None]
+
+LOGGER = logging.getLogger(__name__)
 
 
 CATALOG_STAGE_SYSTEM_PROMPT = """
@@ -429,20 +432,76 @@ async def _fetch_clause_texts(
     return lookup
 
 
-async def _hydrate_clauses_with_api(policies: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    lookup = await _fetch_clause_texts(policies)
-    if not lookup:
-        return policies
+async def _hydrate_clauses_with_api(
+    policies: List[Dict[str, Any]],
+    title_lookup: Mapping[str, str],
+) -> List[Dict[str, Any]]:
+    if not policies:
+        return []
 
+    valid_policies: List[Dict[str, Any]] = []
     for policy in policies:
+        entry_id = _normalize_text(policy.get("id"))
+        if not entry_id:
+            LOGGER.warning(
+                "Dropping policy without id: title=%s clause=%s",
+                policy.get("title"),
+                policy.get("clause"),
+            )
+            continue
+        canonical_title_value = title_lookup.get(entry_id)
+        canonical_title = _normalize_text(canonical_title_value)
+        if not canonical_title:
+            LOGGER.warning(
+                "Dropping policy with unknown id=%s (title=%s)",
+                entry_id,
+                policy.get("title"),
+            )
+            continue
+        current_title = _normalize_text(policy.get("title"))
+        if current_title != canonical_title:
+            LOGGER.info(
+                "Title mismatch detected for id=%s: %s -> %s",
+                entry_id,
+                current_title or "<missing>",
+                canonical_title,
+            )
+            policy = policy.copy()
+            policy["title"] = canonical_title_value or canonical_title
+        valid_policies.append(policy)
+
+    if not valid_policies:
+        return []
+
+    lookup = await _fetch_clause_texts(valid_policies)
+
+    hydrated: List[Dict[str, Any]] = []
+    for policy in valid_policies:
+        entry_id = _normalize_text(policy.get("id"))
         title = _normalize_text(policy.get("title"))
         clause_key = _normalize_text(policy.get("clause"))
         if not title or not clause_key:
+            LOGGER.warning(
+                "Dropping policy id=%s because title/clause missing: title=%s clause=%s",
+                entry_id or "<missing>",
+                policy.get("title"),
+                policy.get("clause"),
+            )
             continue
         clause_text = lookup.get((title, clause_key))
-        if clause_text:
-            policy["clause"] = clause_text
-    return policies
+        if not clause_text:
+            LOGGER.warning(
+                "Dropping policy id=%s because clause content not found (title=%s, clause=%s)",
+                entry_id,
+                title,
+                clause_key,
+            )
+            continue
+        policy = policy.copy()
+        policy["clause"] = clause_text
+        hydrated.append(policy)
+
+    return hydrated
 
 
 async def _load_catalog_entries() -> List[Dict[str, Any]]:
@@ -602,7 +661,7 @@ async def _run_content_stage(
         clauses=sum(len(group) for group in collected),
     )
     merged = _merge_policy_results(collected, title_lookup)
-    return await _hydrate_clauses_with_api(merged)
+    return await _hydrate_clauses_with_api(merged, title_lookup)
 
 
 async def run_two_stage_search(

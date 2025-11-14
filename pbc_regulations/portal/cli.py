@@ -37,56 +37,8 @@ from pbc_regulations.searcher.task_constants import (
     DEFAULT_SEARCH_TASKS,
 )
 
-ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS = (
-    "zhengwugongkai_administrative_normative_documents"
-)
-ZHENGWUGONGKAI_CHINESE_REGULATIONS = "zhengwugongkai_chinese_regulations"
-TIAOFASI_NATIONAL_LAW = "tiaofasi_national_law"
-TIAOFASI_ADMINISTRATIVE_REGULATION = "tiaofasi_administrative_regulation"
-TIAOFASI_DEPARTMENTAL_RULE = "tiaofasi_departmental_rule"
-TIAOFASI_NORMATIVE_DOCUMENT = "tiaofasi_normative_document"
-
 DEFAULT_SEARCH_TOPK = 5
 MAX_SEARCH_TOPK = 50
-
-_SEARCH_TASK_DEFINITIONS = [
-    {
-        "name": ZHENGWUGONGKAI_ADMINISTRATIVE_NORMATIVE_DOCUMENTS,
-        "dest": "search_administrative_normative_documents",
-        "flags": [
-            "--search-zhengwugongkai-administrative-normative-documents",
-            "--search-policy-updates",
-        ],
-    },
-    {
-        "name": ZHENGWUGONGKAI_CHINESE_REGULATIONS,
-        "dest": "search_chinese_regulations",
-        "flags": [
-            "--search-zhengwugongkai-chinese-regulations",
-            "--search-regulator-notice",
-        ],
-    },
-    {
-        "name": TIAOFASI_NATIONAL_LAW,
-        "dest": "search_tiaofasi_national_law",
-        "flags": ["--search-tiaofasi-national-law"],
-    },
-    {
-        "name": TIAOFASI_ADMINISTRATIVE_REGULATION,
-        "dest": "search_tiaofasi_administrative_regulation",
-        "flags": ["--search-tiaofasi-administrative-regulation"],
-    },
-    {
-        "name": TIAOFASI_DEPARTMENTAL_RULE,
-        "dest": "search_tiaofasi_departmental_rule",
-        "flags": ["--search-tiaofasi-departmental-rule"],
-    },
-    {
-        "name": TIAOFASI_NORMATIVE_DOCUMENT,
-        "dest": "search_tiaofasi_normative_document",
-        "flags": ["--search-tiaofasi-normative-document"],
-    },
-]
 
 
 def _resolve_extract_path(
@@ -421,14 +373,6 @@ def main(argv: Optional[List[str]] = None) -> None:
         action="store_true",
         help="Disable the policy search interface",
     )
-    for definition in _SEARCH_TASK_DEFINITIONS:
-        parser.add_argument(
-            *definition["flags"],
-            dest=definition["dest"],
-            help=(
-                f"Path to the {definition['name']} extract JSON for the search interface"
-            ),
-        )
     parser.add_argument(
         "--search-extract",
         dest="search_extract_overrides",
@@ -503,12 +447,6 @@ def main(argv: Optional[List[str]] = None) -> None:
     legacy_search_overrides = _parse_override_pairs(args.search_state_overrides)
     for key, value in legacy_search_overrides.items():
         search_extract_overrides.setdefault(key, _normalize_extract_override(value))
-    for definition in _SEARCH_TASK_DEFINITIONS:
-        override_value = getattr(args, definition["dest"], None)
-        if override_value:
-            search_extract_overrides[
-                canonicalize_task_name(definition["name"])
-            ] = _normalize_extract_override(override_value)
 
     policy_finder, clause_lookup, search_error = _prepare_policy_finder(
         config_path=config_path,
