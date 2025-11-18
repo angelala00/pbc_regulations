@@ -1,278 +1,65 @@
-# AI Chat SSE Streaming Protocol  
-（/api/ai_chat 接口开发规范）
+# Agent Streaming Interaction Guide
 
-本文档定义了 AI Chat 接口（`/api/ai_chat`）的 **SSE 流式协议**，用于传输模型回复、工具调用过程与最终结果。  
-所有 SSE 的数据行均使用：
+## 💡 流式节点展示（草案）
 
-```
-data: {JSON 对象}
-```
+> 本节用于梳理“思考过程”可视化的交互与节点分类，待方案成熟后再上升为正式协议字段。
 
-并且 **所有事件都必须包含字段：`event`**。
+### 节点类型
 
----
+- **思考节点**：对应模型纯内部推理过程（是否调用工具、如何解读条款等）。
+  - 进行中：默认展开并滚动展示最新思考文本；标题形如“正在分析条款解读”。
+  - 完成后：自动收起，标题切换为“条款解读已完成”，点击可再次展开查看完整内容。
+- **工具节点**：表示一次直接触发的工具调用（例如查询数据库、触发补充检索等纯函数式能力）。
+  - 进行中：标题示例“正在进行数据库查询”，展开区域内可以按子步骤显示“准备参数”“等待响应”等实时状态。
+  - 完成后：标题切换为“数据库查询完成”，整体收起，点击可展开查看执行日志或输出片段。
+- **子 Agent 节点**：表示委派给另一个 Agent 的任务（例如“法规检索”在当前业务中即属于子 Agent）。
+  - 进行中：标题可为“Agent[图标] 法规检索进行中”，展开内容由子 Agent 自己的 `node_delta` 组成。通常子 Agent 里会像主agent节点一样，里面也有同样的嵌套结构。
+  - 完成后：标题切换成“Agent[图标] 法规检索已完成”，默认收起，用户可点开查看记录。
 
-# ✅ 总体设计原则
+以上三类节点共享统一的事件模型：`node_start`（建节点）、`node_delta`（内容增量）、`node_end`（结束并标注状态）。这样前端可以仅依赖 node_* 三类事件完成展开/收起、进度展示与嵌套渲染。
 
-- 一次请求只产生 **一次** `message_start` 和 **一次** `message_end`  
-- 中间可包含多个：
-  - 文本增量事件：`content_delta`
-  - 工具调用事件：`tool_call_start` / `tool_call_delta` / `tool_call_end`
-  - 工具结果流事件（可选）：`tool_result_delta`
-- 流结束时发送：`event: "done"`（向后兼容）
+### 完整示例：
 
----
-
-# ✅ 通用字段（所有事件可携带）
-
-| 字段 | 描述 | 必填 |
-|------|------|------|
-| event | 事件类型 | ✅ |
-| response_id | 当前响应（整段流）的 ID | ✅ |
-| message_id | 当前回答的 ID（从 message_start 开始确定） | ✅ |
-| seq | 递增序号（用于乱序恢复与去重） | ✅ |
-| created | 毫秒时间戳 | ✅ |
-| conversation_id | 可选，会话ID | ❌ |
-| metadata | 可选，自定义扩展字段 | ❌ |
-
-> 前端建议用 `(response_id, seq)` 做唯一识别。
-
----
-
-# ✅ 事件定义
-
-## 1. `message_start`
-回答开始。
-
-```json
-{
-  "event": "message_start",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "role": "assistant",
-  "model": "qwen-xx",
-  "created": 1234567890000,
-  "seq": 1
-}
-```
-
----
-
-## 2. `content_delta`
-回答正文的增量 token。
-
-```json
-{
-  "event": "content_delta",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "index": 0,
-  "delta": "您好",
-  "created": 1234567890001,
-  "seq": 2
-}
-```
-
----
-
-## 3. `tool_call_start`
-模型决定调用工具。
-
-```json
-{
-  "event": "tool_call_start",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "tool_call_id": "tc_1",
-  "name": "get_weather",
-  "created": 1234567895000,
-  "seq": 10
-}
-```
-
----
-
-## 4. `tool_call_delta`（可选）
-工具入参流式生成。
-
-```json
-{
-  "event": "tool_call_delta",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "tool_call_id": "tc_1",
-  "args_delta": "{\"city\":\"Be",
-  "created": 1234567895001,
-  "seq": 11
-}
-```
-
----
-
-## 5. `tool_call_end`
-工具执行结束。
-
-```json
-{
-  "event": "tool_call_end",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "tool_call_id": "tc_1",
-  "status": "ok",
-  "output": {
-    "temp": 12,
-    "cond": "Sunny"
-  },
-  "latency_ms": 141,
-  "created": 1234567896000,
-  "seq": 12
-}
-```
-
----
-
-## 6. `tool_result_delta`（可选）
-工具返回数据过大时的流式传输。
-
-```json
-{
-  "event": "tool_result_delta",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "tool_call_id": "tc_2",
-  "delta": "{\"rows\":[[1,2,3],",
-  "created": 1234567897000,
-  "seq": 20
-}
-```
-
----
-
-## 7. `message_end`
-回答结束（内容+工具流程都结束）。
-
-```json
-{
-  "event": "message_end",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "finish_reason": "stop",
-  "usage": {
-    "input_tokens": 120,
-    "output_tokens": 98,
-    "total_tokens": 218
-  },
-  "created": 1234567899000,
-  "seq": 99
-}
-```
-
----
-
-## 8. `error`
-任意阶段发生错误。
-
-```json
-{
-  "event": "error",
-  "response_id": "resp_123",
-  "message_id": "msg_abc",
-  "code": "TOOL_TIMEOUT",
-  "message": "get_weather timed out",
-  "fatal": false,
-  "created": 1234567898000,
-  "seq": 50
-}
-```
-
----
-
-## 9. `keepalive`（可选）
-长时间工具执行中的心跳。
-
-```json
-{
-  "event": "keepalive",
-  "response_id": "resp_123",
-  "created": 1234567898500,
-  "seq": 60
-}
-```
-
----
-
-## 10. `done`
-流真正结束（向后兼容）。
-
-```json
-{
-  "event": "done"
-}
-```
-
----
-
-# ✅ 推荐事件时序
+下面示例聚焦“主 Agent → 子 Agent → 主内容输出”的典型流。为便于阅读，统一用 SSE 行的 `data:` 形式，并在 `node_delta` 中展示嵌套事件。
 
 ```
-message_start
-content_delta*
-tool_call_start?
-tool_call_delta*
-tool_call_end?
-content_delta*
-（可能重复多轮工具）
-message_end
-done
+data: {"event":"message_start","response_id":"r1","message_id":"m1","created":1}
+
+data: {"event":"node_start","response_id":"r1","message_id":"m1","node_id":"n1","type":"thinking","title":"思考","created":2}
+data: {"event":"node_delta","response_id":"r1","message_id":"m1","node_id":"n1","delta":"我需要检索'违规发行预付卡'相关的法律","created":3}
+data: {"event":"node_end","response_id":"r1","message_id":"m1","node_id":"n1","status":"completed","title":"思考","created":4}
+
+data: {"event":"node_start","response_id":"r1","message_id":"m1","node_id":"n1","type":"tool","title":"阅读法律目录","created":2}
+data: {"event":"node_delta","response_id":"r1","message_id":"m1","node_id":"n1","delta":"调用法律目录，并批量分析以查找与问题相关的法律","created":3}
+data: {"event":"node_end","response_id":"r1","message_id":"m1","node_id":"n1","status":"completed","title":"分析法律目录","created":4}
+
+data: {"event":"node_start","response_id":"r1","message_id":"m1","node_id":"n1","type":"tool","title":"阅读法律原文","created":2}
+data: {"event":"node_delta","response_id":"r1","message_id":"m1","node_id":"n1","delta":"根据相关法律，批量阅读原文，提取相关条款","created":3}
+data: {"event":"node_end","response_id":"r1","message_id":"m1","node_id":"n1","status":"completed","title":"阅读法律原文","created":4}
+
+data: {"event":"node_start","response_id":"r1","message_id":"m1","node_id":"n3","type":"thinking","title":"正在综合分析","created":23}
+data: {"event":"node_delta","response_id":"r1","message_id":"m1","node_id":"n3","delta":"整理检索到的法律条款，整理输出...","created":24}
+data: {"event":"node_end","response_id":"r1","message_id":"m1","node_id":"n3","status":"completed","title":"分析整理","created":25}
+
+data: {"event":"content_delta","response_id":"r1","message_id":"m1","node_id":null,"index":0,"delta":"结构化输出内容...","role":"assistant","created":26,"metadata":{"channel":"final"}}
+data: {"event":"message_end","response_id":"r1","message_id":"m1","created":27}
+data: {"event":"done","response_id":"r1","message_id":"m1","created":28}
 ```
 
-一次请求只有：
+要点：
+- 所有节点仍遵循 `node_start → node_delta* → node_end` 的生命周期。
+- `node_delta` 可携带纯文本，也可以像示例中那样承载结构化事件，方便将当前 Agent 视作父节点，而把子 Agent 的所有事件原样嵌入。
+- 顶层 `content_delta`、`message_end`、`done` 保持在节点树之外，通过 `node_id:null` 等字段明确归属，便于前端区分“主回复”与“节点内输出”。
 
-- **1 个 message_start**
-- **1 个 message_end**
-- **多次工具调用事件（可并行）**
-- **最后是 done**
+### 子 Agent 输出的封装指南
 
----
+主 Agent 并不需要将子 Agent 的原始 `content_delta`/`node_delta` 一股脑转发给前端，可以按需封装为更友好的节点结构。推荐做法：
 
-# ✅ 完整示例（含两次工具调用）
+- **转译为内容节点**：当子 Agent 产生阶段性 `content_delta` 时，父节点可新建 `type:"content"` 的子节点，然后将阶段性进展写入 `node_delta`，示例：
+  - `node_start(node_id:"s_content", type:"content", title:"法规检索进展")`
+  - `node_delta(node_id:"s_content", delta:"已完成目录检索，准备阅读原文...")`
+  - `node_end(node_id:"s_content", status:"completed")`
+- **结果描述节点**：当子 Agent 得到最终输出，可再创建 `type:"result"`（或其他自定义类型）的节点，仅保留面向用户的结论，屏蔽内部日志。
+- **敏感信息过滤**：子 Agent 的任何 `node_delta`/`content_delta` 都可以先经过主 Agent 判断，只有需要让前端看到的才封装进新的节点；无论是实时进度还是最终结果，都由主 Agent 决定是否 `yield`。
 
-```
-data: {"event":"message_start","response_id":"r1","message_id":"m1","role":"assistant","model":"qwen-xx","created":1,"seq":1}
-data: {"event":"tool_call_start","response_id":"r1","message_id":"m1","tool_call_id":"tc_1","name":"get_weather","created":3,"seq":3}
-data: {"event":"tool_call_delta","response_id":"r1","message_id":"m1","tool_call_id":"tc_1","args_delta":"{\"city\":\"Be","created":4,"seq":4}
-data: {"event":"tool_call_delta","response_id":"r1","message_id":"m1","tool_call_id":"tc_1","args_delta":"ijing\",\"date\":\"2025-10-28\"}","created":5,"seq":5}
-data: {"event":"tool_call_end","response_id":"r1","message_id":"m1","tool_call_id":"tc_1","status":"ok","output":{"temp":12,"cond":"Sunny"},"latency_ms":141,"created":6,"seq":6}
-data: {"event":"tool_call_start","response_id":"r1","message_id":"m1","tool_call_id":"tc_2","name":"suggest_outfit","created":8,"seq":8}
-data: {"event":"tool_call_end","response_id":"r1","message_id":"m1","tool_call_id":"tc_2","status":"ok","output":{"advice":"外套+长裤"},"created":9,"seq":9}
-data: {"event":"content_delta","response_id":"r1","message_id":"m1","index":0,"delta":"建议外套+长裤。","created":10,"seq":10}
-data: {"event":"content_delta","response_id":"r1","message_id":"m1","index":0,"delta":"建议外套+长裤。","created":10,"seq":10}
-data: {"event":"message_end","response_id":"r1","message_id":"m1","finish_reason":"stop","usage":{"input_tokens":120,"output_tokens":98,"total_tokens":218},"created":11,"seq":11}
-data: {"event":"done"}
-```
-
----
-
-# ✅ 前端渲染指导（推荐）
-
-- `content_delta`：逐段追加到文本框
-- `tool_call_*`：显示为可折叠“工具调用卡片”
-- 用 `(response_id, seq)` 保证去重与顺序
-- 收到 `message_end`：可以解锁输入框
-- 收到 `done`：结束流
-
----
-
-# ✅ 协议版本与演进
-
-未来可扩展：
-
-- 多内容块（`index` > 0）
-- `tool_result_delta` 优化大输出
-- 思维链中间事件（如 `reasoning`）
-
-本协议为稳定可用版本，可直接在前后端落地。
-
----
-
-# 完
+通过这层封装，前端协议保持简洁一致，同时主 Agent 也能灵活控制不同子 Agent 的展示粒度。

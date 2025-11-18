@@ -146,7 +146,7 @@ def _build_content_prompt(
 ) -> str:
     catalog_text = _format_catalog_entries(entries)
     return (
-        "以下是可能与用户问题相关的法律，请调用工具读取原文并提取具体条款。\n"
+        "以下是可能与用户问题相关的法律，结合用户问题和法律原文并提取具体条款。\n"
         f"用户问题：{question}\n"
         "待分析的法律列表：\n"
         f"{catalog_text}\n"
