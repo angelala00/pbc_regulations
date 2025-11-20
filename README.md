@@ -47,3 +47,5 @@ curl -N -X POST http://localhost:8000/api/legal_search/ai_chat   -H 'Content-Typ
 
 git remote add modelscope https://oauth2:ms-0d8f9c4e-4a3d-4058-86cf-62dd7ecdbda9@www.modelscope.cn/angelala00/icrawler.git
 git push modelscope HEAD:github-master
+
+test
