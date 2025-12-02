@@ -6,7 +6,9 @@ import asyncio
 import json
 import uuid
 import logging
+import math
 from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+from urllib.parse import quote
 
 import httpx
 
@@ -20,7 +22,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 CATALOG_STAGE_SYSTEM_PROMPT = """
-你是一名法律法规目录分析助手。你的任务是结合用户的问题与提供的目录条目，甄别出最相关的法律法规。
+你是一个AI专家系统-法律法规检索助手，
+擅长解读国家法律，国务院令，中国人民银行部门规章，司法解释性文件等法律文件。
+请仔细阅读并分析用户的问题，准确理解其意图和关键词。根据问题内容，从法律目录列表中检索出与之最相关的法律文件名，重点关注具有明确规定的权威性文件。
 【执行要求】
 1. 如需使用工具，请严格遵循工具调用返回的 JSON 格式。
 2. 最终输出只返回 JSON，格式如下：
@@ -40,7 +44,9 @@ CATALOG_STAGE_SYSTEM_PROMPT = """
 
 
 CONTENT_STAGE_SYSTEM_PROMPT = """
-你是一名法律条款甄别助手。根据用户的问题与给定的法律 ID 列表，调用工具读取原文并提取最相关条款。
+你是一个AI专家系统-法律法规条款分析助手，
+擅长解读国家法律，国务院令，中国人民银行部门规章，司法解释性文件等法律文件。
+请仔细阅读并分析用户的问题，准确理解其意图和关键词。根据问题内容，从法律原文中找出与之最相关的条款，重点关注具有明确规定的权威性条款。
 【执行要求】
 1. 输出必须是 JSON，格式如下：
 ```json
@@ -92,6 +98,82 @@ def _chunk_sequence(seq: Sequence[Any], chunk_size: int) -> Iterable[Sequence[An
         yield seq[index : index + chunk_size]
 
 
+def _split_long_content_entries(
+    entries: Sequence[Dict[str, Any]],
+    *,
+    chunk_threshold: int = 30000,
+    chunk_size: int = 31000,
+    overlap: int = 1000,
+) -> List[Dict[str, Any]]:
+    if chunk_size <= overlap:
+        raise ValueError("chunk_size must be greater than overlap")
+    step = chunk_size - overlap
+    expanded: List[Dict[str, Any]] = []
+    for entry in entries:
+        content = entry.get("content") or entry.get("text")
+        if not isinstance(content, str):
+            expanded.append(entry)
+            continue
+        length = len(content)
+        if length <= chunk_threshold:
+            expanded.append(entry)
+            continue
+        remainder = max(0, length - chunk_size)
+        chunk_count = 1 + math.ceil(remainder / step) if remainder > 0 else 1
+        start = 0
+        chunk_index = 1
+        while start < length:
+            chunk_content = content[start : start + chunk_size]
+            new_entry = entry.copy()
+            new_entry["content"] = chunk_content
+            new_entry["chunk_index"] = chunk_index
+            new_entry["chunk_count"] = chunk_count
+            expanded.append(new_entry)
+            chunk_index += 1
+            start += step
+    return expanded
+
+
+def _chunk_content_entries(
+    entries: Sequence[Dict[str, Any]],
+    *,
+    max_batch_size: int,
+    max_batch_chars: int,
+) -> List[List[Dict[str, Any]]]:
+    batches: List[List[Dict[str, Any]]] = []
+    current_batch: List[Dict[str, Any]] = []
+    current_chars = 0
+
+    def _entry_length(entry: Dict[str, Any]) -> int:
+        content = entry.get("content") or entry.get("text") or ""
+        if isinstance(content, str):
+            return len(content)
+        return len(str(content))
+
+    for entry in entries:
+        length = _entry_length(entry)
+        if length > max_batch_chars:
+            if current_batch:
+                batches.append(current_batch)
+                current_batch = []
+                current_chars = 0
+            batches.append([entry])
+            continue
+
+        if current_batch and (len(current_batch) >= max_batch_size or current_chars + length > max_batch_chars):
+            batches.append(current_batch)
+            current_batch = []
+            current_chars = 0
+
+        current_batch.append(entry)
+        current_chars += length
+
+    if current_batch:
+        batches.append(current_batch)
+
+    return batches
+
+
 def _normalize_text(value: Any) -> Optional[str]:
     if isinstance(value, str):
         stripped = value.strip()
@@ -117,26 +199,54 @@ def _format_catalog_entries(entries: Sequence[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def _format_content_entries(
+    entries: Sequence[Dict[str, Any]],
+    *,
+    max_content_length: int = 31000,
+) -> str:
+    lines: List[str] = []
+    for entry in entries:
+        entry_id = _normalize_text(entry.get("id"))
+        if not entry_id:
+            continue
+        title = _normalize_text(entry.get("title")) or "未知标题"
+        reasons = entry.get("reasons") or entry.get("reason")
+        reason_text = None
+        if isinstance(reasons, list):
+            reason_text = "; ".join([r for r in reasons if isinstance(r, str)])
+        elif isinstance(reasons, str):
+            reason_text = reasons.strip() or None
+        header = f"- {title} (ID: {entry_id})"
+        if reason_text:
+            header = f"{header} - 目录理由：{reason_text}"
+        chunk_index = entry.get("chunk_index")
+        chunk_count = entry.get("chunk_count")
+        if isinstance(chunk_index, int) and chunk_index > 0:
+            if isinstance(chunk_count, int) and chunk_count > 1:
+                header = f"{header} - 片段 {chunk_index}/{chunk_count}"
+            else:
+                header = f"{header} - 片段 {chunk_index}"
+        content = entry.get("content") or entry.get("text")
+        content_str = _normalize_text(content)
+        if content_str:
+            snippet = content_str[:max_content_length]
+            if len(content_str) > max_content_length:
+                snippet = f"{snippet}…(原文已截断)"
+            lines.append(f"{header}\n原文：\n{snippet}")
+        else:
+            lines.append(f"{header}\n原文：未获取到")
+    return "\n\n".join(lines)
+
+
 def _build_catalog_prompt(question: str, entries: Sequence[Dict[str, Any]]) -> str:
     catalog_text = _format_catalog_entries(entries)
     return (
-        "请阅读以下法律法规目录条目，结合用户问题判断哪些法律最有可能包含答案。\n"
-        f"用户问题：{question}\n"
-        "候选目录条目：\n"
-        f"{catalog_text}\n"
-        "请只返回 JSON，格式如下：\n"
-        "```json\n"
-        "{\n"
-        "  \"matches\": [\n"
-        "    {\n"
-        "      \"title\": \"法律名称\",\n"
-        "      \"id\": \"文档ID\",\n"
-        "      \"reason\": \"相关性说明\"\n"
-        "    }\n"
-        "  ]\n"
-        "}\n"
-        "```\n"
-        "如无匹配项，请返回空数组。"
+        f"""
+用户问题：{question}
+候选目录条目：
+{catalog_text}
+请返回与问题最相关的法律名称与文档ID列表（JSON 格式，键为 matches，包含 title/id/reason）。若无匹配返回空数组。
+        """
     )
 
 
@@ -144,26 +254,14 @@ def _build_content_prompt(
     question: str,
     entries: Sequence[Dict[str, Any]],
 ) -> str:
-    catalog_text = _format_catalog_entries(entries)
+    content_text = _format_content_entries(entries)
     return (
-        "以下是可能与用户问题相关的法律，结合用户问题和法律原文并提取具体条款。\n"
-        f"用户问题：{question}\n"
-        "待分析的法律列表：\n"
-        f"{catalog_text}\n"
-        "请逐一核对条款，只返回 JSON，格式如下：\n"
-        "```json\n"
-        "{\n"
-        "  \"policies\": [\n"
-        "    {\n"
-        "      \"title\": \"法律名称\",\n"
-        "      \"id\": \"文档ID\",\n"
-        "      \"clause\": \"相关条款标题，如第n条\",\n"
-        "      \"reason\": \"相关性说明\"\n"
-        "    }\n"
-        "  ]\n"
-        "}\n"
-        "```\n"
-        "如果没有找到合适的条款，请返回空的 policies 数组。"
+        f"""
+用户问题：{question}
+待分析的法律文件：
+{content_text}
+请从上述法律原文中提取最相关的条款，返回 JSON（policies 数组，含 title/id/clause/reason）。若无匹配返回空数组。
+        """
     )
 
 
@@ -504,6 +602,45 @@ async def _hydrate_clauses_with_api(
     return hydrated
 
 
+async def _fetch_documents_content(
+    entries: Sequence[Dict[str, Any]],
+    *,
+    max_content_length: int = 200000,
+) -> Dict[str, str]:
+    if not entries:
+        return {}
+
+    ids: List[str] = []
+    seen: set[str] = set()
+    for entry in entries:
+        entry_id = _normalize_text(entry.get("id"))
+        if entry_id and entry_id not in seen:
+            seen.add(entry_id)
+            ids.append(entry_id)
+
+    if not ids:
+        return {}
+
+    contents: Dict[str, str] = {}
+    async with httpx.AsyncClient(timeout=60.0, trust_env=False) as client:
+        for entry_id in ids:
+            encoded_id = quote(entry_id, safe="")
+            url = f"{BASE_URL.rstrip('/')}/api/policies/{encoded_id}"
+            try:
+                response = await client.get(url, params={"include": "text"})
+                response.raise_for_status()
+            except Exception as exc:
+                LOGGER.warning("Failed to fetch document content for id=%s: %s", entry_id, exc)
+                continue
+            text = _normalize_text(response.text)
+            if text:
+                if len(text) > max_content_length:
+                    contents[entry_id] = text[:max_content_length]
+                else:
+                    contents[entry_id] = text
+    return contents
+
+
 async def _load_catalog_entries() -> List[Dict[str, Any]]:
     catalog_raw = await fetch_document_catalog()
     try:
@@ -620,7 +757,22 @@ async def _run_content_stage(
     if not prepared:
         return []
 
+    content_lookup = await _fetch_documents_content(prepared)
+    if content_lookup:
+        for entry in prepared:
+            entry_id = entry.get("id")
+            if entry_id and entry_id in content_lookup:
+                entry["content"] = content_lookup[entry_id]
+    prepared = _split_long_content_entries(prepared)
+
     semaphore = asyncio.Semaphore(concurrency)
+
+    max_batch_size = chunk_size if chunk_size > 0 else 1
+    batches = _chunk_content_entries(
+        prepared,
+        max_batch_size=max_batch_size,
+        max_batch_chars=30000,
+    )
 
     async def _process_batch(batch: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
         prompt = _build_content_prompt(question, batch)
@@ -636,7 +788,6 @@ async def _run_content_stage(
         parsed = _parse_json_payload(response_text)
         return _normalize_policy_results(parsed)
 
-    batches = list(_chunk_sequence(prepared, chunk_size))
     await _emit_progress(
         progress_callback,
         "content_batches_ready",

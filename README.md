@@ -45,6 +45,8 @@ http://localhost:8000/api/clause?keys=《中华人民共和国反洗钱法》第
 curl -N -X POST http://localhost:8000/api/legal_search/ai_chat   -H 'Content-Type: application/json'   -d '{ "query": "hello", "stream": "True" }'
 curl -N -X POST http://localhost:8000/api/legal_search/ai_chat   -H 'Content-Type: application/json'   -d '{ "query": "违规发行预付卡违反了什么法律？", "stream": "True" }'
 
+git remote add modelscope https://oauth2:ms-1ab83790-cfcc-4f34-bc8f-8ad25b7ad90c@www.modelscope.cn/angelala00/icrawler.git
+
 git remote add modelscope https://oauth2:ms-0d8f9c4e-4a3d-4058-86cf-62dd7ecdbda9@www.modelscope.cn/angelala00/icrawler.git
 git push modelscope HEAD:github-master
 
