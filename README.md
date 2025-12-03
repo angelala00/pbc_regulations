@@ -19,6 +19,11 @@ python -m pbc_regulations.structure --stage-output --format summary-only
 ### check
 python scripts/check_extract_uniq.py --min-chars 150 --min-meaningful 60 --attachment-ratio 0.5
 
+### Extract uniq stats
+python scripts/count_txt_chars.py
+python scripts/count_txt_chars.py --include-totals
+python scripts/count_txt_chars.py --min-chars 10000
+
 ### Unified portal
 python -m pbc_regulations --host 0.0.0.0 --port 8000
 
