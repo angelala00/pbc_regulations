@@ -10,7 +10,7 @@ python -m pbc_regulations.crawler --task tiaofasi_normative_document --download-
 ### Policy text extractor
 python -m pbc_regulations.extractor.extract_policy_texts --stage-dedupe
 python -m pbc_regulations.extractor.extract_policy_texts --task tiaofasi_departmental_rule --stage-extract
-python -m pbc_regulations.extractor.extract_policy_texts --stage-extract --document-id tiaofasi_departmental_rule:50 --force-reextract
+python -m pbc_regulations.extractor.extract_policy_texts --stage-extract --document-id tiaofasi_normative_document:203 --force-reextract
 
 ### structure
 python -m pbc_regulations.structure --stage-fill-info --doc-id zhengwugongkai_administrative_normative_documents:23

@@ -121,7 +121,7 @@ def run_stage_extract(
     index_records = load_records_from_directory(unique_dir)
 
     if not index_records:
-        print("未找到去重结果，将直接使用 extract_uniq 目录下的 state.json 文件。")
+        print("未找到去重结果，请先运行去重阶段。")
 
     unique_lookup = build_state_lookup(index_records) if index_records else {}
 
@@ -137,27 +137,30 @@ def run_stage_extract(
         state_path = plan.state_file.expanduser().resolve()
         unique_record = unique_lookup.get(state_path) if unique_lookup else None
 
-        direct_unique_state = (unique_dir / slug / "state.json").expanduser().resolve()
         unique_state_path: Optional[Path] = None
-        if direct_unique_state.exists():
-            unique_state_path = direct_unique_state
-        elif unique_record is not None:
+        candidate_state: Optional[Path] = None
+        if unique_record is not None:
             candidate_state = unique_record.unique_state_file.expanduser().resolve()
             if candidate_state.exists():
                 unique_state_path = candidate_state
 
         if unique_state_path is None:
+            missing_path = (
+                candidate_state
+                if candidate_state is not None
+                else (unique_dir / f"{slug}_uniq_state.json")
+            )
             if unique_lookup:
                 print(
-                    f"跳过任务 {plan.display_name}：去重 state 文件不存在 ({direct_unique_state})"
+                    f"跳过任务 {plan.display_name}：去重 state 文件不存在 ({missing_path})"
                 )
             else:
                 print(
-                    f"跳过任务 {plan.display_name}：未找到去重 state 文件 ({direct_unique_state})"
+                    f"跳过任务 {plan.display_name}：未找到去重 state 文件 ({missing_path})"
                 )
             continue
 
-        output_dir = direct_unique_state.parent
+        output_dir = unique_dir / slug
         output_dir.mkdir(parents=True, exist_ok=True)
 
         summary_path = _resolve_summary_path(summary_root, slug, output_dir)

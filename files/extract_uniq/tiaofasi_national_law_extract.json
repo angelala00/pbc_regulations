@@ -1,0 +1,520 @@
+{
+  "task": "tiaofasi_national_law",
+  "task_slug": "tiaofasi_national_law",
+  "state_file": "extract_uniq/tiaofasi_national_law_uniq_state.json",
+  "text_output_dir": "extract_uniq/tiaofasi_national_law",
+  "entries": [
+    {
+      "entry_index": 0,
+      "serial": 5,
+      "title": "全国人民代表大会常务委员会关于中国银行业监督管理委员会履行原由中国人民银行履行的监督管理职责的决定",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000005_000.txt",
+      "text_filename": "tiaofasi_national_law_000005_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "全国人民代表大会常务委员会关于中国银行业监督管理委员会履行原由中国人民银行履行的...",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000005_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000005_001.html",
+          "used": true,
+          "char_count": 444,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817276/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 1,
+      "serial": 22,
+      "title": "中华人民共和国行政复议法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000022_000.txt",
+      "text_filename": "tiaofasi_national_law_000022_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000022_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000022_001.doc",
+          "used": true,
+          "char_count": 1122,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国行政复议法.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 2,
+      "serial": 21,
+      "title": "中华人民共和国行政许可法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000021_000.txt",
+      "text_filename": "tiaofasi_national_law_000021_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 25,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000021_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000021_001.docx",
+          "used": true,
+          "char_count": 11214,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国行政许可法.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 3,
+      "serial": 20,
+      "title": "中华人民共和国缔结条约程序法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000020_000.txt",
+      "text_filename": "tiaofasi_national_law_000020_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000020_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000020_001.doc",
+          "used": true,
+          "char_count": 3189,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国缔结条约程序法.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 4,
+      "serial": 19,
+      "title": "中华人民共和国立法法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000019_000.txt",
+      "text_filename": "tiaofasi_national_law_000019_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000019_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000019_001.doc",
+          "used": true,
+          "char_count": 14485,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国立法法.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 5,
+      "serial": 18,
+      "title": "中华人民共和国企业破产法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000018_000.txt",
+      "text_filename": "tiaofasi_national_law_000018_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000018_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000018_001.doc",
+          "used": true,
+          "char_count": 15400,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国企业破产法.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 6,
+      "serial": 17,
+      "title": "中华人民共和国保险法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000017_000.txt",
+      "text_filename": "tiaofasi_national_law_000017_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000017_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000017_001.doc",
+          "used": true,
+          "char_count": 22011,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国保险法.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 7,
+      "serial": 16,
+      "title": "中华人民共和国公司法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000016_000.txt",
+      "text_filename": "tiaofasi_national_law_000016_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 59,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000016_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000016_001.docx",
+          "used": true,
+          "char_count": 27217,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国公司法.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 8,
+      "serial": 15,
+      "title": "中华人民共和国刑法修正案（十一）",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000015_000.txt",
+      "text_filename": "tiaofasi_national_law_000015_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 1,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000015_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000015_001.docx",
+          "used": true,
+          "char_count": 9432,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国刑法修正案（十一）.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 9,
+      "serial": 14,
+      "title": "中华人民共和国行政处罚法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000014_000.txt",
+      "text_filename": "tiaofasi_national_law_000014_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 24,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000014_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000014_001.docx",
+          "used": true,
+          "char_count": 10458,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国行政处罚法.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 10,
+      "serial": 13,
+      "title": "中华人民共和国民法典",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000013_000.txt",
+      "text_filename": "tiaofasi_national_law_000013_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 116,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000013_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000013_001.docx",
+          "used": true,
+          "char_count": 110955,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国民法典.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 11,
+      "serial": 12,
+      "title": "中华人民共和国国家赔偿法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000012_000.txt",
+      "text_filename": "tiaofasi_national_law_000012_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "doc",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000012_001.doc",
+      "extraction_attempts": [
+        {
+          "type": "doc",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000012_001.doc",
+          "used": true,
+          "char_count": 6602,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/04/中华人民共和国国家赔偿法（2012）.doc"
+        }
+      ]
+    },
+    {
+      "entry_index": 12,
+      "serial": 11,
+      "title": "中华人民共和国行政诉讼法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000011_000.txt",
+      "text_filename": "tiaofasi_national_law_000011_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 35,
+      "remark": "",
+      "source_type": "docx",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000011_001.docx",
+      "extraction_attempts": [
+        {
+          "type": "docx",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000011_001.docx",
+          "used": true,
+          "char_count": 12497,
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国行政诉讼法.docx"
+        }
+      ]
+    },
+    {
+      "entry_index": 13,
+      "serial": 10,
+      "title": "中华人民共和国外国中央银行财产司法强制措施豁免法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000010_000.txt",
+      "text_filename": "tiaofasi_national_law_000010_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000010_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000010_001.html",
+          "used": true,
+          "char_count": 474,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817171/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 14,
+      "serial": 9,
+      "title": "中华人民共和国信托法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000009_000.txt",
+      "text_filename": "tiaofasi_national_law_000009_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000009_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000009_001.html",
+          "used": true,
+          "char_count": 6445,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817164/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 15,
+      "serial": 8,
+      "title": "中华人民共和国证券投资基金法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000008_000.txt",
+      "text_filename": "tiaofasi_national_law_000008_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000008_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000008_001.html",
+          "used": true,
+          "char_count": 21695,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/3526336/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 16,
+      "serial": 7,
+      "title": "中华人民共和国证券法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000007_000.txt",
+      "text_filename": "tiaofasi_national_law_000007_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000007_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000007_001.html",
+          "used": true,
+          "char_count": 34295,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817180/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 17,
+      "serial": 6,
+      "title": "中华人民共和国票据法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000006_000.txt",
+      "text_filename": "tiaofasi_national_law_000006_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000006_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000006_001.html",
+          "used": true,
+          "char_count": 9039,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/3667070/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 18,
+      "serial": 4,
+      "title": "中华人民共和国银行业监督管理法（修正）",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000004_000.txt",
+      "text_filename": "tiaofasi_national_law_000004_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000004_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000004_001.html",
+          "used": true,
+          "char_count": 6196,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/3808036/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 19,
+      "serial": 3,
+      "title": "中华人民共和国商业银行法（修正）",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000003_000.txt",
+      "text_filename": "tiaofasi_national_law_000003_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000003_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000003_001.html",
+          "used": true,
+          "char_count": 10049,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817252/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 20,
+      "serial": 2,
+      "title": "中华人民共和国中国人民银行法（修正）",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000002_000.txt",
+      "text_filename": "tiaofasi_national_law_000002_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000002_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000002_001.html",
+          "used": true,
+          "char_count": 4729,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/2817256/index.html"
+        }
+      ]
+    },
+    {
+      "entry_index": 21,
+      "serial": 1,
+      "title": "中华人民共和国反洗钱法",
+      "status": "success",
+      "text_path": "extract_uniq/tiaofasi_national_law/tiaofasi_national_law_000001_000.txt",
+      "text_filename": "tiaofasi_national_law_000001_000.txt",
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "remark": "",
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000001_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_national_law/tiaofasi_national_law_000001_001.html",
+          "used": true,
+          "char_count": 11200,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144951/5548765/index.html"
+        }
+      ]
+    }
+  ]
+}

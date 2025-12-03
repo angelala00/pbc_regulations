@@ -1079,7 +1079,18 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
             )
         )
     candidates.sort(key=lambda item: (-item.priority, item.order))
-    return candidates
+
+    preferred: List[DocumentCandidate] = []
+    fallback: List[DocumentCandidate] = []
+    for candidate in candidates:
+        if candidate.document.get("preferred"):
+            preferred.append(candidate)
+        else:
+            fallback.append(candidate)
+
+    if preferred:
+        return preferred + fallback
+    return fallback
 
 
 def _attempt_extract(candidate: DocumentCandidate) -> ExtractionAttempt:

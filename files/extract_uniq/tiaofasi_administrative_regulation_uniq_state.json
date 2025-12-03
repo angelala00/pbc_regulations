@@ -1,0 +1,127 @@
+{
+  "entries": [
+    {
+      "serial": 7,
+      "title": "个人存款账户实名制规定（国务院令 第285号）",
+      "remark": "2000-03-20",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/2872164/index.html",
+          "title": "个人存款账户实名制规定（国务院令 第285号）",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000007_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 8,
+      "title": "中华人民共和国人民币管理条例（国务院令 第280号）",
+      "remark": "2018-04-01",
+      "documents": [
+        {
+          "type": "word",
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2021/06/中华人民共和国人民币管理条例.docx",
+          "title": "中华人民共和国人民币管理条例（国务院令 第280号）",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000008_001.docx"
+        }
+      ]
+    },
+    {
+      "serial": 6,
+      "title": "金融资产管理公司条例（国务院令 第297号）",
+      "remark": "2000-11-10",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/2896057/index.html",
+          "title": "金融资产管理公司条例（国务院令 第297号）",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000006_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 5,
+      "title": "中华人民共和国外汇管理条例",
+      "remark": "2008-08-07",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/2817374/index.html",
+          "title": "中华人民共和国外汇管理条例",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000005_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 4,
+      "title": "征信业管理条例(国务院令 第631号)",
+      "remark": "2013-03-05",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/2885252/index.html",
+          "title": "征信业管理条例(国务院令 第631号)",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000004_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 3,
+      "title": "存款保险条例（国务院令 第660号）",
+      "remark": "2015-03-31",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/2811354/index.html",
+          "title": "存款保险条例（国务院令 第660号）",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000003_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 2,
+      "title": "防范和处置非法集资条例（国务院令第737号）",
+      "remark": "2021-03-02",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/4199555/index.html",
+          "title": "防范和处置非法集资条例（国务院令第737号）",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000002_001.html"
+        }
+      ]
+    },
+    {
+      "serial": 1,
+      "title": "非银行支付机构监督管理条例(国务院令 第768号)",
+      "remark": "2023-12-19",
+      "documents": [
+        {
+          "type": "html",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144953/5174993/index.html",
+          "title": "非银行支付机构监督管理条例(国务院令 第768号)",
+          "downloaded": true,
+          "local_path": "downloads/tiaofasi_administrative_regulation/tiaofasi_administrative_regulation_000001_001.html"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "dedupe": {
+      "task": "tiaofasi_administrative_regulation",
+      "task_slug": "tiaofasi_administrative_regulation",
+      "source_state_file": "downloads/tiaofasi_administrative_regulation_state.json",
+      "generated_at": "2025-10-29T21:36:51",
+      "original_entry_count": 8,
+      "unique_entry_count": 8,
+      "duplicate_entry_count": 0
+    }
+  }
+}

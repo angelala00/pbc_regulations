@@ -1,0 +1,88 @@
+{
+  "task": "scattered",
+  "task_slug": "scattered",
+  "text_output_dir": "extract_uniq/scattered",
+  "entries": [
+    {
+      "serial": 9,
+      "title": "中华人民共和国反电信网络诈骗法",
+      "text_path": "extract_uniq/scattered/scattered_000009_000.txt",
+      "remark": "（2022年9月2日第十三届全国人民代表大会常务委员会第三十六次会议通过）",
+      "level": "国家法律",
+      "source_type": "manual",
+      "source_path": "http://www.npc.gov.cn/npc/c2/c30834/202209/t20220902_319186.html"
+    },
+    {
+      "serial": 8,
+      "title": "企业银行结算账户管理办法",
+      "text_path": "extract_uniq/scattered/scattered_000008_000.txt",
+      "remark": "银发〔2019〕41号",
+      "level": "规范性文件",
+      "source_type": "manual",
+      "source_path": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3774254/2019022716473479657.pdf"
+    },
+    {
+      "serial": 7,
+      "title": "中国人民银行 中国银行业监督管理委员会 公安部 国家工商总局关于加强银行卡安全管理预防和打击银行卡犯罪的通知",
+      "text_path": "extract_uniq/scattered/scattered_000007_000.txt",
+      "remark": "银发〔2009〕142号",
+      "level": "其它",
+      "source_type": "manual",
+      "source_path": "http://www.pbc.gov.cn/rmyh/2169434/2888077/index.html"
+    },
+    {
+      "serial": 6,
+      "title": "中华人民共和国个人信息保护法",
+      "text_path": "extract_uniq/scattered/scattered_000006_000.txt",
+      "remark": "（2021年8月20日第十三届全国人民代表大会常务委员会第三十次会议通过）",
+      "level": "国家法律",
+      "source_type": "manual",
+      "source_path": "http://www.npc.gov.cn/c2/c30834/202108/t20210820_313088.html"
+    },
+    {
+      "serial": 5,
+      "title": "国家发展改革委 中国人民银行关于完善银行卡刷卡手续费定价机制的通知",
+      "text_path": "extract_uniq/scattered/scattered_000005_000.txt",
+      "remark": "2017/05/17 运行局",
+      "level": "其它",
+      "source_type": "manual",
+      "source_path": "https://www.ndrc.gov.cn/xwdt/ztzl/jdstjjqycb/zccs/201705/t20170517_1028538_ext.html"
+    },
+    {
+      "serial": 4,
+      "title": "国家金融监督管理总局 中国人民银行 中国证券监督管理委员会关于金融消费者权益保护相关工作安排的公告",
+      "text_path": "extract_uniq/scattered/scattered_000004_000.txt",
+      "remark": "2024年06月28日",
+      "level": "其它",
+      "source_type": "manual",
+      "source_path": "http://www.pbc.gov.cn/rmyh/105208/5386181/index.html"
+    },
+    {
+      "serial": 3,
+      "title": "住建部 人民银行 银保监会关于规范商品房预售资金监管的意见【建房〔2022〕16号】",
+      "text_path": "extract_uniq/scattered/scattered_000003_000.txt",
+      "remark": "",
+      "level": "其它",
+      "source_type": "manual",
+      "source_path": "https://mp.weixin.qq.com/s?__biz=MzA4NDU5NTkwNg==&mid=2650204248&idx=3&sn=1cabcefc1fe712138f51ab9060c37b75&chksm=86ae57f09b17f6c5adf44bd8aab92f5b13ef527426e3c4c79fad75bfacaf914fb9fea9facb92&scene=27"
+    },
+    {
+      "serial": 2,
+      "title": "中国人民银行关于做好流动就业群体等个人银行账户服务工作的指导意见",
+      "text_path": "extract_uniq/scattered/scattered_000002_000.txt",
+      "remark": "银发〔2021〕245号",
+      "level": "其它",
+      "source_type": "manual",
+      "source_path": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693549/4358499/index.html"
+    },
+    {
+      "serial": 1,
+      "title": "储蓄管理条例",
+      "text_path": "extract_uniq/scattered/scattered_000001_000.txt",
+      "remark": "",
+      "level": "行政法规",
+      "source_type": "manual",
+      "source_path": "https://www.gov.cn/gongbao/content/2011/content_1860842.htm"
+    }
+  ]
+}
