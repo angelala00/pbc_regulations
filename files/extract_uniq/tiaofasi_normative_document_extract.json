@@ -11,14 +11,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000386_000.txt",
       "text_filename": "tiaofasi_normative_document_000386_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 5,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于落实《金融机构反洗钱监督管理办法（试行）》有关事...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000386_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000386_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000386_002.pdf",
+          "used": true,
+          "char_count": 1737,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587928/2018072709330681150.pdf"
+        }
+      ]
     },
     {
       "entry_index": 1,
@@ -27,14 +37,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000369_000.txt",
       "text_filename": "tiaofasi_normative_document_000369_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 9,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于银行业金融机构对外误付假币专项治理工作的指导意见...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000369_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000369_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000369_002.pdf",
+          "used": true,
+          "char_count": 3742,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587365/2018072615321417556.pdf"
+        }
+      ]
     },
     {
       "entry_index": 2,
@@ -114,14 +134,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000298_000.txt",
       "text_filename": "tiaofasi_normative_document_000298_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 3,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于发布《非银行支付机构分类评级管理办法》的通知(银发〔201...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000298_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000298_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000298_002.pdf",
+          "used": true,
+          "char_count": 1170,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589036/2018072716551080872.pdf"
+        }
+      ]
     },
     {
       "entry_index": 7,
@@ -210,14 +240,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000170_000.txt",
       "text_filename": "tiaofasi_normative_document_000170_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 4,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 12,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于印发《人民币银行结算账户管理系统银行机构代码信息...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000170_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000170_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000170_002.pdf",
+          "used": true,
+          "char_count": 6294,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585968/2018072509175264450.pdf"
+        }
+      ]
     },
     {
       "entry_index": 13,
@@ -226,14 +266,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000169_000.txt",
       "text_filename": "tiaofasi_normative_document_000169_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 2,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 6,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于印发《空白开户许可证管理规定》的通知(银办发〔200...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000169_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000169_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000169_002.pdf",
+          "used": true,
+          "char_count": 2105,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585980/2018072509265073846.pdf"
+        }
+      ]
     },
     {
       "entry_index": 14,
@@ -242,14 +292,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000168_000.txt",
       "text_filename": "tiaofasi_normative_document_000168_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 5,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 9,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于印发《人民币银行结算账户批量迁移管理规定》的通知...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000168_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000168_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000168_002.pdf",
+          "used": true,
+          "char_count": 4216,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585973/2018072509223897851.pdf"
+        }
+      ]
     },
     {
       "entry_index": 15,
@@ -258,14 +318,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000163_000.txt",
       "text_filename": "tiaofasi_normative_document_000163_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 12,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 10,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《中国人民银行反洗钱调查实施细则（试行）》的通知(银...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000163_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000163_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000163_002.pdf",
+          "used": true,
+          "char_count": 4548,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585257/2018072416241199605.pdf"
+        }
+      ]
     },
     {
       "entry_index": 16,
@@ -290,14 +360,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000107_000.txt",
       "text_filename": "tiaofasi_normative_document_000107_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 4,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 7,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于印发《金融机构互联网黄金业务管理暂行办法》的通知...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000107_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000107_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000107_002.pdf",
+          "used": true,
+          "char_count": 2086,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3804766/2019040914321071487.pdf"
+        }
+      ]
     },
     {
       "entry_index": 18,
@@ -1845,14 +1925,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000227_000.txt",
       "text_filename": "tiaofasi_normative_document_000227_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
       "page_count": 3,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于大额交易和可疑交易报告要素及释义的通知（银发〔2017〕98...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000227_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000227_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000227_002.pdf",
+          "used": true,
+          "char_count": 1146,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589607/2018073011102557400.pdf"
+        }
+      ]
     },
     {
       "entry_index": 117,
@@ -1861,14 +1951,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000323_000.txt",
       "text_filename": "tiaofasi_normative_document_000323_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 5,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2012-07-13",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000323_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000323_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000323_002.pdf",
+          "used": true,
+          "char_count": 2339,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587015/2018072610540791381.pdf"
+        }
+      ]
     },
     {
       "entry_index": 118,
@@ -1929,14 +2029,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000123_000.txt",
       "text_filename": "tiaofasi_normative_document_000123_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 12,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于规范人民币银行结算账户管理有关问题的通知(银发〔2006〕7...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000123_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000123_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000123_002.pdf",
+          "used": true,
+          "char_count": 7163,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3583440/2018072315091432593.pdf"
+        }
+      ]
     },
     {
       "entry_index": 121,
@@ -1945,14 +2055,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000321_000.txt",
       "text_filename": "tiaofasi_normative_document_000321_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 7,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 财政部 教育部关于全面推行普通高中学生资助卡 加强普通高中国...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000321_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000321_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000321_002.pdf",
+          "used": true,
+          "char_count": 3278,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587025/2018072611020063503.pdf"
+        }
+      ]
     },
     {
       "entry_index": 122,
@@ -1961,14 +2081,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000236_000.txt",
       "text_filename": "tiaofasi_normative_document_000236_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 7,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 财政部 教育部 人力资源社会保障部关于全面推行中职学生资助卡...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000236_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000236_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000236_002.pdf",
+          "used": true,
+          "char_count": 3492,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3598288/2018080809520133774.pdf"
+        }
+      ]
     },
     {
       "entry_index": 123,
@@ -1993,14 +2123,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000174_000.txt",
       "text_filename": "tiaofasi_normative_document_000174_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 2,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 14,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于加强绿色金融债券存续期监督管理有关事宜的通知（银发〔20...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000174_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000174_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000174_002.pdf",
+          "used": true,
+          "char_count": 5059,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3730310/2018122911101013075.pdf"
+        }
+      ]
     },
     {
       "entry_index": 125,
@@ -2009,14 +2149,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000145_000.txt",
       "text_filename": "tiaofasi_normative_document_000145_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 2,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 11,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 国家外汇管理局关于人民币合格境外机构投资者境内证券投资管理...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000145_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000145_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000145_002.pdf",
+          "used": true,
+          "char_count": 4907,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3730223/2018122910572739655.pdf"
+        }
+      ]
     },
     {
       "entry_index": 126,
@@ -2025,14 +2175,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000102_000.txt",
       "text_filename": "tiaofasi_normative_document_000102_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 45,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发证券期货保险机构反洗钱执法检查数据提取接口规范的通...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000102_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000102_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000102_002.pdf",
+          "used": true,
+          "char_count": 1246,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3804742/2019040914241586877.pdf"
+        }
+      ]
     },
     {
       "entry_index": 127,
@@ -2041,13 +2201,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000018_000.txt",
       "text_filename": "tiaofasi_normative_document_000018_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 2,
       "remark": "2024-03-15",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000018_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000018_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000018_001.html",
+          "used": true,
+          "char_count": 3264,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/5275816/index.html"
+        }
+      ]
     },
     {
       "entry_index": 128,
@@ -2056,14 +2224,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000381_000.txt",
       "text_filename": "tiaofasi_normative_document_000381_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于做好支付信息统计分析系统数据报送有关工作的通知（...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000381_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000381_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000381_002.pdf",
+          "used": true,
+          "char_count": 1474,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588312/2018072714402438129.pdf"
+        }
+      ]
     },
     {
       "entry_index": 129,
@@ -2072,14 +2250,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000365_000.txt",
       "text_filename": "tiaofasi_normative_document_000365_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 8,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2013-05-29",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000365_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000365_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000365_002.pdf",
+          "used": true,
+          "char_count": 3715,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587261/2018072614334151253.pdf"
+        }
+      ]
     },
     {
       "entry_index": 130,
@@ -2114,14 +2302,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000320_000.txt",
       "text_filename": "tiaofasi_normative_document_000320_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 2,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 12,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于境外机构人民币银行结算账户开立和使用有关问题的通知（银...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000320_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000320_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000320_002.pdf",
+          "used": true,
+          "char_count": 6699,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587030/2018072611052565438.pdf"
+        }
+      ]
     },
     {
       "entry_index": 132,
@@ -2156,14 +2354,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000252_000.txt",
       "text_filename": "tiaofasi_normative_document_000252_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 6,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于境内外币支付系统业务处理有关事项的通知(银发〔2008〕387...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000252_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000252_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000252_002.pdf",
+          "used": true,
+          "char_count": 3052,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586226/2018072511220080475.pdf"
+        }
+      ]
     },
     {
       "entry_index": 134,
@@ -2188,14 +2396,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000228_000.txt",
       "text_filename": "tiaofasi_normative_document_000228_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 15,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于修订农村支付服务环境建设业务统计指标的通知（银办...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000228_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000228_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000228_002.pdf",
+          "used": true,
+          "char_count": 376,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589817/2018073015254557902.pdf"
+        }
+      ]
     },
     {
       "entry_index": 136,
@@ -2204,14 +2422,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000204_000.txt",
       "text_filename": "tiaofasi_normative_document_000204_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于加强银行间债券市场信用评级作业管理的通知(银发〔2008〕7...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000204_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000204_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000204_002.pdf",
+          "used": true,
+          "char_count": 1475,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586061/2018072510165864017.pdf"
+        }
+      ]
     },
     {
       "entry_index": 137,
@@ -2220,14 +2448,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000183_000.txt",
       "text_filename": "tiaofasi_normative_document_000183_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 12,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2017-12-22",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000183_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000183_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000183_002.pdf",
+          "used": true,
+          "char_count": 1489,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589931/2018073015415932167.pdf"
+        }
+      ]
     },
     {
       "entry_index": 138,
@@ -2236,14 +2474,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000091_000.txt",
       "text_filename": "tiaofasi_normative_document_000091_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2004-10-13",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000091_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000091_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000091_002.pdf",
+          "used": true,
+          "char_count": 1881,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3582938/2018072310263663866.pdf"
+        }
+      ]
     },
     {
       "entry_index": 139,
@@ -2268,14 +2516,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000402_000.txt",
       "text_filename": "tiaofasi_normative_document_000402_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 6,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2014-04-03",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000402_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000402_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000402_002.pdf",
+          "used": true,
+          "char_count": 2422,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587448/2018072616070378138.pdf"
+        }
+      ]
     },
     {
       "entry_index": 141,
@@ -2284,14 +2542,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000347_000.txt",
       "text_filename": "tiaofasi_normative_document_000347_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 5,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2015-08-31",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000347_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000347_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000347_002.pdf",
+          "used": true,
+          "char_count": 1743,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588240/2018072714035942374.pdf"
+        }
+      ]
     },
     {
       "entry_index": 142,
@@ -2300,14 +2568,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000344_000.txt",
       "text_filename": "tiaofasi_normative_document_000344_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 44,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于修订《支付清算系统危机处置预案》的通知(银发〔2015〕284...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000344_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000344_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000344_002.pdf",
+          "used": true,
+          "char_count": 663,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588250/2018072714084324988.pdf"
+        }
+      ]
     },
     {
       "entry_index": 143,
@@ -2316,14 +2594,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000337_000.txt",
       "text_filename": "tiaofasi_normative_document_000337_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2015-10-23",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000337_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000337_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000337_002.pdf",
+          "used": true,
+          "char_count": 1511,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588285/2018072714275347020.pdf"
+        }
+      ]
     },
     {
       "entry_index": 144,
@@ -2332,14 +2620,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000336_000.txt",
       "text_filename": "tiaofasi_normative_document_000336_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 5,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 8,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 国家外汇管理局公告〔2015〕第36号（内地与香港证券投资基金跨...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000336_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000336_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000336_002.pdf",
+          "used": true,
+          "char_count": 3185,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/07/2018072709501810670.pdf"
+        }
+      ]
     },
     {
       "entry_index": 145,
@@ -2348,14 +2646,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000335_000.txt",
       "text_filename": "tiaofasi_normative_document_000335_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 14,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 5,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2015-12-15",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000335_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000335_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000335_002.pdf",
+          "used": true,
+          "char_count": 1969,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588085/2018072710224767768.pdf"
+        }
+      ]
     },
     {
       "entry_index": 146,
@@ -2364,14 +2672,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000327_000.txt",
       "text_filename": "tiaofasi_normative_document_000327_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 60,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅 财政部办公厅 商务部办公厅 海关总署办公厅 国家税务总...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000327_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000327_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000327_002.pdf",
+          "used": true,
+          "char_count": 1545,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/07/2018072611340978555.pdf"
+        }
+      ]
     },
     {
       "entry_index": 147,
@@ -2380,14 +2698,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000314_000.txt",
       "text_filename": "tiaofasi_normative_document_000314_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 5,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于加强银行业金融机构黄金市场业务管理有关事项的通知...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000314_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000314_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000314_002.pdf",
+          "used": true,
+          "char_count": 2379,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3587083/2018072611291668491.pdf"
+        }
+      ]
     },
     {
       "entry_index": 148,
@@ -2396,14 +2724,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000311_000.txt",
       "text_filename": "tiaofasi_normative_document_000311_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 6,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于境外人民币业务参加行在境内代理行存放执行正常存款准备金...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000311_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000311_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000311_002.pdf",
+          "used": true,
+          "char_count": 2936,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588859/2018072716364696535.pdf"
+        }
+      ]
     },
     {
       "entry_index": 149,
@@ -2480,14 +2818,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000279_000.txt",
       "text_filename": "tiaofasi_normative_document_000279_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 3,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 8,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2011-07-14",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000279_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000279_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000279_002.pdf",
+          "used": true,
+          "char_count": 3556,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586873/2018072609151065407.pdf"
+        }
+      ]
     },
     {
       "entry_index": 153,
@@ -2496,14 +2844,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000265_000.txt",
       "text_filename": "tiaofasi_normative_document_000265_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
       "page_count": 3,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅关于境外中央银行类机构在境内银行业金融机构开立人民币...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000265_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000265_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000265_002.pdf",
+          "used": true,
+          "char_count": 1035,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588348/2018072715015012217.pdf"
+        }
+      ]
     },
     {
       "entry_index": 154,
@@ -2538,14 +2896,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000253_000.txt",
       "text_filename": "tiaofasi_normative_document_000253_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 19,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 7,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2017-01-22",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000253_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000253_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000253_002.pdf",
+          "used": true,
+          "char_count": 3067,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589575/2018073010531175525.pdf"
+        }
+      ]
     },
     {
       "entry_index": 156,
@@ -2570,14 +2938,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000233_000.txt",
       "text_filename": "tiaofasi_normative_document_000233_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 6,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2010-12-26",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000233_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000233_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000233_002.pdf",
+          "used": true,
+          "char_count": 529,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586623/2018072517212299782.pdf"
+        }
+      ]
     },
     {
       "entry_index": 158,
@@ -2586,14 +2964,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000216_000.txt",
       "text_filename": "tiaofasi_normative_document_000216_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 12,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行办公厅 人力资源社会保障部办公厅关于印发《具有金融功能的第三...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000216_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000216_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000216_002.pdf",
+          "used": true,
+          "char_count": 578,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589926/2018073015394922054.pdf"
+        }
+      ]
     },
     {
       "entry_index": 159,
@@ -2602,14 +2990,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000212_000.txt",
       "text_filename": "tiaofasi_normative_document_000212_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 30,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《联网核查公民身份信息系统突发事件应急预案(试行)》...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000212_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000212_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000212_002.pdf",
+          "used": true,
+          "char_count": 880,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585557/2018072417155941090.pdf"
+        }
+      ]
     },
     {
       "entry_index": 160,
@@ -2670,14 +3068,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000197_000.txt",
       "text_filename": "tiaofasi_normative_document_000197_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 20,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 3,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于各国驻华使馆、领事馆和各国际组织驻华代表机构开立人民币...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000197_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000197_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000197_002.pdf",
+          "used": true,
+          "char_count": 1367,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586103/2018072510503367346.pdf"
+        }
+      ]
     },
     {
       "entry_index": 163,
@@ -2686,14 +3094,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000194_000.txt",
       "text_filename": "tiaofasi_normative_document_000194_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 42,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 3,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《境内外币支付系统危机处置预案（试行）》的通知(银发...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000194_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000194_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000194_002.pdf",
+          "used": true,
+          "char_count": 950,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3586165/2018072511001826903.pdf"
+        }
+      ]
     },
     {
       "entry_index": 164,
@@ -2702,14 +3120,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000179_000.txt",
       "text_filename": "tiaofasi_normative_document_000179_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 42,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《银行业金融机构反洗钱现场检查数据接口规范（试行）...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000179_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000179_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000179_002.pdf",
+          "used": true,
+          "char_count": 1397,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589734/2018073015074335168.pdf"
+        }
+      ]
     },
     {
       "entry_index": 165,
@@ -2718,13 +3146,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000178_000.txt",
       "text_filename": "tiaofasi_normative_document_000178_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 35,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《非银行支付机构反洗钱现场检查数据接口规范（试行）...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000178_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000178_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000178_002.pdf",
+          "used": true,
+          "char_count": 1385,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589739/2018073015094741604.pdf"
+        }
+      ]
     },
     {
       "entry_index": 166,
@@ -2733,14 +3172,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000156_000.txt",
       "text_filename": "tiaofasi_normative_document_000156_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 3,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 8,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 公安部关于切实做好联网核查公民身份信息有关工作的通知(银发...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000156_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000156_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000156_002.pdf",
+          "used": true,
+          "char_count": 4303,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3585469/2018072417063959845.pdf"
+        }
+      ]
     },
     {
       "entry_index": 167,
@@ -2765,14 +3214,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000110_000.txt",
       "text_filename": "tiaofasi_normative_document_000110_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 3,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 6,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行 中国银行保险监督管理委员会关于实施银行业金融机构金融消费者...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000110_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000110_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000110_002.pdf",
+          "used": true,
+          "char_count": 2419,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3730179/2018122910372678668.pdf"
+        }
+      ]
     },
     {
       "entry_index": 169,
@@ -2781,14 +3240,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000105_000.txt",
       "text_filename": "tiaofasi_normative_document_000105_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 3,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于印发《非银行支付机构大额交易报告要素及释义》的通知（银...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000105_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000105_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000105_002.pdf",
+          "used": true,
+          "char_count": 355,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3736841/2019010408495483746.pdf"
+        }
+      ]
     },
     {
       "entry_index": 170,
@@ -2829,14 +3298,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000078_000.txt",
       "text_filename": "tiaofasi_normative_document_000078_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 3,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2005-05-27",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000078_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000078_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000078_002.pdf",
+          "used": true,
+          "char_count": 1597,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3583282/2018072314203091149.pdf"
+        }
+      ]
     },
     {
       "entry_index": 173,
@@ -2845,14 +3324,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000045_000.txt",
       "text_filename": "tiaofasi_normative_document_000045_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 5,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行关于颁发支付系统银行行别、行号业务标准的通知(银发〔2003〕1...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000045_003.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000045_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000045_002.pdf",
+          "used": true,
+          "char_count": 765,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3582795/2018072309264044635.pdf"
+        }
+      ]
     },
     {
       "entry_index": 174,
@@ -2861,13 +3350,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000033_000.txt",
       "text_filename": "tiaofasi_normative_document_000033_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 1,
       "remark": "中国人民银行 国家外汇管理局关于境外机构境内发行债券资金管理有关事宜的通...",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000033_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000033_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000033_001.html",
+          "used": true,
+          "char_count": 2141,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4731493/index.html"
+        }
+      ]
     },
     {
       "entry_index": 175,
@@ -5647,13 +6144,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000094_000.txt",
       "text_filename": "tiaofasi_normative_document_000094_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 2,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行公告（关于开展到期违约债券转让业务有关事宜）（公告〔2019〕...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000094_002.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000094_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000094_002.pdf",
+          "used": true,
+          "char_count": 697,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3953459/2019123119044893736.pdf"
+        }
+      ]
     },
     {
       "entry_index": 348,
@@ -5678,13 +6186,22 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000085_000.txt",
       "text_filename": "tiaofasi_normative_document_000085_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 1,
       "remark": "2004-11-29",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000085_002.pdf"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000085_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000085_002.pdf",
+          "used": true,
+          "char_count": 375,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3582861/2018072309595152720.pdf"
+        }
+      ]
     },
     {
       "entry_index": 350,
@@ -5821,13 +6338,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000058_000.txt",
       "text_filename": "tiaofasi_normative_document_000058_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 33,
       "remark": "中国人民银行 发展改革委 证监会关于印发《绿色债券支持项目目录（2021年版...",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000058_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000058_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000058_001.html",
+          "used": true,
+          "char_count": 1437,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4239360/index.html"
+        }
+      ]
     },
     {
       "entry_index": 359,
@@ -5996,13 +6521,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000032_000.txt",
       "text_filename": "tiaofasi_normative_document_000032_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 4,
       "remark": "2023-03-24",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000032_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000032_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000032_001.html",
+          "used": true,
+          "char_count": 162,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4829160/index.html"
+        }
+      ]
     },
     {
       "entry_index": 370,
@@ -6011,14 +6544,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000031_000.txt",
       "text_filename": "tiaofasi_normative_document_000031_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 2,
-      "ocr_engine": "qwen-vl-max",
       "remark": "2023-04-24",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000031_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000031_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000031_001.html",
+          "used": true,
+          "char_count": 124,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4862009/index.html"
+        }
+      ]
     },
     {
       "entry_index": 371,
@@ -6073,12 +6613,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000067_000.txt",
       "text_filename": "tiaofasi_normative_document_000067_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "中国人民银行关于印发假币收缴、鉴定业务专用凭证印章等样式有关事项的通知...",
-      "source_type": "doc",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000067_002.doc"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000067_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000067_001.html",
+          "used": true,
+          "char_count": 2708,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4134873/index.html"
+        }
+      ]
     },
     {
       "entry_index": 374,
@@ -6087,13 +6636,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000039_000.txt",
       "text_filename": "tiaofasi_normative_document_000039_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 7,
       "remark": "中国人民银行 国家外汇管理局关于银行业金融机构境外贷款业务有关事宜的通知...",
-      "source_type": "docx",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000039_002.docx"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000039_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000039_001.html",
+          "used": true,
+          "char_count": 2493,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4463609/index.html"
+        }
+      ]
     },
     {
       "entry_index": 375,
@@ -6307,12 +6864,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000030_000.txt",
       "text_filename": "tiaofasi_normative_document_000030_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "中国人民银行 财政部 中国银行保险监督管理委员会 国家乡村振兴局公告 〔20...",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000030_001.html"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000030_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000030_001.html",
+          "used": true,
+          "char_count": 160,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4862017/index.html"
+        }
+      ]
     },
     {
       "entry_index": 390,
@@ -6335,12 +6901,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000028_000.txt",
       "text_filename": "tiaofasi_normative_document_000028_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "中国人民银行 最高人民法院 最高人民检察院 中华人民共和国公安部 中国银行...",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000028_001.html"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000028_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000028_001.html",
+          "used": true,
+          "char_count": 192,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4870608/index.html"
+        }
+      ]
     },
     {
       "entry_index": 392,
@@ -6503,12 +7078,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_normative_document/tiaofasi_normative_document_000010_000.txt",
       "text_filename": "tiaofasi_normative_document_000010_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "2025-04-08",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000010_001.html"
+      "source_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000010_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000010_001.html",
+          "used": true,
+          "char_count": 102,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/5666315/index.html"
+        }
+      ]
     },
     {
       "entry_index": 404,

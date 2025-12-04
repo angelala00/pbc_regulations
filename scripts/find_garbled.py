@@ -20,8 +20,9 @@ for start, end in [(0x4E00, 0x9FFF), (0x3000, 0x303F), (0xFF00, 0xFFEF)]:
 
 # Flag when more than this proportion of chars are outside ALLOWED.
 THRESHOLD = 0.02  # 2%
-# Treat files whose main内容似乎只有附件（如“附件1”“附 1”开头且整体很短）为“附件-only”。
-ATTACHMENT_MAX_CHARS = 2000
+# Treat files whose main内容似乎只有附件（如“附件1”“附 1”开头）为“附件-only”。
+# List files whose decoded length is below this value.
+SHORT_TEXT_LIMIT = 100
 
 
 def main() -> None:
@@ -29,6 +30,8 @@ def main() -> None:
     decode_errors = []
     garbled = []
     attachment_only = []
+    glossary_only = []
+    short_texts = []
 
     for path in txt_files:
         data = path.read_bytes()
@@ -41,13 +44,18 @@ def main() -> None:
         if not text:
             continue
 
+        if len(text) < SHORT_TEXT_LIMIT:
+            short_texts.append((len(text), path))
+
         # Detect attachment-only files.
         non_empty = [ln.strip() for ln in text.splitlines() if ln.strip()]
         if non_empty:
             first = non_empty[0]
             is_attachment_header = first.startswith(("附件", "附 ")) or first.startswith("附录")
-            if is_attachment_header and len(text) <= ATTACHMENT_MAX_CHARS:
+            if is_attachment_header:
                 attachment_only.append(path)
+            if first.startswith("术语表"):
+                glossary_only.append(path)
 
         bad_chars = [ch for ch in text if ch not in ALLOWED]
         ratio = len(bad_chars) / len(text)
@@ -63,7 +71,15 @@ def main() -> None:
     for ratio, path, bad, total in sorted(garbled, reverse=True):
         print(f"{ratio:.2%}\t{path} (bad {bad}/{total})")
 
-    print(f"仅附件（疑似）: {len(attachment_only)} (首行为附件且长度≤{ATTACHMENT_MAX_CHARS}字节)")
+    print(f"短文本: {len(short_texts)} (少于 {SHORT_TEXT_LIMIT} 字)")
+    for length, path in sorted(short_texts):
+        print(f"[short] {path} ({length} chars)")
+
+    print(f"术语表开头: {len(glossary_only)} (首行“术语表”)")
+    for path in sorted(glossary_only):
+        print(f"[glossary] {path}")
+
+    print(f"仅附件（疑似）: {len(attachment_only)} (首行为附件，长度不限)")
     for path in sorted(attachment_only):
         print(f"[attachment-only] {path}")
 

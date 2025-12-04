@@ -41,7 +41,7 @@
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 3,
-      "ocr_engine": "qwen-vl-max",
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2020-06-02",
       "source_type": "pdf",
       "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000343_002.pdf",
@@ -50,8 +50,8 @@
           "type": "pdf",
           "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000343_002.pdf",
           "used": true,
-          "char_count": 911,
-          "ocr_engine": "qwen-vl-max",
+          "char_count": 902,
+          "ocr_engine": "qwen3-vl-8b-instruct",
           "url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/4085047/2020060211254589318.pdf"
         }
       ]
@@ -346,14 +346,24 @@
       "status": "success",
       "text_path": "extract_uniq/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000227_000.txt",
       "text_filename": "zhengwugongkai_administrative_normative_documents_000227_000.txt",
-      "reused": true,
-      "requires_ocr": true,
-      "need_ocr": true,
-      "needs_ocr": true,
-      "page_count": 1,
+      "reused": false,
+      "requires_ocr": false,
+      "need_ocr": false,
+      "page_count": 12,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2006-03-08",
       "source_type": "pdf",
-      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000227_003.pdf"
+      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000227_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000227_002.pdf",
+          "used": true,
+          "char_count": 7047,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/eportal/fileDir/image_public/UserFiles/zhengwugongkai/upload/File/中国人民银行关于规范人民币银行结算账户管理有关问题的通知 （银发 [2006] 71号）.pdf"
+        }
+      ]
     },
     {
       "entry_index": 18,
@@ -362,13 +372,21 @@
       "status": "success",
       "text_path": "extract_uniq/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000346_000.txt",
       "text_filename": "zhengwugongkai_administrative_normative_documents_000346_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 2,
       "remark": "2024-03-19",
-      "source_type": "pdf",
-      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000346_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000346_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000346_001.html",
+          "used": true,
+          "char_count": 3388,
+          "url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/5282206/index.html"
+        }
+      ]
     },
     {
       "entry_index": 19,
@@ -377,13 +395,21 @@
       "status": "success",
       "text_path": "extract_uniq/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000170_000.txt",
       "text_filename": "zhengwugongkai_administrative_normative_documents_000170_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 1,
       "remark": "2022-12-02",
-      "source_type": "pdf",
-      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000170_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000170_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000170_001.html",
+          "used": true,
+          "char_count": 2491,
+          "url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/4726665/index.html"
+        }
+      ]
     },
     {
       "entry_index": 20,
@@ -434,13 +460,24 @@
       "status": "success",
       "text_path": "extract_uniq/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000296_000.txt",
       "text_filename": "zhengwugongkai_administrative_normative_documents_000296_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 9,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "2020-07-01",
       "source_type": "pdf",
-      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000296_002.pdf"
+      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000296_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000296_002.pdf",
+          "used": true,
+          "char_count": 4114,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/4701191/2022110318014772260.pdf"
+        }
+      ]
     },
     {
       "entry_index": 23,
@@ -449,13 +486,21 @@
       "status": "success",
       "text_path": "extract_uniq/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000291_000.txt",
       "text_filename": "zhengwugongkai_administrative_normative_documents_000291_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 2,
       "remark": "2024-10-25",
-      "source_type": "pdf",
-      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000291_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000291_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/zhengwugongkai_administrative_normative_documents/zhengwugongkai_administrative_normative_documents_000291_001.html",
+          "used": true,
+          "char_count": 2970,
+          "url": "http://www.pbc.gov.cn/zhengwugongkai/4081330/4406346/4693545/5523762/index.html"
+        }
+      ]
     },
     {
       "entry_index": 24,

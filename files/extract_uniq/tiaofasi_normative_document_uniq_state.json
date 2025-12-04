@@ -3615,6 +3615,7 @@
           "url": "http://www.pbc.gov.cn/tiaofasi/resource/cms/2018/07/2018072709501810670.pdf",
           "title": "中国人民银行 国家外汇管理局公告〔2015〕第36号（内地与香港证券投资基金跨境发行销售资金管理操作指引）（中国人民银行 国家外汇管理局公告〔2015〕第36号）.pdf",
           "downloaded": true,
+          "preferred": true,
           "local_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000336_002.pdf"
         },
         {
@@ -3643,6 +3644,7 @@
           "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3588085/2018072710224767768.pdf",
           "title": "中国人民银行公告〔2015〕第39号（关于绿色金融债券发行管理）（中国人民银行公告〔2015〕第39号）.pdf",
           "downloaded": true,
+          "preferred": true,
           "local_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000335_002.pdf"
         },
         {
@@ -4203,6 +4205,7 @@
           "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3589739/2018073015094741604.pdf",
           "title": "中国人民银行关于印发《非银行支付机构反洗钱现场检查数据接口规范（试行）》的通知（银发〔2017〕301号）.pdf",
           "downloaded": true,
+          "preferred": true,
           "local_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000178_002.pdf"
         },
         {
@@ -8137,6 +8140,7 @@
           "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/3582861/2018072309595152720.pdf",
           "title": "中国人民银行公告〔2004〕第18号（关于调整国家货币出入境限额）（中国人民银行公告〔2004〕第18号）.pdf",
           "downloaded": true,
+          "preferred": true,
           "local_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000085_002.pdf"
         }
       ]
@@ -8571,6 +8575,7 @@
           "url": "http://www.pbc.gov.cn/tiaofasi/144941/3581332/4862009/index.html",
           "title": "中国人民银行 中国银行保险监督管理委员会公告〔2023〕第5号",
           "downloaded": true,
+          "preferred": true,
           "local_path": "downloads/tiaofasi_normative_document/tiaofasi_normative_document_000031_001.html"
         },
         {

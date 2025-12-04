@@ -11,13 +11,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000109_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000109_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 1,
       "remark": "2025-10-11",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000109_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000109_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000109_001.html",
+          "used": true,
+          "char_count": 4148,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/5863410/index.html"
+        }
+      ]
     },
     {
       "entry_index": 1,
@@ -26,13 +34,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000108_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000108_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 2,
       "remark": "2025-10-11",
-      "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000108_002.pdf"
+      "source_type": "html",
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000108_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000108_001.html",
+          "used": true,
+          "char_count": 4277,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/5863367/index.html"
+        }
+      ]
     },
     {
       "entry_index": 2,
@@ -89,13 +105,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000090_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000090_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
-      "page_count": 1,
+      "page_count": 4,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "中国人民银行令〔2004〕第1号（全国银行间债券市场债券买断式回购业务管理规...",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000090_002.pdf"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000090_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000090_002.pdf",
+          "used": true,
+          "char_count": 1862,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/3590875/2018073109264993749.pdf"
+        }
+      ]
     },
     {
       "entry_index": 6,
@@ -512,13 +539,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000042_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000042_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 72,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "1997-09-29",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000042_002.pdf"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000042_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000042_002.pdf",
+          "used": true,
+          "char_count": 22414,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/3601571/2018081309061735002.pdf"
+        }
+      ]
     },
     {
       "entry_index": 32,
@@ -527,13 +565,24 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000040_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000040_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "page_count": 26,
+      "ocr_engine": "qwen3-vl-8b-instruct",
       "remark": "1997-10-10",
       "source_type": "pdf",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000040_002.pdf"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000040_002.pdf",
+      "extraction_attempts": [
+        {
+          "type": "pdf",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000040_002.pdf",
+          "used": true,
+          "char_count": 8132,
+          "ocr_engine": "qwen3-vl-8b-instruct",
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/3601576/2018081309073040411.pdf"
+        }
+      ]
     },
     {
       "entry_index": 33,
@@ -923,12 +972,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000078_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000078_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "2000-12-01",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000078_001.html"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000078_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000078_001.html",
+          "used": true,
+          "char_count": 105,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/2887785/index.html"
+        }
+      ]
     },
     {
       "entry_index": 59,
@@ -937,12 +995,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000077_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000077_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "2000-12-01",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000077_001.html"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000077_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000077_001.html",
+          "used": true,
+          "char_count": 96,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/2875216/index.html"
+        }
+      ]
     },
     {
       "entry_index": 60,
@@ -951,12 +1018,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000076_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000076_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "2000-12-01",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000076_001.html"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000076_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000076_001.html",
+          "used": true,
+          "char_count": 102,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/2817076/index.html"
+        }
+      ]
     },
     {
       "entry_index": 61,
@@ -965,12 +1041,21 @@
       "status": "success",
       "text_path": "extract_uniq/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000075_000.txt",
       "text_filename": "tiaofasi_departmental_rule_000075_000.txt",
-      "reused": true,
+      "reused": false,
       "requires_ocr": false,
       "need_ocr": false,
       "remark": "2000-12-01",
       "source_type": "html",
-      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000075_001.html"
+      "source_path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000075_001.html",
+      "extraction_attempts": [
+        {
+          "type": "html",
+          "path": "downloads/tiaofasi_departmental_rule/tiaofasi_departmental_rule_000075_001.html",
+          "used": true,
+          "char_count": 80,
+          "url": "http://www.pbc.gov.cn/tiaofasi/144941/144957/2817307/index.html"
+        }
+      ]
     },
     {
       "entry_index": 62,

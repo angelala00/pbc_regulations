@@ -19,7 +19,9 @@ import json
 import io
 import logging
 import os
+import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Set, Tuple
@@ -176,6 +178,27 @@ _DOCX_APP_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/extended-
 _PDF_PAGE_MIN_TEXT_CHARS = 12
 
 
+def _count_cjk_chars(text: str) -> int:
+    count = 0
+    for ch in text:
+        codepoint = ord(ch)
+        if (
+            0x4E00 <= codepoint <= 0x9FFF
+            or 0x3400 <= codepoint <= 0x4DBF
+            or 0x20000 <= codepoint <= 0x2EBE0
+        ):
+            count += 1
+    return count
+
+
+def _pdf_text_lacks_expected_cjk(text: str, *, title: Optional[str]) -> bool:
+    if not text or not title:
+        return False
+    if _count_cjk_chars(title) == 0:
+        return False
+    return _count_cjk_chars(text) < 5
+
+
 def _score_html_text(text: str) -> int:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines:
@@ -225,7 +248,13 @@ def _select_primary_html_block(soup: BeautifulSoup) -> Optional[str]:
         text = _normalize_html_text(candidate.get_text("\n", strip=True))
         score = _score_html_text(text)
         if score <= 0:
-            continue
+            # Some short notices have dense Chinese text but too many short lines
+            # for the scoring heuristic. Permit them only when they are compact
+            # (limited line count) and contain enough CJK characters.
+            line_count = sum(1 for line in text.splitlines() if line.strip())
+            if len(text) < 80 or _count_cjk_chars(text) < 30 or line_count > 20:
+                continue
+            score = 1
         depth = 0
         parent = candidate.parent
         while isinstance(parent, Tag):
@@ -280,6 +309,9 @@ class OCRConfig:
     render_scale: float
     request_timeout: float
     max_pages: int
+    max_retries: int
+    retry_delay: float
+    max_workers: int
 
 
 _DOTENV_LOADED = False
@@ -351,9 +383,12 @@ def _load_ocr_config() -> Optional[OCRConfig]:
     )
     temperature = _parse_float(_getenv("PBC_REGULATIONS_OCR_TEMPERATURE"), 0.0)
     max_tokens = _parse_int(_getenv("PBC_REGULATIONS_OCR_MAX_TOKENS"), 4096)
-    render_scale = _parse_float(_getenv("PBC_REGULATIONS_OCR_RENDER_SCALE"), 2.0)
+    render_scale = _parse_float(_getenv("PBC_REGULATIONS_OCR_RENDER_SCALE"), 1.0)
     timeout = _parse_float(_getenv("PBC_REGULATIONS_OCR_TIMEOUT"), 60.0)
     max_pages = _parse_int(_getenv("PBC_REGULATIONS_OCR_MAX_PAGES"), 50)
+    max_retries = max(0, _parse_int(_getenv("PBC_REGULATIONS_OCR_MAX_RETRIES"), 2))
+    retry_delay = max(0.0, _parse_float(_getenv("PBC_REGULATIONS_OCR_RETRY_DELAY"), 10.0))
+    max_workers = max(1, _parse_int(_getenv("PBC_REGULATIONS_OCR_MAX_WORKERS"), 3))
     return OCRConfig(
         api_key=api_key,
         api_base=api_base,
@@ -365,6 +400,9 @@ def _load_ocr_config() -> Optional[OCRConfig]:
         render_scale=render_scale,
         request_timeout=timeout,
         max_pages=max_pages,
+        max_retries=max_retries,
+        retry_delay=retry_delay,
+        max_workers=max_workers,
     )
 
 
@@ -507,6 +545,28 @@ def _call_remote_ocr(page_image: bytes, config: OCRConfig, page_index: int) -> O
     return None
 
 
+def _call_remote_ocr_with_retries(page_image: bytes, config: OCRConfig, page_index: int) -> Optional[str]:
+    attempts = 0
+    max_attempts = config.max_retries + 1
+    while attempts < max_attempts:
+        text = _call_remote_ocr(page_image, config, page_index)
+        if text:
+            return text
+        attempts += 1
+        if attempts >= max_attempts:
+            break
+        logger.warning(
+            "OCR attempt %s/%s failed for page %s, retrying after %.1fs",
+            attempts,
+            max_attempts,
+            page_index + 1,
+            config.retry_delay,
+        )
+        if config.retry_delay > 0:
+            time.sleep(config.retry_delay)
+    return None
+
+
 def _perform_remote_pdf_ocr(
     path: Path,
     page_indices: Optional[Sequence[int]] = None,
@@ -519,14 +579,63 @@ def _perform_remote_pdf_ocr(
         return None, "ocr_render_unavailable", config.model, None
     fragments: Dict[int, str] = {}
     total_pages = len(images)
-    for position, (page_index, page_bytes) in enumerate(images, start=1):
-        print(
-            f"    · OCR 第 {position}/{total_pages} 页 (index={page_index + 1})",
-            flush=True,
-        )
-        text = _call_remote_ocr(page_bytes, config, page_index)
-        if text:
-            fragments[page_index] = text.strip()
+    max_workers = max(1, config.max_workers)
+    if max_workers > 1 and total_pages > 1:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            scheduled = {}
+
+            def _run_task(position: int, page_index: int, page_bytes: bytes) -> Optional[str]:
+                print(
+                    f"    · OCR 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                    flush=True,
+                )
+                return _call_remote_ocr_with_retries(page_bytes, config, page_index)
+
+            for position, (page_index, page_bytes) in enumerate(images, start=1):
+                future = executor.submit(_run_task, position, page_index, page_bytes)
+                scheduled[future] = (page_index, position)
+            for future in as_completed(scheduled):
+                page_index, position = scheduled[future]
+                try:
+                    text = future.result()
+                except Exception as exc:  # pragma: no cover - runtime dependent
+                    logger.warning("OCR task crashed for page %s: %s", page_index + 1, exc)
+                    print(
+                        f"    · OCR 失败 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                        flush=True,
+                    )
+                    continue
+                if text:
+                    fragments[page_index] = text.strip()
+                    print(
+                        f"    · OCR 完成 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                        flush=True,
+                    )
+                else:
+                    logger.warning("OCR failed for page %s after retries", page_index + 1)
+                    print(
+                        f"    · OCR 失败 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                        flush=True,
+                    )
+    else:
+        for position, (page_index, page_bytes) in enumerate(images, start=1):
+            print(
+                f"    · OCR 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                flush=True,
+            )
+            text = _call_remote_ocr_with_retries(page_bytes, config, page_index)
+            if text:
+                fragments[page_index] = text.strip()
+                print(
+                    f"    · OCR 完成 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                    flush=True,
+                )
+            else:
+                logger.warning("OCR failed for page %s after retries", page_index + 1)
+                print(
+                    f"    · OCR 失败 第 {position}/{total_pages} 页 (index={page_index + 1})",
+                    flush=True,
+                )
     ordered = [
         fragments[index].strip()
         for index in sorted(fragments)
@@ -1093,7 +1202,7 @@ def _build_candidates(entry: Dict[str, Any], state_dir: Path) -> List[DocumentCa
     return fallback
 
 
-def _attempt_extract(candidate: DocumentCandidate) -> ExtractionAttempt:
+def _attempt_extract(candidate: DocumentCandidate, *, entry_title: Optional[str] = None) -> ExtractionAttempt:
     path = candidate.path
     normalized = candidate.normalized_type or (path.suffix.lower().lstrip(".") or None)
 
@@ -1250,6 +1359,28 @@ def _attempt_extract(candidate: DocumentCandidate) -> ExtractionAttempt:
                 page_count=page_count,
             )
 
+        if _pdf_text_lacks_expected_cjk(normalized_text, title=entry_title):
+            ocr_text, ocr_error, ocr_engine, _ = _perform_remote_pdf_ocr(path)
+            if ocr_text:
+                normalized_text = _normalize_pdf_text(ocr_text)
+                return ExtractionAttempt(
+                    candidate,
+                    text=normalized_text,
+                    error=None,
+                    requires_ocr=False,
+                    ocr_engine=ocr_engine,
+                    page_count=page_count,
+                )
+            error_code = ocr_error or "pdf_text_unintelligible"
+            return ExtractionAttempt(
+                candidate,
+                text="",
+                error=error_code,
+                requires_ocr=True,
+                ocr_engine=ocr_engine,
+                page_count=page_count,
+            )
+
         return ExtractionAttempt(
             candidate,
             text=normalized_text,
@@ -1271,6 +1402,7 @@ def extract_entry(entry: Dict[str, Any], state_dir: Path) -> EntryExtraction:
     if not candidates:
         return EntryExtraction(entry, attempts=[], selected=None, text="", status="no_source", requires_ocr=False)
 
+    entry_title = entry.get("title") if isinstance(entry.get("title"), str) else None
     # Candidates are already sorted by priority, try them in order until one works.
     attempts: List[ExtractionAttempt] = []
     requires_ocr_flag = False
@@ -1278,7 +1410,7 @@ def extract_entry(entry: Dict[str, Any], state_dir: Path) -> EntryExtraction:
     fallback: Optional[ExtractionAttempt] = None
 
     for candidate in candidates:
-        attempt = _attempt_extract(candidate)
+        attempt = _attempt_extract(candidate, entry_title=entry_title)
         attempts.append(attempt)
         if attempt.normalized_type == "pdf" and attempt.requires_ocr:
             requires_ocr_flag = True
@@ -1303,6 +1435,8 @@ def extract_entry(entry: Dict[str, Any], state_dir: Path) -> EntryExtraction:
 
     if selected is None:
         status = "no_source"
+    elif selected.error and selected.requires_ocr and (selected.normalized_type == "pdf" or requires_ocr_flag):
+        status = "needs_ocr"
     elif selected.error:
         status = "error"
     elif stripped:

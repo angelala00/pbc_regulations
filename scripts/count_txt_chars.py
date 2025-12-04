@@ -18,6 +18,13 @@ def count_chars(file_path: Path) -> int:
     return len(text)
 
 
+def display_path(txt_file: Path) -> str:
+    try:
+        return str(txt_file.relative_to(Path.cwd()))
+    except ValueError:
+        return str(txt_file)
+
+
 def gather_counts(root: Path) -> tuple[dict[str, int], dict[str, dict[str, int]]]:
     task_totals: dict[str, int] = defaultdict(int)
     file_counts: dict[str, dict[str, int]] = defaultdict(dict)
@@ -27,7 +34,7 @@ def gather_counts(root: Path) -> tuple[dict[str, int], dict[str, dict[str, int]]
         task = relative.parts[0] if relative.parts else str(relative)
         chars = count_chars(txt_file)
         task_totals[task] += chars
-        file_counts[task][str(relative)] = chars
+        file_counts[task][display_path(txt_file)] = chars
 
     return task_totals, file_counts
 
