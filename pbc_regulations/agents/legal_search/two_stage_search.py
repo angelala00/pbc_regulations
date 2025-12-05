@@ -12,6 +12,7 @@ from urllib.parse import quote
 
 import httpx
 
+from ...settings import LEGAL_SEARCH_CONTENT_CONCURRENCY
 from .agent_chat_core import chat_with_react_as_function_call
 from .gpts_regulation import BASE_URL, fetch_document_catalog
 from .main import MODEL_NAME
@@ -821,7 +822,7 @@ async def run_two_stage_search(
     catalog_chunk_size: int = 60,
     content_chunk_size: int = 5,
     catalog_concurrency: int = 3,
-    content_concurrency: int = 3,
+    content_concurrency: int = LEGAL_SEARCH_CONTENT_CONCURRENCY,
     conversation_prefix: Optional[str] = None,
     progress_callback: Optional[ProgressCallback] = None,
 ) -> List[Dict[str, Any]]:

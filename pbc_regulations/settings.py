@@ -27,10 +27,26 @@ def get_env_variable_bool(name: str, default: bool = False) -> bool:
     return normalized in {"1", "true", "yes", "on"}
 
 
+def get_env_variable_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None or value.strip() == "":
+        return default
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise RuntimeError(
+            f"Environment variable '{name}' must be an integer, got: {value!r}"
+        ) from exc
+
+
 LEGAL_SEARCH_API_KEY = get_env_variable("LEGAL_SEARCH_API_KEY")
 LEGAL_SEARCH_BASE_URL = get_env_variable("LEGAL_SEARCH_BASE_URL")
 LEGAL_SEARCH_MODEL_NAME = get_env_variable("LEGAL_SEARCH_MODEL_NAME")
 LEGAL_SEARCH_USE_TWO_STAGE_FLOW = get_env_variable_bool(
     "LEGAL_SEARCH_USE_TWO_STAGE_FLOW",
     False,
+)
+LEGAL_SEARCH_CONTENT_CONCURRENCY = get_env_variable_int(
+    "LEGAL_SEARCH_CONTENT_CONCURRENCY",
+    5,
 )
