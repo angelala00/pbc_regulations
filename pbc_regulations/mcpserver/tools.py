@@ -17,10 +17,15 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 
 from pbc_regulations.config_paths import discover_project_root, resolve_artifact_dir
 from pbc_regulations.utils.policy_entries import Entry, load_entries
+
+
+# FastMCP instance used for decorator registration.
+mcp = FastMCP("pbc_regulations", debug=True, log_level="DEBUG")
 
 
 def _safe_lower(value: Any) -> str:
@@ -374,7 +379,8 @@ class DescribeCorpusInputModel(BaseModel):
     model_config = {"extra": "ignore"}
 
 
-def describe_corpus() -> DescribeCorpusResponse:
+@mcp.tool(structured_output=False)
+async def describe_corpus() -> DescribeCorpusResponse:
     """
     Describe the corpus schema and searchable text scopes.
 
@@ -460,7 +466,15 @@ class MetadataQueryModel(BaseModel):
     model_config = {"extra": "ignore"}
 
 
-def query_metadata(query: MetadataQueryModel) -> MetadataQueryResponse:
+@mcp.tool(structured_output=False)
+async def query_metadata(
+    select: Optional[List[str]] = None,
+    filters: Optional[List[MetadataFilterModel]] = None,
+    group_by: Optional[List[str]] = None,
+    aggregates: Optional[List[MetadataAggregateModel]] = None,
+    order_by: Optional[List[OrderByModel]] = None,
+    limit: Optional[int] = None,
+) -> MetadataQueryResponse:
     """
     Execute an in-memory query against the laws metadata set.
 
@@ -480,7 +494,16 @@ def query_metadata(query: MetadataQueryModel) -> MetadataQueryResponse:
         }
     """
     store = _get_store()
-    model = MetadataQueryModel.model_validate(query)
+    model = MetadataQueryModel.model_validate(
+        {
+            "select": select,
+            "filters": filters,
+            "group_by": group_by,
+            "aggregates": aggregates,
+            "order_by": order_by,
+            "limit": limit,
+        }
+    )
     query_data = model.model_dump(exclude_none=True, by_alias=True)
 
     select = query_data.get("select") or []
@@ -488,7 +511,7 @@ def query_metadata(query: MetadataQueryModel) -> MetadataQueryResponse:
     group_by = query_data.get("group_by") or []
     aggregates = query_data.get("aggregates") or []
     order_by = query_data.get("order_by") or []
-    limit = query_data.get("limit")
+    limit_val = query_data.get("limit")
 
     rows = store.filter_rows(filters)
     rows = store._aggregate_rows(rows, select, group_by, aggregates)
@@ -506,8 +529,8 @@ def query_metadata(query: MetadataQueryModel) -> MetadataQueryResponse:
 
             rows.sort(key=_key, reverse=reverse)
 
-    if isinstance(limit, int) and limit > 0:
-        rows = rows[:limit]
+    if isinstance(limit_val, int) and limit_val > 0:
+        rows = rows[:limit_val]
 
     return {"rows": rows, "row_count": len(rows)}
 
@@ -553,7 +576,13 @@ class TextSearchResponse(TypedDict):
     hits: List[TextSearchHit]
 
 
-def search_text(query: TextSearchQueryModel) -> TextSearchResponse:
+@mcp.tool(structured_output=False)
+async def search_text(
+    query: str,
+    scope: Optional[str] = None,
+    filters: Optional[List[TextSearchFilterModel]] = None,
+    limit: Optional[int] = None,
+) -> TextSearchResponse:
     """
     Run a keyword-based search over law texts.
 
@@ -573,7 +602,9 @@ def search_text(query: TextSearchQueryModel) -> TextSearchResponse:
         }
     """
     store = _get_store()
-    model = TextSearchQueryModel.model_validate(query)
+    model = TextSearchQueryModel.model_validate(
+        {"query": query, "scope": scope, "filters": filters, "limit": limit}
+    )
     query_data = model.model_dump(exclude_none=True)
 
     query_text = (query_data.get("query") or "").strip()
@@ -587,7 +618,7 @@ def search_text(query: TextSearchQueryModel) -> TextSearchResponse:
     filters = query_data.get("filters") or []
     rows = store.filter_rows(filters)
     max_hits = query_data.get("limit") or 20
-    scope = (query_data.get("scope") or "law").lower()
+    scope_val = (query_data.get("scope") or "law").lower()
 
     hits: List[TextSearchHit] = []
     for row in rows:
@@ -619,7 +650,7 @@ def search_text(query: TextSearchQueryModel) -> TextSearchResponse:
             "score": float(score),
             "snippet": snippet,
         }
-        if scope == "article":
+        if scope_val == "article":
             # Article-level data is not pre-split; return a pseudo article id.
             hit["article_id"] = f"{doc_id}-article-1"
         hits.append(hit)
@@ -666,7 +697,14 @@ class ContentQueryModel(BaseModel):
     model_config = {"extra": "ignore"}
 
 
-def get_content(query: ContentQueryModel) -> GetContentResponse:
+@mcp.tool(structured_output=False)
+async def get_content(
+    law_ids: Optional[List[str]] = None,
+    article_ids: Optional[List[str]] = None,
+    with_metadata: Optional[bool] = None,
+    page: Optional[int] = None,
+    page_size: Optional[int] = None,
+) -> GetContentResponse:
     """
     Fetch law text or specific articles by identifiers.
 
@@ -702,14 +740,22 @@ def get_content(query: ContentQueryModel) -> GetContentResponse:
         }
     """
     store = _get_store()
-    model = ContentQueryModel.model_validate(query)
+    model = ContentQueryModel.model_validate(
+        {
+            "law_ids": law_ids,
+            "article_ids": article_ids,
+            "with_metadata": with_metadata,
+            "page": page,
+            "page_size": page_size,
+        }
+    )
     query_data = model.model_dump(exclude_none=True)
-    law_ids = _as_list(query_data.get("law_ids"))
-    article_ids = _as_list(query_data.get("article_ids"))
-    with_metadata = bool(query_data.get("with_metadata"))
+    law_ids_list = _as_list(query_data.get("law_ids"))
+    article_ids_list = _as_list(query_data.get("article_ids"))
+    with_metadata_flag = bool(query_data.get("with_metadata"))
 
     derived_law_ids: List[str] = []
-    for article_id in article_ids:
+    for article_id in article_ids_list:
         if not isinstance(article_id, str):
             continue
         if ":" in article_id:
@@ -719,7 +765,7 @@ def get_content(query: ContentQueryModel) -> GetContentResponse:
         else:
             derived_law_ids.append(article_id)
 
-    all_ids = [str(item) for item in law_ids if isinstance(item, str)] + derived_law_ids
+    all_ids = [str(item) for item in law_ids_list if isinstance(item, str)] + derived_law_ids
     if not all_ids:
         return {"laws": [], "has_more": False}
 
@@ -731,10 +777,10 @@ def get_content(query: ContentQueryModel) -> GetContentResponse:
         seen.add(law_id)
         unique_ids.append(law_id)
 
-    page = query_data.get("page") or 1
-    page_size = query_data.get("page_size") or 20
-    start = max((page - 1) * page_size, 0)
-    end = start + page_size
+    page_num = query_data.get("page") or 1
+    page_size_val = query_data.get("page_size") or 20
+    start = max((page_num - 1) * page_size_val, 0)
+    end = start + page_size_val
     selected_ids = unique_ids[start:end]
 
     laws: List[LawContent] = []
@@ -748,7 +794,7 @@ def get_content(query: ContentQueryModel) -> GetContentResponse:
             "title": doc.title,
             "articles": [],
         }
-        if with_metadata:
+        if with_metadata_flag:
             law_content["metadata"] = dict(doc.metadata_row())
         if full_text:
             law_content["full_text"] = full_text
