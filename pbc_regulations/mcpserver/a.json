@@ -1,0 +1,61 @@
+{
+    "id": 0.5,
+    "result": {
+        "tools": [
+            {
+                "name": "describe_corpus",
+                "description": "Describe the corpus schema and searchable text scopes.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {},
+                    "description": "No parameters."
+                }
+            },
+            {
+                "name": "query_metadata",
+                "description": "Execute an in-memory query against the laws metadata set.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "object"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ]
+                }
+            },
+            {
+                "name": "search_text",
+                "description": "Run a keyword-based search over law texts.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "object"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ]
+                }
+            },
+            {
+                "name": "get_content",
+                "description": "Fetch law text or specific articles by identifiers.",
+                "input_schema": {
+                    "type": "object",
+                    "properties": {
+                        "query": {
+                            "type": "object"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ]
+                }
+            }
+        ]
+    }
+}

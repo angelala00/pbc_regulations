@@ -2,7 +2,7 @@ requests
 beautifulsoup4
 pdfkit
 fastapi
-uvicorn
+uvicorn[standard]
 pdfminer.six
 pypdfium2
 Pillow
@@ -10,3 +10,6 @@ openpyxl
 openai
 httpx
 python-dotenv
+websockets
+pydantic
+mcp
