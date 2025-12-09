@@ -28,4 +28,30 @@ SYSTEM_PROMPT = """
 遵循流程：先判断 → 决策是否使用工具 → 执行工具 → 基于结果作答。
 """.strip()
 
-__all__ = ["SYSTEM_PROMPT"]
+
+TOOL_PROTOCOL_PROMPT = """
+你可以使用以下工具来完成查询任务。每种工具都包含名称、功能描述以及参数 JSON Schema。
+
+{tool_descriptions}
+
+当需要调用工具或给出最终回答时，请始终返回一个 JSON 对象（必须放在 ```json ``` 代码块中）。调用工具时，使用 `tool_calls` 数组描述，每个元素包含 `name` 与 `arguments`，示例：
+```json
+{{
+  "tool_calls": [
+    {{
+      "name": "工具名称",
+      "arguments": {{
+        "参数1": "值1",
+        "参数2": ["示例1", "示例2"]
+      }}
+    }}
+  ]
+}}
+```
+
+如需连续执行多步，可以在 `tool_calls` 中列出多个条目。该结构会被严格解析，请保持 JSON 合法且字段清晰。
+
+不得臆造工具名称。"""
+
+
+__all__ = ["SYSTEM_PROMPT","TOOL_PROTOCOL_PROMPT"]

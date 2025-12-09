@@ -13,3 +13,5 @@ python-dotenv
 websockets
 pydantic
 mcp
+a2a
+click
