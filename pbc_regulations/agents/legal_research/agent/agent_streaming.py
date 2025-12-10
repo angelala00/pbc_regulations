@@ -5,15 +5,16 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from openai import AsyncOpenAI
+import time
 
-from .common import (
+from ..common import (
     default_model_name,
     finalize_tool_calls,
     resolve_async_client,
     extract_attr,
 )
-from .prompts import SYSTEM_PROMPT
-from .tools import dispatch_tool_call, load_openai_tools
+from ..prompts import SYSTEM_PROMPT
+from ..tools import dispatch_tool_call, load_openai_tools
 
 
 class LegalResearchStreamingAgent:
@@ -101,7 +102,10 @@ class LegalResearchStreamingAgent:
                         function_block = tool_call.get("function") or {}
                         name = function_block.get("name") or ""
                         arguments = function_block.get("arguments")
+                        yield {"event": "tool_call_start", "text":name, "created": int(time.time() * 1000),}
+
                         result = await dispatch_tool_call(name, arguments)
+                        yield {"event": "tool_call_end", "text":result, "created": int(time.time() * 1000),}
                         messages.append(
                             {
                                 "role": "tool",

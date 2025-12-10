@@ -1,4 +1,4 @@
-"""Prompt-driven tool orchestration for APIs without native tool-call support."""
+"""Lightweight legal research agent that uses OpenAI tool-calling over MCP tools."""
 
 from __future__ import annotations
 
@@ -6,18 +6,13 @@ from typing import Any, Dict, List, Optional
 
 from openai import AsyncOpenAI
 
-from .common import (
-    default_model_name,
-    describe_tool,
-    parse_agent_action,
-    resolve_async_client,
-)
-from .prompts import SYSTEM_PROMPT, TOOL_PROTOCOL_PROMPT
-from .tools import dispatch_tool_call, load_openai_tools
+from ..common import default_model_name, resolve_async_client
+from ..prompts import SYSTEM_PROMPT
+from ..tools import dispatch_tool_call, load_openai_tools
 
 
-class LegalResearchPromptAgent:
-    """Execute legal research via prompt instructions without API tool support."""
+class LegalResearchAgent:
+    """Orchestrates chat + tool-calling for legal research and analysis."""
 
     def __init__(
         self,
@@ -38,14 +33,13 @@ class LegalResearchPromptAgent:
         *,
         temperature: float = 0.2,
     ) -> str:
-        """Execute the query, orchestrating tool usage purely through prompting."""
+        """Execute a query with tool-calling until the model returns a final answer."""
 
         tools = await load_openai_tools()
         if not tools:
             return "未能加载工具列表，请检查 MCP 服务是否运行。"
 
-        tool_descriptions = "\n".join(describe_tool(tool) for tool in tools)
-        system_prompt = f"{self._system_prompt.strip()}\n\n{TOOL_PROTOCOL_PROMPT.format(tool_descriptions=tool_descriptions)}"
+        system_prompt = self._system_prompt.strip()
 
         messages: List[Dict[str, Any]] = []
         if system_prompt:
@@ -56,27 +50,33 @@ class LegalResearchPromptAgent:
             response = await self._client.chat.completions.create(
                 model=self._model,
                 messages=messages,
+                tools=tools,
+                tool_choice="auto",
                 temperature=temperature,
             )
             assistant_message = response.choices[0].message
             assistant_text = assistant_message.content or ""
-            tool_calls = parse_agent_action(assistant_text)
-
+            tool_calls = assistant_message.tool_calls or []
             if tool_calls:
-                messages.append({"role": "assistant", "content": assistant_text})
+                normalized_calls = [
+                    call.model_dump() if hasattr(call, "model_dump") else call for call in tool_calls
+                ]
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": assistant_text,
+                        "tool_calls": normalized_calls,
+                    }
+                )
                 for tool_call in tool_calls:
-                    if tool_call.get("type") != "tool_call":
-                        continue
-                    name = tool_call.get("name") or ""
-                    arguments = tool_call.get("arguments") or {}
+                    name = tool_call.function.name
+                    arguments = tool_call.function.arguments
                     result = await dispatch_tool_call(name, arguments)
-                    tool_feedback = (
-                        f"工具 `{name}` 的返回结果：\n{result}\n请结合结果继续判断下一步。"
-                    )
                     messages.append(
                         {
-                            "role": "user",
-                            "content": f"工具 `{name}` 的返回结果：\n{result}\n请结合结果继续判断下一步。"
+                            "role": "tool",
+                            "tool_call_id": tool_call.id,
+                            "content": result,
                         }
                     )
                 continue
@@ -88,10 +88,10 @@ class LegalResearchPromptAgent:
 
 
 async def run_once(query: str) -> str:
-    """Convenience wrapper for single query execution."""
+    """Convenience wrapper for a single-turn chat."""
 
-    agent = LegalResearchPromptAgent()
+    agent = LegalResearchAgent()
     return await agent.run(query)
 
 
-__all__ = ["LegalResearchPromptAgent", "run_once"]
+__all__ = ["LegalResearchAgent", "run_once"]

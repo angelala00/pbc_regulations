@@ -5,16 +5,17 @@ from __future__ import annotations
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from openai import AsyncOpenAI
+import time
 
-from .common import (
+from ..common import (
     default_model_name,
     parse_agent_action,
     describe_tool,
     resolve_async_client,
     extract_attr,
 )
-from .prompts import SYSTEM_PROMPT, TOOL_PROTOCOL_PROMPT
-from .tools import dispatch_tool_call, load_openai_tools
+from ..prompts import SYSTEM_PROMPT, TOOL_PROTOCOL_PROMPT
+from ..tools import dispatch_tool_call, load_openai_tools
 
 
 class LegalResearchPromptStreamingAgent:
@@ -53,25 +54,6 @@ class LegalResearchPromptStreamingAgent:
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": query})
-
-        def build_event(event_name, *, chunk=None, include_message_id=True, **payload):
-            nonlocal seq
-            seq += 1
-            event_payload = {
-                "event": event_name,
-                "seq": seq,
-                "created": int(time.time() * 1000),
-            }
-            if include_message_id:
-                event_payload["message_id"] = message_id
-            if conversation_id:
-                event_payload["conversation_id"] = conversation_id
-            for key, value in list(payload.items()):
-                if value is None:
-                    payload.pop(key)
-            event_payload.update(payload)
-            return f"data: {json.dumps(event_payload, ensure_ascii=False)}\n\n"
-
         for _ in range(self._max_rounds):
             try:
                 stream = await self._client.chat.completions.create(
@@ -149,20 +131,11 @@ class LegalResearchPromptStreamingAgent:
                         probe_buffer = []
                         continue
 
-                    yield text_delta
-
+                    yield {"event": "content_delta", "text":text_delta, "created": int(time.time() * 1000),}
             assistant_content = "".join(assistant_content_parts)
             if function_mode:
                 tool_calls = parse_agent_action(tool_payload)
                 if tool_calls:
-                    yield build_event(
-                        "tool_call_start",
-                        chunk=chunk,
-                        tool_call_id=tool_call_id,
-                        name=tool_name,
-                        desc=_TOOL_DESC_DICT['regulationassistant'][tool_name]['desc']
-                    )
-
                     messages.append(
                         {
                             "role": "assistant",
@@ -172,17 +145,19 @@ class LegalResearchPromptStreamingAgent:
                     for tool_call in tool_calls:
                         name = tool_call.get("name") or ""
                         arguments = tool_call.get("arguments") or {}
+                        yield {"event": "tool_call_start", "text":name, "created": int(time.time() * 1000),}
+
                         result = await dispatch_tool_call(name, arguments)
                         tool_feedback = (
                             f"工具 `{name}` 的返回结果：\n{result}\n请结合结果继续判断下一步。"
                         )
+                        yield {"event": "tool_call_end", "text":tool_feedback, "created": int(time.time() * 1000),}
                         messages.append(
                             {
                                 "role": "user",
-                                "content": f"工具 `{name}` 的返回结果：\n{result}\n请结合结果继续判断下一步。"
+                                "content": tool_feedback
                             }
                         )
-                        yield tool_feedback
                 continue
 
             if assistant_content:
