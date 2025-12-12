@@ -85,37 +85,37 @@ class LegalResearchAgentExecutor(AgentExecutor):
 
             chunks.append(delta)
 
-            # Stream partial text by replacing the artifact (append=False) to avoid missing-append errors.
+            # Stream partial text by replacing the artifact.
             await event_queue.enqueue_event(
                 TaskArtifactUpdateEvent(
-                    append=False,
+                    append=True,
                     contextId=task.context_id,
                     taskId=task.id,
                     artifact=new_text_artifact(
                         name="legal_research_stream",
                         description="Streaming partial response.",
-                        text="".join(chunks),
+                        text="".join(delta),
                     ),
                 )
             )
 
         #
-        # 3) Final full answer artifact (append=False)
+        # 3) Final full answer artifact
         #
-        full_text = "".join(chunks)
+        # full_text = "".join(chunks)
 
-        await event_queue.enqueue_event(
-            TaskArtifactUpdateEvent(
-                append=False,  # full replacement
-                contextId=task.context_id,
-                taskId=task.id,
-                artifact=new_text_artifact(
-                    name="legal_research_result",
-                    description="Final result of legal research request.",
-                    text=full_text,
-                ),
-            )
-        )
+        # await event_queue.enqueue_event(
+        #     TaskArtifactUpdateEvent(
+        #         append=True,  # full replacement
+        #         contextId=task.context_id,
+        #         taskId=task.id,
+        #         artifact=new_text_artifact(
+        #             name="legal_research_result",
+        #             description="Final result of legal research request.",
+        #             text=full_text,
+        #         ),
+        #     )
+        # )
 
         #
         # 4) Send final completed status
