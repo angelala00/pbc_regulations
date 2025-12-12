@@ -64,7 +64,7 @@ class LegalResearchStreamingAgent:
                     stream=True,
                 )
             except Exception as exc:  # pylint: disable=broad-except
-                yield f"调用 OpenAI 接口失败: {exc}"
+                yield f"1调用 OpenAI 接口失败: {exc}"
                 return
 
             assistant_content_parts: List[str] = []

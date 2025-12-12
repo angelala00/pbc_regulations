@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-
-import click
 import httpx
 from dotenv import load_dotenv
 
@@ -82,28 +79,3 @@ def build_a2a_app(host: str, port: int, *, base_path: str | None = "/"):
     application.add_event_handler("shutdown", client.aclose)
     return application
 
-
-def run_server(host: str, port: int) -> None:
-    """Start the uvicorn server that exposes the legal research agent via A2A."""
-
-    application = build_a2a_app(host, port)
-
-    import uvicorn
-
-    try:
-        uvicorn.run(application, host=host, port=port)
-    finally:
-        # uvicorn will trigger shutdown handlers; no extra cleanup needed here.
-        pass
-
-
-@click.command()
-@click.option("--host", "host", default="localhost", show_default=True)
-@click.option("--port", "port", default=10000, show_default=True, type=int)
-def main(host: str, port: int) -> None:
-    """CLI entry point."""
-    run_server(host, port)
-
-
-if __name__ == "__main__":
-    main()

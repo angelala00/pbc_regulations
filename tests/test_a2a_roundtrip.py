@@ -9,13 +9,36 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 import httpx
 import pytest
-from a2a.client import A2ACardResolver, A2AClient
-from a2a.types import AgentCard, MessageSendParams, SendMessageRequest
+from a2a.client import A2ACardResolver
+from a2a.client.client_factory import ClientConfig, ClientFactory
+from a2a.types import (
+    AgentCard,
+    Message,
+    Part,
+    Role,
+    TextPart,
+    TransportProtocol,
+)
+
+
+def _format_event_for_debug(event: Any) -> str:
+    """Return a verbose string representation for streamed events."""
+    if hasattr(event, "model_dump_json"):
+        try:
+            return event.model_dump_json(indent=2)
+        except Exception:
+            pass
+    if hasattr(event, "model_dump"):
+        try:
+            return str(event.model_dump())
+        except Exception:
+            pass
+    return repr(event)
 
 
 async def _resolve_agent_card(base_url: str) -> Optional[AgentCard]:
@@ -34,23 +57,40 @@ async def _run_roundtrip(base_url: str) -> None:
         pytest.skip(f"A2A server not reachable at {base_url}")
 
     async with httpx.AsyncClient(timeout=30.0) as client:
-        a2a_client = A2AClient(httpx_client=client, agent_card=card)
-        request = SendMessageRequest(
-            id=str(uuid4()),
-            params=MessageSendParams(
-                message={
-                    "role": "user",
-                    "parts": [{"kind": "text", "text": "ping"}],
-                    "message_id": uuid4().hex,
-                }
-            ),
+        config = ClientConfig(
+            supported_transports=[
+                TransportProtocol.http_json,
+                TransportProtocol.jsonrpc,
+            ],
+            httpx_client=client,
+            use_client_preference=True,
         )
 
-        response = await a2a_client.send_message(request)
+        a2a_client = ClientFactory(config).create(card)
 
-    assert response.root.result is not None
-    assert response.root.result.id
-    assert response.root.result.context_id
+        message_id=uuid4().hex
+        print(f"\nmessage_id={message_id}\n")
+
+        message = Message(
+            role=Role.user,
+            parts=[Part(root=TextPart(text="你是谁"))],
+            message_id=message_id,
+        )
+
+        final_event = None
+        async for event in a2a_client.send_message(message):
+            print("A2A EVENT:", event)
+            # print("A2A EVENT:", _format_event_for_debug(event))
+            final_event = event
+
+    assert final_event is not None
+    if isinstance(final_event, tuple):
+        task, _update = final_event
+        assert task.id
+        assert task.context_id
+    else:
+        assert final_event.message_id
+        assert final_event.parts
 
 
 def test_a2a_roundtrip() -> None:

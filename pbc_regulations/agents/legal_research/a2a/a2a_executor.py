@@ -81,6 +81,8 @@ class LegalResearchAgentExecutor(AgentExecutor):
             if not delta:
                 continue
 
+            print(f"deltaaaaaaaaa:{delta}")
+
             chunks.append(delta)
 
             # Stream partial text by replacing the artifact (append=False) to avoid missing-append errors.
