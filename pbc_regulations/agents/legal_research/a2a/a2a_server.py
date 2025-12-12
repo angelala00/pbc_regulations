@@ -10,7 +10,11 @@ from dotenv import load_dotenv
 
 from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
-from a2a.server.tasks import InMemoryPushNotifier, InMemoryTaskStore
+from a2a.server.tasks import (
+    BasePushNotificationSender,
+    InMemoryPushNotificationConfigStore,
+    InMemoryTaskStore,
+)
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
 
 from .a2a_executor import LegalResearchAgentExecutor
@@ -18,9 +22,18 @@ from .a2a_executor import LegalResearchAgentExecutor
 load_dotenv()
 
 
-def get_agent_card(host: str, port: int) -> AgentCard:
+def _normalize_base_path(base_path: str | None) -> str:
+    """Ensure base path starts and ends with a single slash."""
+    if not base_path:
+        return "/"
+    stripped = base_path.strip("/")
+    return f"/{stripped}/" if stripped else "/"
+
+
+def get_agent_card(host: str, port: int, *, base_path: str | None = "/") -> AgentCard:
     """Describe the legal research agent to callers."""
 
+    normalized_path = _normalize_base_path(base_path)
     capabilities = AgentCapabilities(streaming=True, pushNotifications=True)
     skill = AgentSkill(
         id="legal_research",
@@ -36,7 +49,7 @@ def get_agent_card(host: str, port: int) -> AgentCard:
     return AgentCard(
         name="Legal Research Agent",
         description="面向法律与监管场景的检索与分析 Agent。",
-        url=f"http://{host}:{port}/",
+        url=f"http://{host}:{port}{normalized_path}",
         version="1.0.0",
         defaultInputModes=["text", "text/plain"],
         defaultOutputModes=["text", "text/plain"],
@@ -45,31 +58,51 @@ def get_agent_card(host: str, port: int) -> AgentCard:
     )
 
 
-@click.command()
-@click.option("--host", "host", default="localhost", show_default=True)
-@click.option("--port", "port", default=10000, show_default=True, type=int)
-def main(host: str, port: int) -> None:
-    """Start the uvicorn server that exposes the legal research agent via A2A."""
+def build_a2a_app(host: str, port: int, *, base_path: str | None = "/"):
+    """Build the Starlette app that serves the A2A legal research agent."""
 
+    normalized_path = _normalize_base_path(base_path)
     client = httpx.AsyncClient()
+    push_config_store = InMemoryPushNotificationConfigStore()
+    push_sender = BasePushNotificationSender(client, push_config_store)
 
     request_handler = DefaultRequestHandler(
         agent_executor=LegalResearchAgentExecutor(),
         task_store=InMemoryTaskStore(),
-        push_notifier=InMemoryPushNotifier(client),
+        push_config_store=push_config_store,
+        push_sender=push_sender,
     )
 
-    server = A2AStarletteApplication(
-        agent_card=get_agent_card(host, port),
+    application = A2AStarletteApplication(
+        agent_card=get_agent_card(host, port, base_path=normalized_path),
         http_handler=request_handler,
-    )
+    ).build()
+
+    # Ensure client closes when host app shuts down.
+    application.add_event_handler("shutdown", client.aclose)
+    return application
+
+
+def run_server(host: str, port: int) -> None:
+    """Start the uvicorn server that exposes the legal research agent via A2A."""
+
+    application = build_a2a_app(host, port)
 
     import uvicorn
 
     try:
-        uvicorn.run(server.build(), host=host, port=port)
+        uvicorn.run(application, host=host, port=port)
     finally:
-        asyncio.run(client.aclose())
+        # uvicorn will trigger shutdown handlers; no extra cleanup needed here.
+        pass
+
+
+@click.command()
+@click.option("--host", "host", default="localhost", show_default=True)
+@click.option("--port", "port", default=10000, show_default=True, type=int)
+def main(host: str, port: int) -> None:
+    """CLI entry point."""
+    run_server(host, port)
 
 
 if __name__ == "__main__":

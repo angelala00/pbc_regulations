@@ -6,6 +6,8 @@ import threading
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+from pbc_regulations.agents.legal_research.a2a.a2a_server import build_a2a_app
+from pbc_regulations.mcpserver.tools import mcp
 from pbc_regulations.portal.dashboard_data import (
     TaskOverview,
     collect_task_overviews,
@@ -65,6 +67,10 @@ def create_dashboard_app(
     artifact_dir_override: Optional[str],
     search_config: Optional[Dict[str, object]] = None,
     extra_routers: Optional[Sequence[Tuple[Any, Dict[str, Any]]]] = None,
+    a2a_mount_path: Optional[str] = "/a2a",
+    a2a_host: Optional[str] = None,
+    a2a_port: Optional[int] = None,
+    mcp_mount_path: Optional[str] = "/mcp",
 ):
     _ensure_fastapi_available()
 
@@ -223,6 +229,23 @@ def create_dashboard_app(
             include_kwargs = dict(options) if isinstance(options, dict) else {}
             app.include_router(router, **include_kwargs)
 
+    # Mount A2A agent endpoints on the same FastAPI app/port.
+    if a2a_mount_path:
+        normalized_mount = a2a_mount_path.rstrip("/") or "/"
+        a2a_app = build_a2a_app(
+            a2a_host or "localhost",
+            a2a_port or 10000,
+            base_path=normalized_mount,
+        )
+        app.mount(normalized_mount, a2a_app)
+
+    # Mount MCP SSE server on the same app/port.
+    if mcp_mount_path:
+        normalized_mcp = mcp_mount_path.rstrip("/") or "/"
+        # Use mount_path="/" so FastMCP doesn't prepend its own prefix; the app mount supplies it.
+        mcp_app = mcp.sse_app(mount_path="/")
+        app.mount(normalized_mcp, mcp_app)
+
     @app.get("/{resource_path:path}", include_in_schema=False)
     def serve_static(resource_path: str) -> FileResponse:
         relative = resource_path.lstrip("/")
@@ -259,6 +282,10 @@ def serve_dashboard(
         task=task,
         artifact_dir_override=artifact_dir_override,
         search_config=search_config,
+        a2a_mount_path="/a2a",
+        a2a_host=host,
+        a2a_port=port,
+        mcp_mount_path="/mcp",
     )
 
     host_display = host

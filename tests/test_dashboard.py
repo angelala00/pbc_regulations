@@ -17,10 +17,8 @@ sys.modules.pop("bs4", None)
 importlib.import_module("bs4")
 
 dashboard = importlib.import_module("pbc_regulations.portal.dashboard_data")
-dashboard_app = importlib.import_module("pbc_regulations.portal.dashboard_app")
-dashboard_rendering = importlib.import_module(
-    "pbc_regulations.portal.dashboard_rendering"
-)
+dashboard_app = importlib.import_module("pbc_regulations.server.app")
+dashboard_rendering = importlib.import_module("pbc_regulations.portal.dashboard_rendering")
 
 collect_task_overviews = dashboard.collect_task_overviews
 render_dashboard_html = dashboard_rendering.render_dashboard_html

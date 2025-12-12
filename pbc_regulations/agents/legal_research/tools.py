@@ -11,7 +11,8 @@ import mcp.types as types
 from mcp.client.sse import sse_client
 from mcp.shared.message import SessionMessage
 
-DEFAULT_MCP_URL = os.getenv("LEGAL_RESEARCH_MCP_URL", "http://127.0.0.1:8000/sse")
+# When mounted under /mcp with mount_path="/", the SSE endpoint is /mcp/sse.
+DEFAULT_MCP_URL = os.getenv("LEGAL_RESEARCH_MCP_URL", "http://127.0.0.1:8000/mcp/sse")
 
 
 def _parse_arguments(raw_args: Any) -> MutableMapping[str, Any]:
@@ -133,7 +134,11 @@ async def load_openai_tools(force_refresh: bool = False) -> List[Dict[str, Any]]
     async with _CACHE_LOCK:
         if _OPENAI_TOOLS_CACHE is not None and not force_refresh:
             return _OPENAI_TOOLS_CACHE
-        tools = await _client.list_tools()
+        try:
+            tools = await _client.list_tools()
+        except Exception:
+            _OPENAI_TOOLS_CACHE = []
+            return []
         openai_tools = [_to_openai_tool_schema(tool) for tool in tools if tool.get("name")]
         _OPENAI_TOOLS_CACHE = openai_tools
         return openai_tools

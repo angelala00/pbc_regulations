@@ -16,16 +16,6 @@ from pbc_regulations.config_paths import (
     load_configured_tasks,
     resolve_configured_extract_path,
 )
-from pbc_regulations.utils import canonicalize_task_name
-from pbc_regulations.portal.dashboard_data import collect_task_overviews
-from pbc_regulations.portal.dashboard_rendering import render_dashboard_html
-from pbc_regulations.portal.dashboard_app import (
-    JSONResponse,
-    Request,
-    _FASTAPI_IMPORT_ERROR,
-    create_dashboard_app,
-    uvicorn,
-)
 from pbc_regulations.agents.legal_search.api import create_legal_search_router
 from pbc_regulations.searcher.api_server import create_routes
 from pbc_regulations.searcher.clause_lookup import ClauseLookup
@@ -36,6 +26,16 @@ from pbc_regulations.searcher.policy_finder import (
 from pbc_regulations.searcher.task_constants import (
     DEFAULT_SEARCH_TASKS,
 )
+from pbc_regulations.server.app import (
+    JSONResponse,
+    Request,
+    _FASTAPI_IMPORT_ERROR,
+    create_dashboard_app,
+    uvicorn,
+)
+from pbc_regulations.utils import canonicalize_task_name
+from pbc_regulations.portal.dashboard_data import collect_task_overviews
+from pbc_regulations.portal.dashboard_rendering import render_dashboard_html
 
 DEFAULT_SEARCH_TOPK = 5
 MAX_SEARCH_TOPK = 50
@@ -271,6 +271,9 @@ def _serve_portal(
         artifact_dir_override=artifact_dir_override,
         search_config=search_config_payload,
         extra_routers=extra_routers,
+        a2a_mount_path="/a2a",
+        a2a_host=host,
+        a2a_port=port,
     )
 
     search_finder = policy_finder
@@ -482,6 +485,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             "reason": search_error,
         },
     )
+    # Keep the portal running; the A2A process is daemonized and will exit with us.
 
 
 if __name__ == "__main__":

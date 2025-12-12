@@ -42,7 +42,11 @@ async def _recv_until(read_stream, target_id: Any, label: str) -> Dict[str, Any]
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Test MCP SSE server.")
-    parser.add_argument("--url", default="http://127.0.0.1:8000/sse", help="SSE endpoint (default FastMCP).")
+    parser.add_argument(
+        "--url",
+        default="http://127.0.0.1:8000/mcp/sse",
+        help="SSE endpoint (default: unified portal mount at /mcp/sse).",
+    )
     parser.add_argument(
         "--steps",
         nargs="+",

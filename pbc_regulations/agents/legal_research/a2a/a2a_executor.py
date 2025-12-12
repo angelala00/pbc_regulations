@@ -7,7 +7,9 @@ from typing import List, Optional
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events.event_queue import EventQueue
 from a2a.types import (
+    Message,
     TaskArtifactUpdateEvent,
+    Task,
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
@@ -17,7 +19,7 @@ from a2a.utils import (
     new_text_artifact,
 )
 
-from ..agent_streaming import LegalResearchStreamingAgent
+from ..agent.agent_streaming import LegalResearchStreamingAgent
 
 
 class LegalResearchAgentExecutor(AgentExecutor):
@@ -41,17 +43,30 @@ class LegalResearchAgentExecutor(AgentExecutor):
             raise ValueError("Missing user message.")
 
         if not task:
-            # A2A server must always supply a task.
-            raise RuntimeError("A2A invariant violation: missing task in RequestContext")
+            # Fall back to a minimal task if the RequestContext didn't provide one.
+            message_task_id = getattr(message, "task_id", None)
+            message_context_id = getattr(message, "context_id", None)
+            if not (message_task_id and message_context_id):
+                raise RuntimeError(
+                    "A2A invariant violation: missing task in RequestContext"
+                )
+            task = Task(
+                id=message_task_id,
+                context_id=message_context_id,
+                status=TaskStatus(state=TaskState.working),
+                history=[message] if isinstance(message, Message) else [],
+                artifacts=[],
+            )
+            context.current_task = task
 
         #
         # 1) Send initial "working" state
         #
-        event_queue.enqueue_event(
+        await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
                 status=TaskStatus(state=TaskState.working),
                 final=False,
-                contextId=task.contextId,
+                contextId=task.context_id,
                 taskId=task.id,
             )
         )
@@ -68,16 +83,16 @@ class LegalResearchAgentExecutor(AgentExecutor):
 
             chunks.append(delta)
 
-            # Stream partial tokens as artifact updates
-            event_queue.enqueue_event(
+            # Stream partial text by replacing the artifact (append=False) to avoid missing-append errors.
+            await event_queue.enqueue_event(
                 TaskArtifactUpdateEvent(
-                    append=True,
-                    contextId=task.contextId,
+                    append=False,
+                    contextId=task.context_id,
                     taskId=task.id,
                     artifact=new_text_artifact(
                         name="legal_research_stream",
                         description="Streaming partial response.",
-                        text=delta,
+                        text="".join(chunks),
                     ),
                 )
             )
@@ -87,10 +102,10 @@ class LegalResearchAgentExecutor(AgentExecutor):
         #
         full_text = "".join(chunks)
 
-        event_queue.enqueue_event(
+        await event_queue.enqueue_event(
             TaskArtifactUpdateEvent(
                 append=False,  # full replacement
-                contextId=task.contextId,
+                contextId=task.context_id,
                 taskId=task.id,
                 artifact=new_text_artifact(
                     name="legal_research_result",
@@ -103,11 +118,11 @@ class LegalResearchAgentExecutor(AgentExecutor):
         #
         # 4) Send final completed status
         #
-        event_queue.enqueue_event(
+        await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
                 status=TaskStatus(state=TaskState.completed),
                 final=True,
-                contextId=task.contextId,
+                contextId=task.context_id,
                 taskId=task.id,
             )
         )
