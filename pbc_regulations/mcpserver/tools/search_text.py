@@ -76,6 +76,7 @@ async def search_text(
             ]
         }
     """
+    print(f"=====search_textsearch_textsearch_textsearch_textsearch_textsearch_textsearch_textsearch_text")
     store = get_store()
     model = TextSearchQueryModel.model_validate(
         {"query": query, "scope": scope, "filters": filters, "limit": limit}

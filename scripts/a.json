@@ -1,61 +1,364 @@
 {
-    "id": 0.5,
-    "result": {
-        "tools": [
-            {
+    "messages": [
+        {
+            "role": "system",
+            "content": "你是法律检索与分析 Agent，处理与法律法规相关的问题。你拥有四个工具：query_metadata、search_text、get_content、describe_corpus。\n\n=== 工具使用原则 ===\n1. 当问题涉及法律依据、条款内容、法规解释、合规性判断时，必须使用工具检索，禁止凭记忆回答。\n2. 当问题只是概念、定义或基础术语解释（如“什么是备付金”），你可以基于通识简要解释，并明确说明：“以下为基于通用知识的回答，不代表官方或专业定义。如需法规依据，可继续请求查询。”\n3. 当问题与法律完全无关（如菜谱、娱乐、闲聊等），请礼貌拒绝回答，提示用户你仅处理法律检索类任务。\n\n=== 检索策略（核心逻辑） ===\n- query_metadata：用于根据 issuer / type / status / topics 等字段过滤法规范围。\n- search_text：用于在全库或指定 law_ids 中做全文搜索，定位相关条款。\n- get_content：用于获取命中的条款原文。\n- describe_corpus：用于了解元数据结构。\n\n具体策略：\n- 当问题明确涉及某监管主体、领域或主题时：先用 query_metadata 缩小法规范围，再用 search_text 精检。\n- 当问题模糊、难判断落点时：先 search_text 做全库检索，如命中过多或过少，再用 query_metadata 收窄或扩展范围。\n- 当用户点名具体法规时：使用 query_metadata 精确定位法规，再 search_text 或直接 get_content。\n- 遇到 search_text 命中不足时，可调整关键词继续检索（允许多轮 refine）。\n\n=== 输出要求 ===\n- 提供结论 + 依据条款编号；当使用 get_content 时引用条款原文。\n- 若未使用检索工具，则必须声明依据来源（如通识解释）。\n- 禁止编造法规内容、条款编号或不存在的专业定义。\n\n遵循流程：先判断 → 决策是否使用工具 → 执行工具 → 基于结果作答。"
+        },
+        {
+            "role": "user",
+            "content": "你好"
+        }
+    ],
+    "model": "qwen3-30b-a3b-instruct-2507",
+    "stream": true,
+    "temperature": 0.2,
+    "tool_choice": "auto",
+    "tools": [
+        {
+            "type": "function",
+            "function": {
                 "name": "describe_corpus",
-                "description": "Describe the corpus schema and searchable text scopes.",
-                "input_schema": {
-                    "type": "object",
+                "description": "\n    Describe the corpus schema and searchable text scopes.\n\n    Request: no arguments.\n    Response:\n        {\n            \"fields\": [{\"name\": \"...\", \"type\": \"...\", \"description\": \"...\", \"values\": [...?]}],\n            \"text_scopes\": [{\"name\": \"law|article\", \"description\": \"...\"}]\n        }\n    ",
+                "parameters": {
                     "properties": {},
-                    "description": "No parameters."
-                }
-            },
-            {
-                "name": "query_metadata",
-                "description": "Execute an in-memory query against the laws metadata set.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "object"
-                        }
-                    },
-                    "required": [
-                        "query"
-                    ]
-                }
-            },
-            {
-                "name": "search_text",
-                "description": "Run a keyword-based search over law texts.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "object"
-                        }
-                    },
-                    "required": [
-                        "query"
-                    ]
-                }
-            },
-            {
-                "name": "get_content",
-                "description": "Fetch law text or specific articles by identifiers.",
-                "input_schema": {
-                    "type": "object",
-                    "properties": {
-                        "query": {
-                            "type": "object"
-                        }
-                    },
-                    "required": [
-                        "query"
-                    ]
+                    "title": "describe_corpusArguments",
+                    "type": "object"
                 }
             }
-        ]
-    }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "get_content",
+                "description": "\n    Fetch law text or specific articles by identifiers.\n\n    Request DSL (how `law_ids` and `article_ids` interact):\n        - Provide `article_ids` to fetch specific clauses. Each `article_id`\n          must implicitly encode its `law_id`; the corresponding law is\n          included in the response with only the matching articles.\n        - Provide `law_ids` to fetch whole laws (all articles or full_text).\n        - Provide both to mix whole-law fetches and targeted-article fetches;\n          duplicates are de-duped per law_id in the response.\n        - Leave both null/empty to fetch nothing.\n\n    Example:\n        {\n            \"law_ids\": [\"L101\", ...] | null,\n            \"article_ids\": [\"L101-article-9\", ...] | null,\n            \"with_metadata\": true|false,\n            \"page\": 1,\n            \"page_size\": 50\n        }\n    Response:\n        {\n            \"laws\": [\n                {\n                    \"law_id\": \"...\",\n                    \"title\": \"...\",\n                    \"metadata\": {...},\n                    \"articles\": [{\"article_id\": \"...\", \"title\": \"...\", \"text\": \"...\"}],\n                    \"full_text\": \"...\"  # optional when article split is not available\n                }\n            ],\n            \"has_more\": false\n        }\n    ",
+                "parameters": {
+                    "properties": {
+                        "law_ids": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Law Ids"
+                        },
+                        "article_ids": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Article Ids"
+                        },
+                        "with_metadata": {
+                            "anyOf": [
+                                {
+                                    "type": "boolean"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "With Metadata"
+                        },
+                        "page": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Page"
+                        },
+                        "page_size": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Page Size"
+                        }
+                    },
+                    "title": "get_contentArguments",
+                    "type": "object"
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "query_metadata",
+                "description": "\n    Execute an in-memory query against the laws metadata set.\n\n    Request DSL (matches the design doc):\n        {\n            \"select\": [\"law_id\", \"title\", ...],\n            \"filters\": [{\"field\": \"...\", \"op\": \"...\", \"value\": ...}],\n            \"group_by\": [\"issuer\", ...],\n            \"aggregates\": [{\"func\": \"count\", \"field\": \"*\", \"as\": \"law_count\"}],\n            \"order_by\": [{\"field\": \"law_count\", \"direction\": \"desc\"}],\n            \"limit\": 100\n        }\n    Response:\n        {\n            \"rows\": [ ... list of dict rows ... ],\n            \"row_count\": <int>\n        }\n    ",
+                "parameters": {
+                    "$defs": {
+                        "MetadataAggregateModel": {
+                            "properties": {
+                                "func": {
+                                    "title": "Func",
+                                    "type": "string"
+                                },
+                                "field": {
+                                    "title": "Field",
+                                    "type": "string"
+                                },
+                                "as": {
+                                    "anyOf": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "null"
+                                        }
+                                    ],
+                                    "default": null,
+                                    "title": "As"
+                                }
+                            },
+                            "required": [
+                                "func",
+                                "field"
+                            ],
+                            "title": "MetadataAggregateModel",
+                            "type": "object"
+                        },
+                        "MetadataFilterModel": {
+                            "properties": {
+                                "field": {
+                                    "title": "Field",
+                                    "type": "string"
+                                },
+                                "op": {
+                                    "title": "Op",
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "title": "Value"
+                                }
+                            },
+                            "required": [
+                                "field",
+                                "op",
+                                "value"
+                            ],
+                            "title": "MetadataFilterModel",
+                            "type": "object"
+                        },
+                        "OrderByModel": {
+                            "properties": {
+                                "field": {
+                                    "title": "Field",
+                                    "type": "string"
+                                },
+                                "direction": {
+                                    "title": "Direction",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "field",
+                                "direction"
+                            ],
+                            "title": "OrderByModel",
+                            "type": "object"
+                        }
+                    },
+                    "properties": {
+                        "select": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Select"
+                        },
+                        "filters": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/$defs/MetadataFilterModel"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Filters"
+                        },
+                        "group_by": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Group By"
+                        },
+                        "aggregates": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/$defs/MetadataAggregateModel"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Aggregates"
+                        },
+                        "order_by": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/$defs/OrderByModel"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Order By"
+                        },
+                        "limit": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Limit"
+                        }
+                    },
+                    "title": "query_metadataArguments",
+                    "type": "object"
+                }
+            }
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "search_text",
+                "description": "\n    Run a keyword-based search over law texts.\n\n    Request DSL:\n        {\n            \"query\": \"keywords and phrases\",\n            \"scope\": \"law\" | \"article\",\n            \"filters\": [{\"field\": \"status\", \"op\": \"=\", \"value\": \"valid\"}],\n            \"limit\": 50\n        }\n    Response:\n        {\n            \"hits\": [\n                {\"law_id\": \"...\", \"score\": 0.92, \"snippet\": \"...\"},\n                {\"law_id\": \"...\", \"article_id\": \"...\", \"score\": 0.85, \"snippet\": \"...\"}\n            ]\n        }\n    ",
+                "parameters": {
+                    "$defs": {
+                        "TextSearchFilterModel": {
+                            "properties": {
+                                "field": {
+                                    "title": "Field",
+                                    "type": "string"
+                                },
+                                "op": {
+                                    "title": "Op",
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "title": "Value"
+                                }
+                            },
+                            "required": [
+                                "field",
+                                "op",
+                                "value"
+                            ],
+                            "title": "TextSearchFilterModel",
+                            "type": "object"
+                        }
+                    },
+                    "properties": {
+                        "query": {
+                            "title": "Query",
+                            "type": "string"
+                        },
+                        "scope": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Scope"
+                        },
+                        "filters": {
+                            "anyOf": [
+                                {
+                                    "items": {
+                                        "$ref": "#/$defs/TextSearchFilterModel"
+                                    },
+                                    "type": "array"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Filters"
+                        },
+                        "limit": {
+                            "anyOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "default": null,
+                            "title": "Limit"
+                        }
+                    },
+                    "required": [
+                        "query"
+                    ],
+                    "title": "search_textArguments",
+                    "type": "object"
+                }
+            }
+        }
+    ]
 }

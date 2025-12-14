@@ -19,6 +19,13 @@ from .a2a_executor import LegalResearchAgentExecutor
 load_dotenv()
 
 
+import logging
+
+logging.basicConfig(level=logging.INFO)  # 或 WARNING
+for name in ("a2a", "a2a.server", "a2a.utils"):
+    logging.getLogger(name).setLevel(logging.WARNING)
+
+
 def _normalize_base_path(base_path: str | None) -> str:
     """Ensure base path starts and ends with a single slash."""
     if not base_path:

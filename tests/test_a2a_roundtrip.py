@@ -51,6 +51,28 @@ async def _resolve_agent_card(base_url: str) -> Optional[AgentCard]:
         return None
 
 
+def _extract_text_from_event(event: Any) -> list[str]:
+    """Pull text content out of streamed events for logging."""
+    payload = event[1] if isinstance(event, tuple) and len(event) > 1 else event
+    texts: list[str] = []
+
+    def _collect(parts: Any) -> None:
+        if not parts:
+            return
+        for part in parts:
+            root = getattr(part, "root", None)
+            if isinstance(root, TextPart) and getattr(root, "text", None):
+                texts.append(root.text)
+            elif isinstance(part, TextPart) and getattr(part, "text", None):
+                texts.append(part.text)
+
+    artifact = getattr(payload, "artifact", None)
+    if artifact is not None:
+        _collect(getattr(artifact, "parts", None))
+    _collect(getattr(payload, "parts", None))
+    return texts
+
+
 async def _run_roundtrip(base_url: str) -> None:
     card = await _resolve_agent_card(base_url)
     if card is None:
@@ -73,14 +95,18 @@ async def _run_roundtrip(base_url: str) -> None:
 
         message = Message(
             role=Role.user,
-            parts=[Part(root=TextPart(text="你是谁"))],
+            parts=[Part(root=TextPart(text="帮我查反诈法"))],
             message_id=message_id,
         )
 
         final_event = None
         async for event in a2a_client.send_message(message):
-            print("A2A EVENT:", event)
-            # print("A2A EVENT:", _format_event_for_debug(event))
+            event1 = event[1] if isinstance(event, tuple) and len(event) > 1 else event
+            if event1.kind == "status-update":
+                print(f"event:{event}")
+            elif event1.kind == "artifact-update":
+                for text in _extract_text_from_event(event):
+                    print(f"textttt:{text}")
             final_event = event
 
     assert final_event is not None

@@ -15,6 +15,7 @@ from ..common import (
 )
 from ..prompts import SYSTEM_PROMPT
 from ..tools import dispatch_tool_call, load_openai_tools
+import json
 
 
 class LegalResearchStreamingAgent:
@@ -38,12 +39,12 @@ class LegalResearchStreamingAgent:
         query: str,
         *,
         temperature: float = 0.2,
-    ) -> AsyncIterator[str]:
+    ) -> AsyncIterator[Dict[str, Any]]:
         """Stream the assistant response for ``query`` while performing tool-calls."""
 
         tools = await load_openai_tools()
         if not tools:
-            yield "未能加载工具列表，请检查 MCP 服务是否运行。"
+            yield "未能加载工具列表。"
             return
 
         system_prompt = self._system_prompt.strip()
@@ -52,6 +53,21 @@ class LegalResearchStreamingAgent:
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": query})
+
+        seq = 0
+        def build_event(event_name, *, chunk=None, include_message_id=True, **payload):
+            nonlocal seq
+            seq += 1
+            event_payload = {
+                "event": event_name,
+                "seq": seq,
+                "created": int(time.time() * 1000),
+            }
+            for key, value in list(payload.items()):
+                if value is None:
+                    payload.pop(key)
+            event_payload.update(payload)
+            return f"data: {json.dumps(event_payload, ensure_ascii=False)}\n\n"
 
         for _ in range(self._max_rounds):
             try:
@@ -63,8 +79,8 @@ class LegalResearchStreamingAgent:
                     temperature=temperature,
                     stream=True,
                 )
-            except Exception as exc:  # pylint: disable=broad-except
-                yield f"1调用 OpenAI 接口失败: {exc}"
+            except Exception as exc:
+                yield "调用大模型接口失败: {exc}"
                 return
 
             assistant_content_parts: List[str] = []
@@ -85,11 +101,20 @@ class LegalResearchStreamingAgent:
                 text_delta = extract_attr(delta, "content") or ""
                 if text_delta:
                     assistant_content_parts.append(text_delta)
-                    yield text_delta
+                    yield build_event(
+                        "content_delta",
+                        chunk=chunk,
+                        index=0,
+                        delta=text_delta,
+                    )
 
             assistant_content = "".join(assistant_content_parts)
             if function_mode:
                 tool_calls = finalize_tool_calls(tool_call_accumulator) if function_mode else []
+                print(f"tool_callsssssssssss:{tool_calls}")
+
+
+
                 if tool_calls:
                     messages.append(
                         {
@@ -99,13 +124,24 @@ class LegalResearchStreamingAgent:
                         }
                     )
                     for tool_call in tool_calls:
+                        id = tool_call.get("name") or ""
                         function_block = tool_call.get("function") or {}
                         name = function_block.get("name") or ""
                         arguments = function_block.get("arguments")
-                        yield {"event": "tool_call_start", "text":name, "created": int(time.time() * 1000),}
-
+                        yield build_event(
+                            "tool_call_start",
+                            chunk=chunk,
+                            tool_call_id=id,
+                            name=name,
+                        )
                         result = await dispatch_tool_call(name, arguments)
-                        yield {"event": "tool_call_end", "text":result, "created": int(time.time() * 1000),}
+                        print(f"resulttttt:{result}")
+                        yield build_event(
+                            "tool_call_end",
+                            chunk=chunk,
+                            tool_call_id=id,
+                            name=name,
+                        )
                         messages.append(
                             {
                                 "role": "tool",
@@ -167,4 +203,3 @@ def accumulate_tool_call_delta(
         arguments_delta = extract_attr(function, "arguments")
         if arguments_delta:
             entry["function"]["arguments"] += str(arguments_delta)
-

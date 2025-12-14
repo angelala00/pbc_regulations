@@ -13,11 +13,13 @@ from a2a.types import (
     TaskState,
     TaskStatus,
     TaskStatusUpdateEvent,
+    Part,
 )
 from a2a.utils import (
     new_agent_text_message,
-    new_text_artifact,
+    build_text_artifact,
 )
+from uuid import uuid4
 
 from ..agent.agent_streaming import LegalResearchStreamingAgent
 
@@ -53,14 +55,14 @@ class LegalResearchAgentExecutor(AgentExecutor):
             task = Task(
                 id=message_task_id,
                 context_id=message_context_id,
-                status=TaskStatus(state=TaskState.working),
+                status=TaskStatus(state=TaskState.submitted),
                 history=[message] if isinstance(message, Message) else [],
                 artifacts=[],
             )
             context.current_task = task
 
         #
-        # 1) Send initial "working" state
+        # Send initial "working" state
         #
         await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
@@ -74,51 +76,26 @@ class LegalResearchAgentExecutor(AgentExecutor):
         #
         # 2) Stream model output — each token becomes an artifact_update(append=True)
         #
-        chunks: List[str] = []
+        # chunks: List[str] = []
 
+        first_chunk = True
         async for delta in self.agent.stream(query):
-
             if not delta:
                 continue
 
-            print(f"deltaaaaaaaaa:{delta}")
-
-            chunks.append(delta)
-
-            # Stream partial text by replacing the artifact.
             await event_queue.enqueue_event(
                 TaskArtifactUpdateEvent(
-                    append=True,
+                    # First chunk seeds the artifact; subsequent chunks append.
+                    append=not first_chunk,
                     contextId=task.context_id,
                     taskId=task.id,
-                    artifact=new_text_artifact(
-                        name="legal_research_stream",
-                        description="Streaming partial response.",
-                        text="".join(delta),
-                    ),
+                    artifact=build_text_artifact(text=delta, artifact_id="content"),
                 )
             )
+            first_chunk = False
 
         #
-        # 3) Final full answer artifact
-        #
-        # full_text = "".join(chunks)
-
-        # await event_queue.enqueue_event(
-        #     TaskArtifactUpdateEvent(
-        #         append=True,  # full replacement
-        #         contextId=task.context_id,
-        #         taskId=task.id,
-        #         artifact=new_text_artifact(
-        #             name="legal_research_result",
-        #             description="Final result of legal research request.",
-        #             text=full_text,
-        #         ),
-        #     )
-        # )
-
-        #
-        # 4) Send final completed status
+        # Send final completed status
         #
         await event_queue.enqueue_event(
             TaskStatusUpdateEvent(
