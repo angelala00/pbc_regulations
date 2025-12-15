@@ -1,4 +1,4 @@
-"""Simple keyword-based text search tool."""
+"""基于关键词的文本检索工具。"""
 
 from __future__ import annotations
 
@@ -59,16 +59,16 @@ async def search_text(
     limit: Optional[int] = None,
 ) -> TextSearchResponse:
     """
-    Run a keyword-based search over law texts.
+    对法规文本执行关键词检索。
 
-    Request DSL:
+    请求 DSL:
         {
-            "query": "keywords and phrases",
+            "query": "关键词或短语",
             "scope": "law" | "article",
             "filters": [{"field": "status", "op": "=", "value": "valid"}],
             "limit": 50
         }
-    Response:
+    响应:
         {
             "hits": [
                 {"law_id": "...", "score": 0.92, "snippet": "..."},

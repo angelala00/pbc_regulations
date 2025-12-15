@@ -1,4 +1,4 @@
-"""In-memory metadata query tool."""
+"""内存内元数据查询工具。"""
 
 from __future__ import annotations
 
@@ -72,9 +72,9 @@ async def query_metadata(
     limit: Optional[int] = None,
 ) -> MetadataQueryResponse:
     """
-    Execute an in-memory query against the laws metadata set.
+    对法规元数据执行内存查询。
 
-    Request DSL (matches the design doc):
+    请求 DSL（与设计文档一致）:
         {
             "select": ["law_id", "title", ...],
             "filters": [{"field": "...", "op": "...", "value": ...}],
@@ -83,9 +83,9 @@ async def query_metadata(
             "order_by": [{"field": "law_count", "direction": "desc"}],
             "limit": 100
         }
-    Response:
+    响应:
         {
-            "rows": [ ... list of dict rows ... ],
+            "rows": [ ... 字典列表 ... ],
             "row_count": <int>
         }
     """

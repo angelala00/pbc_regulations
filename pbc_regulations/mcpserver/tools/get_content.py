@@ -1,4 +1,4 @@
-"""Fetch law text or specific articles by identifiers."""
+"""按标识符获取法规全文或条文。"""
 
 from __future__ import annotations
 
@@ -55,18 +55,16 @@ async def get_content(
     page_size: Optional[int] = None,
 ) -> GetContentResponse:
     """
-    Fetch law text or specific articles by identifiers.
+    按标识符获取法规全文或条文。
 
-    Request DSL (how `law_ids` and `article_ids` interact):
-        - Provide `article_ids` to fetch specific clauses. Each `article_id`
-          must implicitly encode its `law_id`; the corresponding law is
-          included in the response with only the matching articles.
-        - Provide `law_ids` to fetch whole laws (all articles or full_text).
-        - Provide both to mix whole-law fetches and targeted-article fetches;
-          duplicates are de-duped per law_id in the response.
-        - Leave both null/empty to fetch nothing.
+    请求 DSL（law_ids 与 article_ids 的关系）:
+        - 提供 `article_ids` 获取特定条款。每个 `article_id` 隐含其 `law_id`；
+          响应中会包含对应法规，且仅包含匹配的条目。
+        - 提供 `law_ids` 获取整部法规（全部条文或 full_text）。
+        - 两者同时提供则混合获取；同一 law_id 会去重。
+        - 两者都为空/缺省则不返回任何内容。
 
-    Example:
+    示例:
         {
             "law_ids": ["L101", ...] | null,
             "article_ids": ["L101-article-9", ...] | null,
@@ -74,7 +72,7 @@ async def get_content(
             "page": 1,
             "page_size": 50
         }
-    Response:
+    响应:
         {
             "laws": [
                 {
@@ -82,7 +80,7 @@ async def get_content(
                     "title": "...",
                     "metadata": {...},
                     "articles": [{"article_id": "...", "title": "...", "text": "..."}],
-                    "full_text": "..."  # optional when article split is not available
+                    "full_text": "..."  # 当没有条文拆分时提供全文
                 }
             ],
             "has_more": false

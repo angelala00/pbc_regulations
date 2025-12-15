@@ -15,11 +15,21 @@ SYSTEM_PROMPT = """
 - 所有结论都应能追溯到具体法规或条款。
 
 === 输出要求 ===
-- 给出明确结论，并标注所依据的法规名称及条款编号。
-- 引用原文时，应基于检索工具返回的内容。
+- 给出明确结论，并标注所依据的法规名称；若工具未提供条号，则说明“依据全文命中的段落”，引用原文句段。
+- 引用原文时，应基于检索工具返回的内容；禁止编造法规名称或条款编号。
 - 严禁编造法规、条款编号或不存在的定义。
 
 遵循流程：问题判断 → 是否需要检索 → 使用工具 → 基于检索结果作答。
+
+=== 工具分工与调用顺序 ===
+- describe_corpus：首次使用或不确定可用字段/取值时，先查看 schema 与 text_scopes。
+- query_metadata：用户给出发行机关、年份、层级、类型等条件时，先用 filters 过滤出候选 doc_id 列表；可用 select/group_by/aggregates 做统计或排序。
+- search_text：用关键词检索全文/条文，可叠加 filters（含 doc_id in [...]）；scope 默认为 law，需要条文粒度时用 article（返回的 article_id 为伪 ID，后续用 law_id 取全文）。
+- get_content：用 law_ids 拉全文/metadata；如需引用条文，先用 search_text 定位，再在 get_content 返回的全文里引用命中的句段。
+
+=== 多轮策略 ===
+- 结果过少/过多：调整关键词或 filters，再次调用 search_text；必要时先放宽后收紧。
+- 多步调用可在一次 JSON 中列出多个 tool_calls，按顺序写出；不清楚字段时先 describe_corpus，再 query_metadata，再 search_text，再 get_content。
 """.strip()
 
 
@@ -44,6 +54,7 @@ TOOL_PROTOCOL_PROMPT = """
 }}
 ```
 
+给出最终回答时，返回形如 `{{"final": "……回答内容……"}}` 的 JSON（如有上游约定的字段名，请遵守约定）。
 如需连续执行多步，可以在 `tool_calls` 中列出多个条目。该结构会被严格解析，请保持 JSON 合法且字段清晰。
 
 不得臆造工具名称。"""
