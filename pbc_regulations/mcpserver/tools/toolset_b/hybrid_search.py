@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict, Tuple
 
 from pydantic import BaseModel
 
 from ..base import MetadataFilter, get_store, mcp
+from .indexes import get_indexes
 
 
 class HybridMetaFilter(TypedDict, total=False):
@@ -94,54 +95,87 @@ async def hybrid_search(
     allow_vec = bool(data.get("use_vector", True))
     hits: List[HybridSearchHit] = []
 
-    for row in rows:
-        doc_id = str(row.get("doc_id") or "")
-        if not doc_id:
-            continue
-        text = store.read_text(doc_id)
-        if not text:
-            continue
+    allowed_laws = {str(row.get("doc_id") or "") for row in rows if row.get("doc_id")}
+    bm25_index, vec_index, corpus = get_indexes(store)
 
-        lower = text.lower()
-        keyword_score = sum(lower.count(term.lower()) for term in terms)
-        if keyword_score <= 0 and not allow_vec:
-            continue
-        # 简单模拟语义得分：若允许向量检索，给关键词匹配加一点权重。
-        semantic_score = keyword_score * 0.5 if allow_vec else 0
-        total_score = float(keyword_score + semantic_score)
-        if total_score <= 0:
-            continue
+    combined: Dict[str, Tuple[float, HybridSearchHit]] = {}
 
-        first_idx = None
-        for term in terms:
-            idx = lower.find(term.lower())
-            if idx != -1:
-                first_idx = idx
-                break
-        snippet = ""
-        if first_idx is not None:
-            start = max(0, first_idx - 60)
-            end = min(len(text), first_idx + 120)
-            snippet = text[start:end].replace("\n", " ").strip()
+    def _add_hit(record_id: str, score: float, hit: HybridSearchHit) -> None:
+        if record_id not in combined:
+            combined[record_id] = (score, hit)
+        else:
+            prev_score, prev_hit = combined[record_id]
+            merged = dict(prev_hit)
+            merged_match = set(prev_hit.get("match_type") or [])
+            merged_match.update(hit.get("match_type") or [])
+            merged["match_type"] = list(merged_match) or ["bm25"]
+            combined[record_id] = (prev_score + score, merged)  # accumulate
 
-        match_types: List[str] = []
-        if allow_bm25 and keyword_score > 0:
-            match_types.append("bm25")
-        if allow_vec and keyword_score > 0:
-            match_types.append("vector")
+    if allow_bm25:
+        bm25_hits = bm25_index.search(text_query, top_k=max_k * 2)
+        for record, score in bm25_hits:
+            if allowed_laws and record.law_id not in allowed_laws:
+                continue
+            snippet = record.text[:180].replace("\n", " ").strip()
+            _add_hit(
+                record.article_id,
+                score * 2.0,  # keyword weight
+                {
+                    "law_id": record.law_id,
+                    "law_title": record.law_title,
+                    "article_id": record.article_id,
+                    "article_no": record.article_no,
+                    "snippet": snippet,
+                    "score": float(score),
+                    "match_type": ["bm25"],
+                },
+            )
 
-        hit: HybridSearchHit = {
-            "law_id": doc_id,
-            "law_title": str(row.get("title") or ""),
-            "article_id": f"{doc_id}-article-1",
-            "article_no": "全文",
-            "snippet": snippet,
-            "score": total_score,
-            "match_type": match_types or ["bm25"],
-        }
-        hits.append(hit)
+    if allow_vec:
+        vec_hits = vec_index.search(text_query, top_k=max_k * 2)
+        for record, score in vec_hits:
+            if allowed_laws and record.law_id not in allowed_laws:
+                continue
+            snippet = record.text[:180].replace("\n", " ").strip()
+            _add_hit(
+                record.article_id,
+                score * 1.0,  # vector weight
+                {
+                    "law_id": record.law_id,
+                    "law_title": record.law_title,
+                    "article_id": record.article_id,
+                    "article_no": record.article_no,
+                    "snippet": snippet,
+                    "score": float(score),
+                    "match_type": ["vector"],
+                },
+            )
 
-    hits.sort(key=lambda h: h.get("score", 0), reverse=True)
+    # Rule-based boost for penalty related queries
+    if any(keyword in text_query for keyword in ("处罚", "违法", "罚款")) and allow_bm25:
+        rule_hits = bm25_index.search("罚款 责令 违反", top_k=max_k)
+        for record, score in rule_hits:
+            if allowed_laws and record.law_id not in allowed_laws:
+                continue
+            snippet = record.text[:180].replace("\n", " ").strip()
+            _add_hit(
+                record.article_id,
+                score * 1.0,
+                {
+                    "law_id": record.law_id,
+                    "law_title": record.law_title,
+                    "article_id": record.article_id,
+                    "article_no": record.article_no,
+                    "snippet": snippet,
+                    "score": float(score),
+                    "match_type": ["bm25"],
+                },
+            )
+
+    # Merge and rank
+    merged_hits = sorted(combined.values(), key=lambda item: item[0], reverse=True)
+    hits = [hit for _score, hit in merged_hits]
+
     max_k = data.get("top_k") or 20
     hits = hits[: max_k if isinstance(max_k, int) and max_k > 0 else len(hits)]
     return {"results": hits}
