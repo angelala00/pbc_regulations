@@ -7,7 +7,7 @@ from typing import Any, List, Optional, TypedDict
 
 from pydantic import BaseModel
 
-from .base import get_store, mcp
+from ..base import get_store, mcp
 
 
 class TextSearchFilter(TypedDict):

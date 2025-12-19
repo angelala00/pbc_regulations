@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 
 from pydantic import BaseModel
 
-from .base import _as_list, get_store, mcp
+from ..base import _as_list, get_store, mcp
 
 
 class ContentQuery(TypedDict, total=False):

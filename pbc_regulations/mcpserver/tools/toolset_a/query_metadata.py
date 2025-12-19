@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 
 from pydantic import BaseModel, Field
 
-from .base import MetadataAggregate, MetadataFilter, get_store, mcp
+from ..base import MetadataAggregate, MetadataFilter, get_store, mcp
 
 
 class OrderBy(TypedDict):

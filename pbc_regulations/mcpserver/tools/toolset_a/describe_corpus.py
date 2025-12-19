@@ -6,7 +6,7 @@ from typing import List, TypedDict
 
 from pydantic import BaseModel
 
-from .base import FieldDescription, get_store, mcp
+from ..base import FieldDescription, get_store, mcp
 
 
 class TextScope(TypedDict):
