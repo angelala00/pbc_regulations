@@ -95,7 +95,7 @@ async def _run_roundtrip(base_url: str) -> None:
 
         message = Message(
             role=Role.user,
-            parts=[Part(root=TextPart(text="帮我看一下发布机关为中国人发银行的法律有几个"))],
+            parts=[Part(root=TextPart(text="违规发行预付卡违反了什么法律"))],
             message_id=message_id,
         )
 

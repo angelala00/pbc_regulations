@@ -69,6 +69,11 @@ class LegalResearchStreamingAgent:
             event_payload.update(payload)
             return f"data: {json.dumps(event_payload, ensure_ascii=False)}\n\n"
 
+        yield build_event(
+            "message_start",
+            role="assistant"
+        )
+
         for _ in range(self._max_rounds):
             try:
                 stream = await self._client.chat.completions.create(
@@ -80,7 +85,7 @@ class LegalResearchStreamingAgent:
                     stream=True,
                 )
             except Exception as exc:
-                yield "调用大模型接口失败: {exc}"
+                yield f"调用大模型接口失败: {exc}"
                 return
 
             assistant_content_parts: List[str] = []
@@ -133,6 +138,7 @@ class LegalResearchStreamingAgent:
                             chunk=chunk,
                             tool_call_id=id,
                             name=name,
+                            arguments=arguments
                         )
                         result = await dispatch_tool_call(name, arguments)
                         print(f"resulttttt:{result}")
@@ -153,9 +159,20 @@ class LegalResearchStreamingAgent:
 
             if assistant_content:
                 messages.append({"role": "assistant", "content": assistant_content})
+                yield build_event(
+                    "message_end",
+                    role="assistant"
+                )
                 return
+        yield build_event(
+            "content_delta",
+            delta="{\"policies\": []}",
+        )
 
-        yield "未能完成检索，请尝试调整提问或改用更具体的关键词。"
+        yield build_event(
+            "message_end",
+            role="assistant"
+        )
 
 
 def stream_once(query: str, *, temperature: float = 0.2) -> AsyncIterator[str]:
