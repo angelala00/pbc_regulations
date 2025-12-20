@@ -53,19 +53,39 @@ def _find_sentence(text: str, patterns: List[str]) -> Optional[str]:
     return None
 
 
-def _find_sentence_in_articles(
+def _find_article_in_articles(
     articles: List[ArticleSection], patterns: List[str]
-) -> Optional[ProvisionContextEntry]:
+) -> Optional[ArticleSection]:
     for article in articles:
         sentence = _find_sentence(article.text, patterns)
         if sentence:
-            return {
-                "article_id": article.article_id,
-                "article_no": article.article_no,
-                "role": "definition",  # placeholder; caller will override
-                "text": sentence,
-            }
+            return article
     return None
+
+
+def _append_context(
+    context: List[ProvisionContextEntry],
+    entry: ProvisionContextEntry,
+    max_length: Optional[int],
+    seen: set[tuple[str, str]],
+) -> None:
+    key = (entry.get("article_id") or "", entry.get("role") or "")
+    if key in seen:
+        return
+    if not max_length or max_length <= 0:
+        context.append(entry)
+        seen.add(key)
+        return
+    used = sum(len(item.get("text") or "") for item in context)
+    remaining = max_length - used
+    if remaining <= 0:
+        return
+    text = entry.get("text") or ""
+    if len(text) > remaining:
+        entry = dict(entry)
+        entry["text"] = text[:remaining]
+    context.append(entry)
+    seen.add(key)
 
 
 @mcp.tool(structured_output=False)
@@ -108,26 +128,33 @@ async def get_provision_context(
         return {"law_id": doc.doc_id, "law_title": doc.title, "context": []}
 
     context: List[ProvisionContextEntry] = []
+    seen: set[tuple[str, str]] = set()
     target_article, ordered = find_article(articles, data.get("article_id"))
     if target_article:
         target_text = _truncate(target_article.text, data.get("max_length"))
-        context.append(
+        _append_context(
+            context,
             {
                 "article_id": target_article.article_id,
                 "article_no": target_article.article_no,
                 "role": "target",
                 "text": target_text,
-            }
+            },
+            data.get("max_length"),
+            seen,
         )
     else:
         target_text = _truncate(full_text, data.get("max_length")) if full_text else ""
-        context.append(
+        _append_context(
+            context,
             {
                 "article_id": data.get("article_id") or f"{doc.doc_id}-article-1",
                 "article_no": "全文",
                 "role": "target",
                 "text": target_text,
-            }
+            },
+            data.get("max_length"),
+            seen,
         )
 
     # 邻近条款
@@ -137,64 +164,103 @@ async def get_provision_context(
             if article.article_id == target_article.article_id:
                 continue
             if abs(article.index - target_article.index) <= neighbor_range:
-                context.append(
+                _append_context(
+                    context,
                     {
                         "article_id": article.article_id,
                         "article_no": article.article_no,
                         "role": "neighbor",
                         "text": _truncate(article.text, data.get("max_length")),
-                    }
+                    },
+                    data.get("max_length"),
+                    seen,
                 )
 
     if data.get("include_definitions"):
-        entry = _find_sentence_in_articles(articles or [], ["本法所称", "本办法所称", "本规定所称"])
-        if entry:
-            entry["role"] = "definition"
-            context.append(entry)
+        article = _find_article_in_articles(articles or [], ["本法所称", "本办法所称", "本规定所称"])
+        if article:
+            _append_context(
+                context,
+                {
+                    "article_id": article.article_id,
+                    "article_no": article.article_no,
+                    "role": "definition",
+                    "text": _truncate(article.text, data.get("max_length")),
+                },
+                data.get("max_length"),
+                seen,
+            )
         elif full_text:
             sentence = _find_sentence(full_text, ["本法所称", "本办法所称", "本规定所称"])
             if sentence:
-                context.append(
+                _append_context(
+                    context,
                     {
                         "article_id": data.get("article_id") or f"{doc.doc_id}-article-1",
                         "article_no": "定义相关",
                         "role": "definition",
                         "text": sentence,
-                    }
+                    },
+                    data.get("max_length"),
+                    seen,
                 )
 
     if data.get("include_exceptions"):
-        entry = _find_sentence_in_articles(articles or [], ["除外", "但", "除", "不适用"])
-        if entry:
-            entry["role"] = "exception"
-            context.append(entry)
+        article = _find_article_in_articles(articles or [], ["除外", "但", "除", "不适用"])
+        if article:
+            _append_context(
+                context,
+                {
+                    "article_id": article.article_id,
+                    "article_no": article.article_no,
+                    "role": "exception",
+                    "text": _truncate(article.text, data.get("max_length")),
+                },
+                data.get("max_length"),
+                seen,
+            )
         elif full_text:
             sentence = _find_sentence(full_text, ["除外", "但", "除", "不适用"])
             if sentence:
-                context.append(
+                _append_context(
+                    context,
                     {
                         "article_id": data.get("article_id") or f"{doc.doc_id}-article-1",
                         "article_no": "例外相关",
                         "role": "exception",
                         "text": sentence,
-                    }
+                    },
+                    data.get("max_length"),
+                    seen,
                 )
 
     if data.get("include_references"):
-        entry = _find_sentence_in_articles(articles or [], ["依照第", "根据第", "参照第"])
-        if entry:
-            entry["role"] = "reference"
-            context.append(entry)
+        article = _find_article_in_articles(articles or [], ["依照第", "根据第", "参照第"])
+        if article:
+            _append_context(
+                context,
+                {
+                    "article_id": article.article_id,
+                    "article_no": article.article_no,
+                    "role": "reference",
+                    "text": _truncate(article.text, data.get("max_length")),
+                },
+                data.get("max_length"),
+                seen,
+            )
         elif full_text:
             sentence = _find_sentence(full_text, ["依照第", "根据第", "参照第"])
             if sentence:
-                context.append(
+                _append_context(
+                    context,
                     {
                         "article_id": data.get("article_id") or f"{doc.doc_id}-article-1",
                         "article_no": "引用相关",
                         "role": "reference",
                         "text": sentence,
-                    }
+                    },
+                    data.get("max_length"),
+                    seen,
                 )
 
     return {"law_id": doc.doc_id, "law_title": doc.title, "context": context}
