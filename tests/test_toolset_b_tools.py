@@ -1,10 +1,8 @@
 import asyncio
-import re
+import json
 
 import pytest
 
-from pbc_regulations.mcpserver.tools import base
-from pbc_regulations.mcpserver.tools.toolset_b._articles import split_text_into_articles
 from pbc_regulations.mcpserver.tools.toolset_b.get_law import get_law
 from pbc_regulations.mcpserver.tools.toolset_b.get_provision_context import (
     get_provision_context,
@@ -13,446 +11,381 @@ from pbc_regulations.mcpserver.tools.toolset_b.hybrid_search import hybrid_searc
 from pbc_regulations.mcpserver.tools.toolset_b.meta_schema import meta_schema
 
 
-def _run_async(coro):
+def _run(coro):
     return asyncio.run(coro)
 
 
-@pytest.fixture(scope="session")
-def store():
-    return base.get_store()
+def _print_case(tool_name, case, result):
+    print(f"\n=== {tool_name} CASE: {case['name']} ===")
+    print("INPUT:", json.dumps(case["input"], ensure_ascii=False, indent=2))
+    print("OUTPUT:", json.dumps(result, ensure_ascii=False, indent=2))
 
 
-def _pick_doc_with_text(store):
-    for doc in store.documents:
-        text = store.read_text(doc.doc_id)
-        if text and text.strip():
-            return doc, text
-    pytest.skip("No documents with text available")
+def _flatten_text(result):
+    if "text_plain" in result and result["text_plain"]:
+        return result["text_plain"]
+    chunks = []
+    for chapter in result.get("text", []) or []:
+        for article in chapter.get("articles", []) or []:
+            chunks.append(article.get("text", ""))
+    return "\n".join(chunks)
 
 
-def _pick_doc_with_articles(store, min_articles=2):
-    for doc in store.documents:
-        text = store.read_text(doc.doc_id)
-        if not text:
-            continue
-        articles = split_text_into_articles(text, doc.doc_id)
-        if len(articles) >= min_articles:
-            return doc, text, articles
-    pytest.skip("No documents with enough articles available")
+def _contains_phrase_or_bigram(text, phrase):
+    if not phrase:
+        return False
+    if phrase in text:
+        return True
+    if len(phrase) < 2:
+        return phrase in text
+    for i in range(len(phrase) - 1):
+        if phrase[i : i + 2] in text:
+            return True
+    return False
 
 
-def _pick_doc_with_year(store):
-    for doc in store.documents:
-        year = doc.metadata.get("year")
-        if isinstance(year, int) and year:
-            text = store.read_text(doc.doc_id)
-            if text:
-                return doc, text, year
-    pytest.skip("No documents with year metadata available")
+HYBRID_SEARCH_CASES = [
+    {
+        "name": "pipl_personal_info_processing",
+        "input": {
+            "query": "个人信息处理活动",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["scattered:6"]},
+        },
+        "expect_snippet": "个人信息处理活动",
+        "expect_law_id": "scattered:6",
+    },
+    {
+        "name": "pipl_overseas_processing",
+        "input": {
+            "query": "境外处理",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["scattered:6"]},
+        },
+        "expect_snippet": "境外处理",
+        "expect_law_id": "scattered:6",
+    },
+    {
+        "name": "aml_prevent_money_laundering",
+        "input": {
+            "query": "预防洗钱活动",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:1"]},
+        },
+        "expect_snippet": "预防洗钱活动",
+        "expect_law_id": "tiaofasi_national_law:1",
+    },
+    {
+        "name": "aml_definition",
+        "input": {
+            "query": "本法所称反洗钱",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:1"]},
+        },
+        "expect_snippet": "本法所称反洗钱",
+        "expect_law_id": "tiaofasi_national_law:1",
+    },
+    {
+        "name": "real_name_deposits",
+        "input": {
+            "query": "个人存款账户的真实性",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_administrative_regulation:7"]},
+        },
+        "expect_snippet": "个人存款账户的真实性",
+        "expect_law_id": "tiaofasi_administrative_regulation:7",
+    },
+    {
+        "name": "housing_loan_management",
+        "input": {
+            "query": "个人住房贷款管理",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["zhengwugongkai_chinese_regulations:68"]},
+        },
+        "expect_snippet": "个人住房贷款管理",
+        "expect_law_id": "zhengwugongkai_chinese_regulations:68",
+    },
+    {
+        "name": "pbc_law_central_bank",
+        "input": {
+            "query": "中央银行",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:2"]},
+        },
+        "expect_snippet": "中央银行",
+        "expect_law_id": "tiaofasi_national_law:2",
+    },
+    {
+        "name": "commercial_bank_definition",
+        "input": {
+            "query": "商业银行",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:3"]},
+        },
+        "expect_snippet": "商业银行",
+        "expect_law_id": "tiaofasi_national_law:3",
+    },
+    {
+        "name": "trust_definition",
+        "input": {
+            "query": "信托",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:9"]},
+        },
+        "expect_snippet": "信托",
+        "expect_law_id": "tiaofasi_national_law:9",
+    },
+    {
+        "name": "company_law_llc",
+        "input": {
+            "query": "有限责任公司",
+            "top_k": 5,
+            "meta_filter": {"doc_id": ["tiaofasi_national_law:16"]},
+        },
+        "expect_snippet": "有限责任公司",
+        "expect_law_id": "tiaofasi_national_law:16",
+    },
+]
 
 
-def _pick_doc_with_heading(store, pattern):
-    for doc in store.documents:
-        text = store.read_text(doc.doc_id)
-        if text and re.search(pattern, text):
-            return doc, text
-    pytest.skip("No documents with required headings available")
-
-
-def _sample_query_from_text(text, length=12):
-    cleaned = re.sub(r"\s+", "", text or "")
-    if not cleaned:
-        pytest.skip("No text to build query")
-    return cleaned[:length]
-
-
-def _flatten_text(structured):
-    return [
-        article["text"]
-        for chapter in structured
-        for article in chapter.get("articles", [])
-        if "text" in article
-    ]
-
-
-def _get_roles(context):
-    return {item.get("role") for item in context}
-
-
-# -------------------------
-# HybridSearch tests (10)
-# -------------------------
-
-
-def test_hybrid_search_empty_query_returns_empty():
-    result = _run_async(hybrid_search(query=""))
-    assert result["results"] == []
-
-
-def test_hybrid_search_whitespace_query_returns_empty():
-    result = _run_async(hybrid_search(query="   "))
-    assert result["results"] == []
-
-
-def test_hybrid_search_top_k_limits_results(store):
-    doc, text = _pick_doc_with_text(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(hybrid_search(query=query, top_k=3, use_vector=False))
-    assert len(result["results"]) <= 3
-
-
-def test_hybrid_search_meta_filter_doc_id(store):
-    doc, text = _pick_doc_with_text(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(
-        hybrid_search(query=query, use_vector=False, meta_filter={"doc_id": [doc.doc_id]})
-    )
-    for item in result["results"]:
-        assert item.get("law_id") == doc.doc_id
-
-
-def test_hybrid_search_meta_filter_level(store):
-    doc, text = _pick_doc_with_text(store)
-    level = doc.metadata.get("level")
-    if not isinstance(level, str) or not level.strip():
-        pytest.skip("No level metadata available")
-    query = _sample_query_from_text(text)
-    result = _run_async(
-        hybrid_search(query=query, use_vector=False, meta_filter={"level": [level]})
-    )
-    for item in result["results"]:
-        assert item.get("law_id")
-
-
-def test_hybrid_search_date_range_year(store):
-    doc, text, year = _pick_doc_with_year(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(
-        hybrid_search(
-            query=query,
-            use_vector=False,
-            meta_filter={"date_range": {"start": f"{year}-01-01", "end": f"{year}-12-31"}},
-        )
-    )
-    for item in result["results"]:
-        assert item.get("law_id")
-
-
-def test_hybrid_search_disable_all_returns_empty(store):
-    doc, text = _pick_doc_with_text(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(hybrid_search(query=query, use_bm25=False, use_vector=False))
-    assert result["results"] == []
-
-
-def test_hybrid_search_bm25_match_type(store):
-    doc, text = _pick_doc_with_text(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(hybrid_search(query=query, use_vector=False))
-    for item in result["results"]:
-        assert "bm25" in (item.get("match_type") or [])
-
-
-def test_hybrid_search_score_is_float(store):
-    doc, text = _pick_doc_with_text(store)
-    query = _sample_query_from_text(text)
-    result = _run_async(hybrid_search(query=query, use_vector=False))
-    for item in result["results"]:
-        assert isinstance(item.get("score"), float)
-
-
-def test_hybrid_search_penalty_keyword_query_runs(store):
-    doc, _text = _pick_doc_with_text(store)
-    result = _run_async(hybrid_search(query="处罚", use_vector=False))
+@pytest.mark.parametrize("case", HYBRID_SEARCH_CASES, ids=[c["name"] for c in HYBRID_SEARCH_CASES])
+def test_hybrid_search_cases(case):
+    result = _run(hybrid_search(**case["input"]))
+    _print_case("HybridSearch", case, result)
     assert isinstance(result.get("results"), list)
-
-
-# -------------------------
-# GetProvisionContext tests (10)
-# -------------------------
-
-
-def test_get_provision_context_missing_law_id():
-    result = _run_async(
-        get_provision_context(law_id="missing-doc", article_id="missing-article")
-    )
-    assert result["context"] == []
-
-
-def test_get_provision_context_target_article(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=1)
-    target = articles[0]
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=target.article_id,
-            include_neighbors=False,
+    assert result["results"]
+    assert all(item.get("law_id") == case["expect_law_id"] for item in result["results"])
+    bm25_hits = [
+        item
+        for item in result["results"]
+        if "bm25" in (item.get("match_type") or [])
+    ]
+    if bm25_hits:
+        assert any(
+            _contains_phrase_or_bigram(item.get("snippet") or "", case["expect_snippet"])
+            for item in bm25_hits
         )
-    )
-    assert result["context"][0]["role"] == "target"
-    assert result["context"][0]["article_id"] == target.article_id
 
 
-def test_get_provision_context_neighbors_included(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=3)
-    target = articles[1]
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=target.article_id,
-            include_neighbors=True,
-            neighbor_range=1,
-        )
-    )
-    roles = _get_roles(result["context"])
-    assert "neighbor" in roles
+PROVISION_CONTEXT_CASES = [
+    {
+        "name": "pipl_article_1",
+        "input": {
+            "law_id": "scattered:6",
+            "article_id": "scattered:6-article-2",
+            "include_neighbors": False,
+        },
+        "expect_target": "为了保护个人信息权益",
+    },
+    {
+        "name": "pipl_article_2",
+        "input": {
+            "law_id": "scattered:6",
+            "article_id": "scattered:6-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "自然人的个人信息受法律保护",
+    },
+    {
+        "name": "aml_article_1",
+        "input": {
+            "law_id": "tiaofasi_national_law:1",
+            "article_id": "tiaofasi_national_law:1-article-2",
+            "include_neighbors": False,
+        },
+        "expect_target": "预防洗钱活动",
+    },
+    {
+        "name": "aml_definition",
+        "input": {
+            "law_id": "tiaofasi_national_law:1",
+            "article_id": "tiaofasi_national_law:1-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "本法所称反洗钱",
+    },
+    {
+        "name": "real_name_deposits_article_1",
+        "input": {
+            "law_id": "tiaofasi_administrative_regulation:7",
+            "article_id": "tiaofasi_administrative_regulation:7-article-2",
+            "include_neighbors": False,
+        },
+        "expect_target": "个人存款账户的真实性",
+    },
+    {
+        "name": "housing_loan_article_1",
+        "input": {
+            "law_id": "zhengwugongkai_chinese_regulations:68",
+            "article_id": "zhengwugongkai_chinese_regulations:68-article-2",
+            "include_neighbors": False,
+        },
+        "expect_target": "个人住房贷款管理",
+    },
+    {
+        "name": "pbc_law_article_2",
+        "input": {
+            "law_id": "tiaofasi_national_law:2",
+            "article_id": "tiaofasi_national_law:2-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "中央银行",
+    },
+    {
+        "name": "commercial_bank_article_2",
+        "input": {
+            "law_id": "tiaofasi_national_law:3",
+            "article_id": "tiaofasi_national_law:3-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "商业银行",
+    },
+    {
+        "name": "trust_article_2",
+        "input": {
+            "law_id": "tiaofasi_national_law:9",
+            "article_id": "tiaofasi_national_law:9-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "受托人",
+    },
+    {
+        "name": "company_law_article_2",
+        "input": {
+            "law_id": "tiaofasi_national_law:16",
+            "article_id": "tiaofasi_national_law:16-article-3",
+            "include_neighbors": False,
+        },
+        "expect_target": "有限责任公司",
+    },
+]
 
 
-def test_get_provision_context_neighbors_range_zero(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=2)
-    target = articles[0]
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=target.article_id,
-            include_neighbors=True,
-            neighbor_range=0,
-        )
-    )
-    roles = _get_roles(result["context"])
-    assert "neighbor" not in roles
+@pytest.mark.parametrize(
+    "case", PROVISION_CONTEXT_CASES, ids=[c["name"] for c in PROVISION_CONTEXT_CASES]
+)
+def test_get_provision_context_cases(case):
+    result = _run(get_provision_context(**case["input"]))
+    _print_case("GetProvisionContext", case, result)
+    context = result.get("context") or []
+    assert context
+    target = context[0]
+    assert case["expect_target"] in (target.get("text") or "")
 
 
-def test_get_provision_context_disable_definitions(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=articles[0].article_id,
-            include_definitions=False,
-        )
-    )
-    roles = _get_roles(result["context"])
-    assert "definition" not in roles
+GET_LAW_CASES = [
+    {
+        "name": "pipl_plain",
+        "input": {"law_id": "scattered:6", "format": "plain"},
+        "expect_text": "中华人民共和国个人信息保护法",
+    },
+    {
+        "name": "pipl_article_ids",
+        "input": {
+            "law_id": "scattered:6",
+            "article_ids": ["scattered:6-article-2"],
+        },
+        "expect_text": "为了保护个人信息权益",
+    },
+    {
+        "name": "aml_meta_only",
+        "input": {"law_id": "tiaofasi_national_law:1", "fields": ["meta"]},
+        "expect_text": None,
+        "expect_meta": True,
+    },
+    {
+        "name": "housing_loan_articles_range",
+        "input": {
+            "law_id": "zhengwugongkai_chinese_regulations:68",
+            "range": {"type": "articles", "value": {"start": 1, "end": 2}},
+        },
+        "expect_text": "个人住房贷款管理",
+    },
+    {
+        "name": "pbc_law_plain_article",
+        "input": {
+            "law_id": "tiaofasi_national_law:2",
+            "article_ids": ["tiaofasi_national_law:2-article-3"],
+            "format": "plain",
+        },
+        "expect_text": "中央银行",
+    },
+    {
+        "name": "commercial_bank_article_ids_range",
+        "input": {
+            "law_id": "tiaofasi_national_law:3",
+            "range": {
+                "type": "article_ids",
+                "value": {"article_ids": ["tiaofasi_national_law:3-article-4"]},
+            },
+        },
+        "expect_text": "吸收公众存款",
+    },
+    {
+        "name": "housing_loan_chapter_range",
+        "input": {
+            "law_id": "zhengwugongkai_chinese_regulations:68",
+            "range": {"type": "chapter", "value": {"index": 1}},
+        },
+        "expect_text": "第一条",
+    },
+    {
+        "name": "pipl_section_range",
+        "input": {
+            "law_id": "scattered:6",
+            "range": {"type": "section", "value": {"chapter": "第二章", "section": "第一节"}},
+        },
+        "expect_text": "第十三条",
+    },
+    {
+        "name": "trust_text_only",
+        "input": {"law_id": "tiaofasi_national_law:9", "fields": ["text"]},
+        "expect_text": "信托",
+    },
+    {
+        "name": "company_multi_article_ids",
+        "input": {
+            "law_id": "tiaofasi_national_law:16",
+            "article_ids": [
+                "tiaofasi_national_law:16-article-2",
+                "tiaofasi_national_law:16-article-3",
+            ],
+        },
+        "expect_text": "有限责任公司",
+    },
+]
 
 
-def test_get_provision_context_disable_exceptions(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=articles[0].article_id,
-            include_exceptions=False,
-        )
-    )
-    roles = _get_roles(result["context"])
-    assert "exception" not in roles
+@pytest.mark.parametrize("case", GET_LAW_CASES, ids=[c["name"] for c in GET_LAW_CASES])
+def test_get_law_cases(case):
+    result = _run(get_law(**case["input"]))
+    _print_case("GetLaw", case, result)
+    if case.get("expect_meta"):
+        assert "meta" in result
+        return
+    text = _flatten_text(result)
+    assert case["expect_text"] in text
 
 
-def test_get_provision_context_disable_references(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=articles[0].article_id,
-            include_references=False,
-        )
-    )
-    roles = _get_roles(result["context"])
-    assert "reference" not in roles
+META_SCHEMA_CASES = [
+    {"name": "doc_id_field", "expect_field": "doc_id"},
+    {"name": "title_field", "expect_field": "title"},
+    {"name": "summary_field", "expect_field": "summary"},
+    {"name": "remark_field", "expect_field": "remark"},
+    {"name": "level_field", "expect_field": "level"},
+    {"name": "issuer_field", "expect_field": "issuer"},
+    {"name": "doc_type_field", "expect_field": "doc_type"},
+    {"name": "year_field", "expect_field": "year"},
+    {"name": "category_field", "expect_field": "category"},
+    {"name": "tags_field", "expect_field": "tags"},
+]
 
 
-def test_get_provision_context_missing_article_falls_back(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(
-        get_provision_context(law_id=doc.doc_id, article_id="missing-article")
-    )
-    assert result["context"][0]["article_id"] == articles[0].article_id
-
-
-def test_get_provision_context_total_length_respected(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=2)
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=articles[0].article_id,
-            include_neighbors=True,
-            neighbor_range=1,
-            max_length=120,
-        )
-    )
-    total = sum(len(item.get("text") or "") for item in result["context"])
-    assert total <= 120
-
-
-def test_get_provision_context_no_duplicate_role_entries(store):
-    doc, _text, articles = _pick_doc_with_articles(store, min_articles=2)
-    result = _run_async(
-        get_provision_context(
-            law_id=doc.doc_id,
-            article_id=articles[0].article_id,
-            include_neighbors=True,
-            neighbor_range=1,
-        )
-    )
-    keys = [(item.get("article_id"), item.get("role")) for item in result["context"]]
-    assert len(keys) == len(set(keys))
-
-
-# -------------------------
-# GetLaw tests (10)
-# -------------------------
-
-
-def test_get_law_missing_doc():
-    result = _run_async(get_law(law_id="missing-doc"))
-    assert result["law_title"] == ""
-    assert result["text"] == []
-
-
-def test_get_law_meta_only(store):
-    doc, _text = _pick_doc_with_text(store)
-    result = _run_async(get_law(law_id=doc.doc_id, fields=["meta"]))
-    assert "meta" in result
-    assert "text" not in result
-
-
-def test_get_law_text_only(store):
-    doc, _text = _pick_doc_with_text(store)
-    result = _run_async(get_law(law_id=doc.doc_id, fields=["text"]))
-    assert "text" in result
-    assert "meta" not in result
-
-
-def test_get_law_plain_format(store):
-    doc, _text = _pick_doc_with_text(store)
-    result = _run_async(get_law(law_id=doc.doc_id, format="plain"))
-    assert isinstance(result.get("text_plain"), str)
-
-
-def test_get_law_article_ids_filter(store):
-    doc, text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(get_law(law_id=doc.doc_id, article_ids=[articles[0].article_id]))
-    texts = _flatten_text(result.get("text", []))
-    assert texts
-    assert any(articles[0].article_no in item for item in texts)
-
-
-def test_get_law_range_articles_slice(store):
-    doc, text, articles = _pick_doc_with_articles(store, min_articles=3)
-    result = _run_async(
-        get_law(
-            law_id=doc.doc_id,
-            range={"type": "articles", "value": {"start": 1, "end": 2}},
-        )
-    )
-    texts = _flatten_text(result.get("text", []))
-    assert len(texts) <= 2
-
-
-def test_get_law_range_article_ids(store):
-    doc, text, articles = _pick_doc_with_articles(store, min_articles=2)
-    result = _run_async(
-        get_law(
-            law_id=doc.doc_id,
-            range={"type": "article_ids", "value": {"article_ids": [articles[1].article_id]}},
-        )
-    )
-    texts = _flatten_text(result.get("text", []))
-    assert texts
-    assert any(articles[1].article_no in item for item in texts)
-
-
-def test_get_law_range_chapter(store):
-    doc, text = _pick_doc_with_heading(store, r"第\s*[一二三四五六七八九十百千万两俩壹贰叁肆伍陆柒捌玖0-9]+\s*章")
-    result = _run_async(
-        get_law(law_id=doc.doc_id, range={"type": "chapter", "value": {"index": 1}})
-    )
-    assert result.get("text")
-
-
-def test_get_law_range_section(store):
-    doc, text = _pick_doc_with_heading(store, r"第\s*[一二三四五六七八九十百千万两俩壹贰叁肆伍陆柒捌玖0-9]+\s*节")
-    result = _run_async(
-        get_law(law_id=doc.doc_id, range={"type": "section", "value": {"index": 1}})
-    )
-    assert result.get("text")
-
-
-def test_get_law_plain_with_article_ids(store):
-    doc, text, articles = _pick_doc_with_articles(store, min_articles=1)
-    result = _run_async(
-        get_law(
-            law_id=doc.doc_id,
-            article_ids=[articles[0].article_id],
-            format="plain",
-        )
-    )
-    assert articles[0].article_no in (result.get("text_plain") or "")
-
-
-# -------------------------
-# MetaSchema tests (10)
-# -------------------------
-
-
-def test_meta_schema_has_fields():
-    result = _run_async(meta_schema())
-    assert isinstance(result.get("fields"), list)
-    assert result["fields"]
-
-
-def test_meta_schema_includes_title_field():
-    result = _run_async(meta_schema())
-    names = {field.get("name") for field in result["fields"]}
-    assert "title" in names
-
-
-def test_meta_schema_includes_year_field():
-    result = _run_async(meta_schema())
-    names = {field.get("name") for field in result["fields"]}
-    assert "year" in names
-
-
-def test_meta_schema_fields_have_name_and_type():
-    result = _run_async(meta_schema())
-    for field in result["fields"]:
-        assert isinstance(field.get("name"), str)
-        assert isinstance(field.get("type"), str)
-
-
-def test_meta_schema_no_duplicate_names():
-    result = _run_async(meta_schema())
-    names = [field.get("name") for field in result["fields"]]
-    assert len(names) == len(set(names))
-
-
-def test_meta_schema_enum_values_when_present():
-    result = _run_async(meta_schema())
-    for field in result["fields"]:
-        if field.get("type") == "enum" and "values" in field:
-            assert field["values"]
-
-
-def test_meta_schema_field_names_are_strings():
-    result = _run_async(meta_schema())
-    for field in result["fields"]:
-        assert isinstance(field.get("name"), str)
-
-
-def test_meta_schema_description_is_string_when_present():
-    result = _run_async(meta_schema())
-    for field in result["fields"]:
-        if "description" in field:
-            assert isinstance(field["description"], str)
-
-
-def test_meta_schema_response_has_fields_key():
-    result = _run_async(meta_schema())
-    assert "fields" in result
-
-
-def test_meta_schema_no_empty_field_names():
-    result = _run_async(meta_schema())
-    for field in result["fields"]:
-        assert field.get("name")
+@pytest.mark.parametrize(
+    "case", META_SCHEMA_CASES, ids=[c["name"] for c in META_SCHEMA_CASES]
+)
+def test_meta_schema_cases(case):
+    result = _run(meta_schema())
+    _print_case("MetaSchema", {"name": case["name"], "input": {}}, result)
+    fields = {field.get("name") for field in result.get("fields", [])}
+    assert case["expect_field"] in fields

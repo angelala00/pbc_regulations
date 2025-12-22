@@ -79,6 +79,18 @@ def _split_articles_with_offsets(text: str, doc_id: str) -> List[ArticleSlice]:
             )
         ]
     slices: List[ArticleSlice] = []
+    preamble_end = matches[0].start()
+    preamble = text[:preamble_end].strip()
+    if preamble:
+        slices.append(
+            ArticleSlice(
+                article_id=f"{doc_id}-article-1",
+                article_no="全文",
+                text=preamble,
+                index=0,
+                start=0,
+            )
+        )
     for idx, match in enumerate(matches):
         start = match.start()
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
@@ -87,10 +99,10 @@ def _split_articles_with_offsets(text: str, doc_id: str) -> List[ArticleSlice]:
         article_text = f"{article_no}\n{body}".strip() if body else article_no
         slices.append(
             ArticleSlice(
-                article_id=f"{doc_id}-article-{idx + 1}",
+                article_id=f"{doc_id}-article-{len(slices) + 1}",
                 article_no=article_no,
                 text=article_text,
-                index=idx,
+                index=len(slices),
                 start=start,
             )
         )
@@ -112,6 +124,8 @@ def _collect_headings(text: str, heading_re: re.Pattern[str], default_title: str
 def _build_structured_text(text: str, doc_id: str) -> tuple[List[ChapterText], List[ArticleSlice]]:
     articles = _split_articles_with_offsets(text, doc_id)
     chapters = _collect_headings(text, _CHAPTER_RE, "全文")
+    if chapters and chapters[0][1] > 0:
+        chapters = [("全文", 0, chapters[0][1])] + chapters
     has_sections = bool(_SECTION_RE.search(text))
     sections = _collect_headings(text, _SECTION_RE, "")
     structured: List[ChapterText] = []
@@ -213,10 +227,28 @@ def _apply_range_to_structure(
             or ""
         )
         chapter_index = range_value.get("index")
+        if chapter_index:
+            prefixes: List[str] = []
+            for entry in structured:
+                label = entry.get("chapter", "")
+                match = _CHAPTER_RE.search(label or "")
+                if not match:
+                    continue
+                prefix = match.group(1)
+                if prefix not in prefixes:
+                    prefixes.append(prefix)
+            try:
+                target = prefixes[int(chapter_index) - 1]
+            except Exception:
+                target = ""
+            if target:
+                return [
+                    entry
+                    for entry in structured
+                    if target in (entry.get("chapter", "") or "")
+                ]
         filtered_structured: List[ChapterText] = []
-        for idx, chapter in enumerate(structured, start=1):
-            if chapter_index and idx != int(chapter_index):
-                continue
+        for chapter in structured:
             if chapter_key and chapter_key not in chapter.get("chapter", ""):
                 continue
             filtered_structured.append(chapter)
@@ -288,8 +320,9 @@ async def get_law(
 
     fmt: TextFormat = data.get("format") or "structured"
     structured, articles = _build_structured_text(full_text, doc.doc_id)
+    is_filtered = bool(data.get("article_ids")) or bool(data.get("range"))
     selected = _filter_articles(articles, data.get("article_ids"), data.get("range"))
-    selected_ids = {art.article_id for art in selected}
+    selected_ids = {art.article_id for art in selected} if is_filtered else set()
     structured = _apply_range_to_structure(structured, data.get("range"))
 
     if selected_ids:

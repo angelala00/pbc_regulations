@@ -137,6 +137,22 @@ def _build_filters(meta_filter: Dict[str, Any]) -> List[MetadataFilter]:
     return filters
 
 
+def _make_snippet(text: str, terms: List[str], max_len: int = 180) -> str:
+    cleaned = (text or "").replace("\n", " ").strip()
+    if not cleaned:
+        return ""
+    if not terms:
+        return cleaned[:max_len]
+    ordered = sorted({t for t in terms if t}, key=len, reverse=True)
+    for term in ordered:
+        idx = cleaned.find(term)
+        if idx >= 0:
+            start = max(0, idx - max_len // 3)
+            end = min(len(cleaned), start + max_len)
+            return cleaned[start:end].strip()
+    return cleaned[:max_len]
+
+
 @mcp.tool(structured_output=False)
 async def hybrid_search(
     query: str,
@@ -170,6 +186,8 @@ async def hybrid_search(
     rows = _apply_date_range(rows, data.get("meta_filter", {}).get("date_range"))
 
     terms = [t for t in re.split(r"\s+", text_query) if t]
+    if not terms and text_query:
+        terms = [text_query]
     if not terms:
         return {"results": []}
 
@@ -200,7 +218,7 @@ async def hybrid_search(
         for record, score in bm25_hits:
             if allowed_laws and record.law_id not in allowed_laws:
                 continue
-            snippet = record.text[:180].replace("\n", " ").strip()
+            snippet = _make_snippet(record.text, terms)
             _add_hit(
                 record.article_id,
                 score * 2.0,  # keyword weight
@@ -220,7 +238,7 @@ async def hybrid_search(
         for record, score in vec_hits:
             if allowed_laws and record.law_id not in allowed_laws:
                 continue
-            snippet = record.text[:180].replace("\n", " ").strip()
+            snippet = _make_snippet(record.text, terms)
             _add_hit(
                 record.article_id,
                 score * 1.0,  # vector weight
@@ -241,7 +259,7 @@ async def hybrid_search(
         for record, score in rule_hits:
             if allowed_laws and record.law_id not in allowed_laws:
                 continue
-            snippet = record.text[:180].replace("\n", " ").strip()
+            snippet = _make_snippet(record.text, terms)
             _add_hit(
                 record.article_id,
                 score * 1.0,

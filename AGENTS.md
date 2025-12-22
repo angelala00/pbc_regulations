@@ -13,6 +13,9 @@
 - `python -m pbc_regulations.extractor.extract_policy_texts` extracts policy text from PDFs.
 - `python -m pbc_regulations.structure` structures extracted data into JSON outputs.
 - `pytest` runs the full test suite in `tests/`.
+## Environment
+- Use the virtual environment at the repository root: `.venv`.
+- For any code changes, testing, or debugging, run tools via `.venv/bin/python` and `.venv/bin/pytest` (or activate `.venv` first) to avoid `pyenv` shims.
 
 ## Coding Style & Naming Conventions
 - Follow PEP 8: 4-space indentation, snake_case for functions/variables, and PascalCase for classes.
