@@ -17,10 +17,73 @@ from ..base import CorpusDocument, CorpusStore
 from ._articles import ArticleSection, load_articles
 
 _TOKEN_RE = re.compile(r"[A-Za-z0-9]+|[\u4e00-\u9fff]")
+_EMBEDDING_CACHE_PRELOAD: Optional[Dict[str, Dict[str, Any]]] = None
+_EMBEDDING_CACHE_PRELOAD_PATH: Optional[Path] = None
 
 
 def _tokenize(text: str) -> List[str]:
     return _TOKEN_RE.findall(text.lower())
+
+
+def _parse_embedding_cache(raw_text: str) -> Dict[str, Dict[str, Any]]:
+    raw: Dict[str, Dict[str, Any]] = {}
+    try:
+        data = json.loads(raw_text)
+    except Exception:
+        data = None
+
+    if isinstance(data, dict) and isinstance(data.get("items"), dict):
+        raw = data["items"]
+    elif isinstance(data, dict):
+        raw = data
+    else:
+        lines = [line for line in raw_text.splitlines() if line.strip()]
+        for line in lines:
+            try:
+                item = json.loads(line)
+            except Exception:
+                continue
+            if not isinstance(item, dict):
+                continue
+            article_id = item.get("article_id")
+            if not article_id:
+                continue
+            raw[str(article_id)] = {
+                "hash": item.get("hash"),
+                "vector": item.get("vector"),
+            }
+
+    cleaned: Dict[str, Dict[str, Any]] = {}
+    for article_id, payload in raw.items():
+        if not isinstance(payload, dict):
+            continue
+        vector = payload.get("vector")
+        if not isinstance(vector, list) or len(vector) < 2:
+            continue
+        if all(isinstance(val, (int, float)) and val == 0 for val in vector):
+            continue
+        cleaned[article_id] = payload
+    return cleaned
+
+
+def preload_embedding_cache(cache_path: Path) -> int:
+    """Preload the embedding cache into memory to avoid disk reads later."""
+
+    global _EMBEDDING_CACHE_PRELOAD, _EMBEDDING_CACHE_PRELOAD_PATH
+    if not cache_path or not cache_path.exists():
+        return 0
+    try:
+        raw_text = cache_path.read_text("utf-8")
+    except Exception:
+        return 0
+    cleaned = _parse_embedding_cache(raw_text)
+    if cleaned:
+        _EMBEDDING_CACHE_PRELOAD = cleaned
+        try:
+            _EMBEDDING_CACHE_PRELOAD_PATH = cache_path.resolve()
+        except Exception:
+            _EMBEDDING_CACHE_PRELOAD_PATH = cache_path
+    return len(cleaned)
 
 
 @dataclass
@@ -112,50 +175,20 @@ class EmbeddingIndex:
     def _load_cache(self) -> None:
         if not self.cache_path or not self.cache_path.exists():
             return
+        if _EMBEDDING_CACHE_PRELOAD is not None and _EMBEDDING_CACHE_PRELOAD_PATH is not None:
+            try:
+                if self.cache_path.resolve() == _EMBEDDING_CACHE_PRELOAD_PATH:
+                    self._cache = dict(_EMBEDDING_CACHE_PRELOAD)
+                    return
+            except Exception:
+                pass
         start = perf_counter()
         print("[EmbeddingIndex] Loading cache...")
         try:
             raw_text = self.cache_path.read_text("utf-8")
         except Exception:
             return
-        raw: Dict[str, Dict[str, Any]] = {}
-        try:
-            data = json.loads(raw_text)
-        except Exception:
-            data = None
-
-        if isinstance(data, dict) and isinstance(data.get("items"), dict):
-            raw = data["items"]
-        elif isinstance(data, dict):
-            raw = data
-        else:
-            lines = [line for line in raw_text.splitlines() if line.strip()]
-            for line in lines:
-                try:
-                    item = json.loads(line)
-                except Exception:
-                    continue
-                if not isinstance(item, dict):
-                    continue
-                article_id = item.get("article_id")
-                if not article_id:
-                    continue
-                raw[str(article_id)] = {
-                    "hash": item.get("hash"),
-                    "vector": item.get("vector"),
-                }
-
-        cleaned: Dict[str, Dict[str, Any]] = {}
-        for article_id, payload in raw.items():
-            if not isinstance(payload, dict):
-                continue
-            vector = payload.get("vector")
-            if not isinstance(vector, list) or len(vector) < 2:
-                continue
-            if all(isinstance(val, (int, float)) and val == 0 for val in vector):
-                continue
-            cleaned[article_id] = payload
-        self._cache = cleaned
+        self._cache = _parse_embedding_cache(raw_text)
         elapsed = perf_counter() - start
         print(f"[EmbeddingIndex] Cache loaded in {elapsed:.1f}s ({len(self._cache)} entries).")
 

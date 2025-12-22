@@ -27,7 +27,7 @@ class LegalResearchStreamingAgent:
         client: Optional[AsyncOpenAI] = None,
         model: Optional[str] = None,
         system_prompt: str = SYSTEM_PROMPT,
-        max_rounds: int = 4,
+        max_rounds: int = 17,
     ) -> None:
         self._client = resolve_async_client(client)
         self._model = model or default_model_name()

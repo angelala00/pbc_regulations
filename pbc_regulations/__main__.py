@@ -2,12 +2,37 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 from pbc_regulations.portal import main
+from pbc_regulations.config_paths import discover_project_root, resolve_artifact_dir
+from pbc_regulations.mcpserver.tools.base import get_store
+from pbc_regulations.mcpserver.tools.toolset_b.indexes import get_indexes, preload_embedding_cache
+
+
+def _preload_embedding_cache() -> None:
+    try:
+        project_root = discover_project_root(Path(__file__).resolve().parent)
+        artifact_dir = resolve_artifact_dir(project_root)
+        cache_path = artifact_dir / "structured" / "embedding_cache.json"
+        preload_embedding_cache(cache_path)
+    except Exception:
+        return
+
+
+def _preload_indexes() -> None:
+    try:
+        store = get_store()
+        get_indexes(store)
+    except Exception:
+        return
 
 
 if __name__ == "__main__":
     # Load environment overrides from a local .env before dispatching to the CLI.
     load_dotenv()
+    _preload_embedding_cache()
+    _preload_indexes()
     main()

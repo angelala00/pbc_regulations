@@ -17,6 +17,18 @@ _TOOLSET_MODULES: Dict[str, str] = {
 }
 
 
+def _load_dotenv_if_available() -> None:
+    try:
+        from dotenv import find_dotenv, load_dotenv
+    except Exception:
+        return
+    resolved = find_dotenv(usecwd=True)
+    if resolved:
+        load_dotenv(resolved, override=False)
+    else:
+        load_dotenv(override=False)
+
+
 def _load_toolset(name: str) -> tuple[str, ModuleType]:
     """Import and register the selected toolset; fallback to default when unknown."""
 
@@ -26,6 +38,7 @@ def _load_toolset(name: str) -> tuple[str, ModuleType]:
     return canonical, module
 
 
+_load_dotenv_if_available()
 ACTIVE_TOOLSET, ACTIVE_TOOLSET_MODULE = _load_toolset(os.getenv(_TOOLSET_ENV, _DEFAULT_TOOLSET))
 
 __all__ = ["mcp", "get_store", "ACTIVE_TOOLSET", "ACTIVE_TOOLSET_MODULE"]
