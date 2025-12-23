@@ -1,0 +1,48 @@
+中国人民银行公告
+（2015）第31号
+为推动中国外汇市场对外开放，便利境外央行（货币当局）和其他官方储备管理机构、国际金融组织、主权财富基金（以下统称境外央行类机构）依法合规参与中国银行间外汇市场交易，现就开放境外央行类机构进入中国银行间外汇市场有关事宜公告如下：
+一、境外央行类机构进入中国银行间外汇市场有三种途径：通过人民银行代理、通过中国银行间外汇市场会员代理以及直接成为中国银行间外汇市场境外会员。境外央行类机构可从上述三种途径中自主选择一种或多种途径进入中国银行间外汇市场，开展包括即期、远期、掉期和期权在内的各品种外汇交易，交易方式包括询价方式和撮合方式，无额度限制。
+二、境外央行类机构进入中国银行间外汇市场，应当通过原件邮寄递交的方式向中国外汇交易中心提交《境外央行类机构进入中国银行间外汇市场备案表》（见附件）。
+三、备案完成后，境外央行类机构通过人民银行代理的，人民银行将向其发送操作指引；通过中国银行间外汇市场会员代理的，自主选择代理机构并签署代理协议，代理机构将代理协议向中国外汇交易中心备案后即可交易；成为中国银行间外汇市场境外会员的，通过中国外汇交易中心完成外汇交易系统接入等技术准备后即可交易。
+四、中国外汇交易中心等市场中介机构应当根据各自职责，做好境外央行类机构参与中国银行间外汇市场交易的服务工作。
+附件：境外央行类机构进入中国银行间外汇市场备案表附件
+境外央行类机构进入中国银行间外汇市场备案表Chinese Inter-Bank FX Market Registration Form for Foreign Central Banks and Similar Institutions**机构名称：**Name of Institution
+**地址：**Address
+| 申请机构简介 |  || --- | --- || Brief Introduction |  || 拟开展交易 | 外汇即期 □ | 外汇远期 □ | 外汇掉期 □ | 外汇期权 □ || --- | --- | --- | --- | --- || Expected Transaction Types | FX Spots | FX Forwards | FX Swaps | FX Options || 拟选择交易渠道 | 成为境外会员 □ | 通过人民银行代理 □ | 通过中国银行间外汇市场会员代理 □ || --- | --- | --- | --- || Expected Transaction Channels | Becoming Foreign Members | Entrusting PBC as the Agent | Entrusting Inter-bank FX Market Members as the Agent || 拟选择代理的中国银行间外汇市场会员 | 代理人 1<br>Agent No.1 | 代理人 2<br>Agent No.2 | 代理人 3<br>Agent No.3 || --- | --- | --- | --- || Expected Inter-bank FX Market Member Agents |  |  |  || 管理负责人简介 | 姓名 Name | 职位 Position | 电话 Tel. | 邮箱 Email || --- | --- | --- | --- | --- || Introduction to Key Administrators in FX Transaction |  |  |  |  ||  |  |  |  |  |
+| 联系人 | 姓名<br>Name | 职务<br>Position || --- | --- | --- || Contact Persons |  |  ||  | 电话<br>Tel. | 传真<br>Fax | 邮箱<br>E-mail ||  |  |  |  |
+| 联系人 | 姓名<br>Name | 职务<br>Position || --- | --- | --- || Contact Persons |  |  ||  | 电话<br>Tel. | 传真<br>Fax | 邮箱<br>E-mail ||  |  |  |  |
+| 有权签字人 | 姓名<br>Name | 职务<br>Position || --- | --- | --- || Authorized Signatory |  |  ||  | 签名<br>Signature | 日期<br>Date ||  |  |  |
+| 有权签字人 | 姓名<br>Name | 职务<br>Position || --- | --- | --- || Authorized Signatory |  |  ||  | 签名<br>Signature | 日期<br>Date ||  |  |  |
+盖章（Official Seal）：
+填表说明 Note:
+1. 表格用中文或英文填写。
+Please fill out this form in Chinese or English.
+2. 申请机构简介包括成立时间、监管法律、组织结构（含储备管理和投资职能）等内容。
+Brief Introduction: Background on establishment of the institution and governing law, organization structure (Including Reserve Management/ Investment Function) etc.
+3. “拟开展交易”及“拟选择交易渠道”部分，申请机构均可自主选择一种或多种。
+Expected Transaction Types and Expected Transaction Channels: applicants can choose one or more transaction types and transaction channels on self-discretion.
+4. 对于有意通过人民银行代理的申请者，如有代理方面的问题，可发邮件至 fxt@pbc.gov.cn 咨询。
+Using PBC as Agent: for those applicants who would like to use PBC as agent, if there are any concerns or problems regarding the agency transaction, please send emails to fxt@pbc.gov.cn for inquiry.
+5. 若申请机构选择中国银行间外汇市场会员代理，代理机构数量不限，表格不足可以附件形式补充。代理机构应将代理协议向中国外汇交易中心备案。
+Expected Inter-bank FX Market Member Agents: for those applicants who would like to entrust commercial banks as the agent, there is no limit on the number of agents that the applicants choose and corresponding information could be provide via attachment if there is no enough room in the form. The agents shall send a copy of their agency agreements to CFETS for registration.
+6. 管理负责人简介须填写外汇交易主要负责人的基本情况。
+Introduction to Key Administrators in FX Transaction: please fill out the basic information of key persons in FX Transaction, attachment of brief profile/resume can be added.
+a) Head of FX Transaction / Reserve Management b) Head of Dealing Room (Front Office),c) Head of Settlements (Back Office)d) Head of Risk Management (Middle Office)
+7. 提供的联系人和有权人签字数量不限（至少各提供一位），有权签字人指外汇交易部门负责人。
+Contact Persons and Authorized Signatory: there is no limit on the number of contact persons or authorized signatory provided (at least one for each). Authorized signatory should be signed by executives in-charge of FX transaction or governors.
+8. 请将此备案表原件邮寄至中国外汇交易中心，事先可以传真或扫描件发送至中国外汇交易中心邮箱。
+邮寄地址：中国外汇交易中心 市场一部，中国上海市黄浦区中山东一路 15 号(200002)；
+传真：86-21-58957363；
+电子邮件：fx_mkt@chinamoney.com.cn联系人：陈远虑；
+联系电话：86-21-23165027；
+联系邮件：chenyuanlv@chinamoney.com.cn联系人：华小岳；
+联系电话：86-21-23165028；
+联系邮件：huaxiaoyue@chinamoney.com.cn联系人：张琦；
+联系电话：86-21-23165076；
+联系邮件：zhangqi@chinamoney.com.cn Please send by courier the original copy of the form to China Foreign Exchange Trade System (CFETS). Before that, applicants can send the scanned form via fax or email to CFETS first.
+Mail Address: FX Market Department, China Foreign Exchange Trade System No.15 Zhongshan Road(E.1), Huangpu District, Shanghai, 200002,P.R.China Fax: 86-21-58957363；
+Email: fx_mkt@chinamoney.com.cn Contact: Yuanlv CHEN；
+Tel: 86-21-23165027；
+Email: chenyuanlv@chinamoney.com.cn Contact: Xiaoyue HUA；
+Tel: 86-21-23165028；
+Email: huaxiaoyue@chinamoney.com.cn Contact: Qi ZHANG;Tel: 86-21-23165076;Email: zhangqi@chinamoney.com.cn 9. 中国人民银行负责对此表格进行解释。The form is subject to the interpretation of PBC.

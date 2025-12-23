@@ -1,0 +1,31 @@
+中国人民银行办公厅文件
+银办发〔2015〕162 号
+中国人民银行办公厅关于调整简化《中国银行间市场投资备案表》的通知
+中国人民银行上海总部，各分行、营业管理部、省会（首府）城市中心支行、副省级城市中心支行，中国银行间市场交易商协会，全国银行间同业拆借中心、中央国债登记结算有限责任公司、银行间市场清算所股份有限公司、全国银行间市场结算代理人：
+为进一步便利境外央行或货币当局、国际金融组织、主权财富基金投资中国银行间市场，现将《中国人民银行关于境外央行、国际金融组织、主权财富基金运用人民币投资银行间市场有关事宜的通知》（银发〔2015〕220号）的附件《中国银行间市场投资备案表》予以调整简化，新表格式附后。
+附件：中国银行间市场投资备案表中国人民银行办公厅2015年7月29日
+附件
+中国银行间市场投资备案表Chinese Inter-Bank Market Investment Registration Form机构名称：Name of Institution
+地址：Address
+| 申请机构简介 |  || --- | --- || Brief Introduction |  || 人民币拟投资规模 | Expected Investment Volume 1st Year : ____________ (CNY Billion) || --- | --- || Expected Volume of Investment in RMB | Adjusted with Growth in Reserves: □ ; Kept Stable: □ || 拟投资产品 | 国债 □ 金融债 □ 公司债 □ 其他债券 □ || --- | --- || Expected Investment Products | Government Bonds Financial Bonds Corporate Bonds Other Bonds || 债券回购 □ 债券借贷 □ 债券远期 □ 衍生品 □ | Bond Repo Bond Lending Bond Forward Derivatives || 拟选择代理人 | 中国人民银行 □ 银行间市场结算代理人 □ _________ || --- | --- || Selected Agent(s) | PBC Inter-bank Bond Market Settlement Agent || 投资负责人简介 | 姓名 Name | 职位 Position | 电话 Tel. | 邮箱 Email | 简历 Profile || --- | --- | --- | --- | --- | --- || Introduction to Key Persons in Reserve Management Function |  |  |  |  | □ ||  |  |  |  |  | □ ||  |  |  |  |  | □ ||  |  |  |  |  | □ |
+| 联系人 | 姓名 Name | 职务 Position || --- | --- | --- || Contact Persons |  |  ||  | 电话 Tel. | 传真 Fax | 邮箱 E-mail ||  |  |  |  |
+| 有权签字人 | 姓名 Name | 职务 Position || --- | --- | --- || Authorized Signatory |  |  ||  | 签名 Signature | 日期 Date |填表说明 Note:
+1. 表格用中文或英文填写。
+Please fill out this form in Chinese or English.
+2. 申请机构简介包括成立时间、监管法律、组织结构（含储备管理和投资职能）等内容。
+Brief Introduction: Background on establishment of the institution and governing law, investment mandate, organization structure (Including Reserve Management/ Investment Function) etc.
+3. 人民币拟投资规模是指预计投资规模及未来将如何调整该规模，如是否将逐步增加或保持平稳。
+Expected Volume of Investment in RMB: expected investment volume and how it will be adjusted, for example, whether it will be increased gradually with volume of reserves or kept stable.
+4. 拟投资产品请在方框内打√，如选择其他，请备注。
+Expected Investment Products: please tick the box to choose financial products intended to invest and specify any other options.
+5. 拟选择代理人请在方框内打√，并注明拟选择结算代理人的名称（如适用）。
+Selected Agent(s): please tick the box to choose selected agent(s) and specify the name of selected inter-bank bond market settlement agent (as applicable).
+6. 投资负责人简介须填写债券投资管理人及投资主要负责人的基本情况。
+Introduction to Key Persons in Reserve Management Function: please fill out the basic information of key persons in the Reserve Management Function; attachment of brief profile/resume can be added.
+a) Head of Investment/ Reserve Management b) Head of Dealing Room (Front Office),c) Head of Settlements (Bank Office)d) Head of Risk Management (Middle Office)
+7. 有权签字人指储备投资部门负责人。
+Authorized Signatory: signed by Executive In-charge of Reserve Investments or Governor.
+8. 中国人民银行负责对此表格进行解释。
+The form is subject to the interpretation of PBC.
+抄送：中央外汇业务中心内部发送：市场司，条法司，货政司，货政二司，支付司，国际司，内审司。
+中国人民银行办公厅2015年7月29日印发
