@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from typing import Any, AsyncIterator, Dict, List, Optional
+import json
+import time
+import uuid
 
 from openai import AsyncOpenAI
-import time
 
 from ..common import (
     default_model_name,
@@ -15,7 +17,6 @@ from ..common import (
 )
 from ..prompts import SYSTEM_PROMPT
 from ..tools import dispatch_tool_call, load_openai_tools
-import json
 
 
 class LegalResearchStreamingAgent:
@@ -27,7 +28,7 @@ class LegalResearchStreamingAgent:
         client: Optional[AsyncOpenAI] = None,
         model: Optional[str] = None,
         system_prompt: str = SYSTEM_PROMPT,
-        max_rounds: int = 17,
+        max_rounds: int = 7,
     ) -> None:
         self._client = resolve_async_client(client)
         self._model = model or default_model_name()
@@ -68,6 +69,45 @@ class LegalResearchStreamingAgent:
                     payload.pop(key)
             event_payload.update(payload)
             return f"data: {json.dumps(event_payload, ensure_ascii=False)}\n\n"
+
+        node_sentinel = object()
+
+        def build_node_event(
+            event_name,
+            *,
+            node_id: Any = node_sentinel,
+            index: Any = node_sentinel,
+            metadata: Any = node_sentinel,
+            **payload,
+        ):
+            extras: Dict[str, Any] = {}
+            if node_id is not node_sentinel:
+                extras["node_id"] = node_id
+            if index is not node_sentinel:
+                extras["index"] = index
+            if metadata is not node_sentinel:
+                extras["metadata"] = metadata
+            extras.update(payload)
+            return build_event(event_name, **extras)
+
+        def new_node_id() -> str:
+            return f"node_{uuid.uuid4().hex}"
+
+        def format_tool_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+            if arguments in (None, "", {}):
+                return name or "工具调用"
+            try:
+                args_text = json.dumps(arguments, ensure_ascii=False, sort_keys=True)
+            except (TypeError, ValueError):
+                args_text = str(arguments)
+            title = f"{name}({args_text})" if name else f"工具调用({args_text})"
+            if len(title) <= max_len:
+                return title
+            return f"{title[: max_len - 3]}..."
+
+        def format_tool_end_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+            base = format_tool_title(name, arguments, max_len=max_len)
+            return f"完成：{base}"
 
         yield build_event(
             "message_start",
@@ -133,20 +173,20 @@ class LegalResearchStreamingAgent:
                         function_block = tool_call.get("function") or {}
                         name = function_block.get("name") or ""
                         arguments = function_block.get("arguments")
-                        yield build_event(
-                            "tool_call_start",
-                            chunk=chunk,
-                            tool_call_id=id,
-                            name=name,
-                            arguments=arguments
+                        node_id = new_node_id()
+                        yield build_node_event(
+                            "node_start",
+                            node_id=node_id,
+                            type="tool",
+                            title=format_tool_title(name, arguments),
                         )
                         result = await dispatch_tool_call(name, arguments)
                         print(f"resulttttt:{result}")
-                        yield build_event(
-                            "tool_call_end",
-                            chunk=chunk,
-                            tool_call_id=id,
-                            name=name,
+                        yield build_node_event(
+                            "node_end",
+                            node_id=node_id,
+                            status="completed",
+                            title=format_tool_end_title(name, arguments),
                         )
                         messages.append(
                             {

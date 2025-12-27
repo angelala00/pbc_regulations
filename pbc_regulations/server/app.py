@@ -73,6 +73,7 @@ def create_dashboard_app(
     mcp_mount_path: Optional[str] = "/mcp",
 ):
     _ensure_fastapi_available()
+    _install_sse_log_decoder()
 
     overviews_lock = threading.Lock()
     search_payload: Dict[str, object] = (
@@ -262,6 +263,35 @@ def create_dashboard_app(
         return FileResponse(target)
 
     return app
+
+
+def _install_sse_log_decoder() -> None:
+    """Decode SSE byte chunks in logs so Chinese renders correctly."""
+    import logging
+
+    class _SSEBytesDecodeFilter(logging.Filter):
+        def filter(self, record: logging.LogRecord) -> bool:
+            args = record.args
+            if not args:
+                return True
+            if isinstance(args, tuple):
+                changed = False
+                new_args = []
+                for arg in args:
+                    if isinstance(arg, (bytes, bytearray)):
+                        new_args.append(arg.decode("utf-8", "replace"))
+                        changed = True
+                    else:
+                        new_args.append(arg)
+                if changed:
+                    record.args = tuple(new_args)
+            elif isinstance(args, (bytes, bytearray)):
+                record.args = args.decode("utf-8", "replace")
+            return True
+
+    logger = logging.getLogger("sse_starlette.sse")
+    if not any(isinstance(filt, _SSEBytesDecodeFilter) for filt in logger.filters):
+        logger.addFilter(_SSEBytesDecodeFilter())
 
 
 def serve_dashboard(

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from typing import Any, AsyncIterator, Dict, List, Optional
+import json
+import time
+import uuid
 
 from openai import AsyncOpenAI
-import time
 
 from ..common import (
     default_model_name,
@@ -54,6 +56,45 @@ class LegalResearchPromptStreamingAgent:
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": query})
+        node_sentinel = object()
+
+        def build_node_event(
+            event: str,
+            *,
+            node_id: Any = node_sentinel,
+            index: Any = node_sentinel,
+            metadata: Any = node_sentinel,
+            **payload: object,
+        ) -> Dict[str, Any]:
+            extras: Dict[str, Any] = {}
+            if node_id is not node_sentinel:
+                extras["node_id"] = node_id
+            if index is not node_sentinel:
+                extras["index"] = index
+            if metadata is not node_sentinel:
+                extras["metadata"] = metadata
+            extras.update(payload)
+            extras = {key: value for key, value in extras.items() if value is not None}
+            return {"event": event, "created": int(time.time() * 1000), **extras}
+
+        def new_node_id() -> str:
+            return f"node_{uuid.uuid4().hex}"
+
+        def format_tool_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+            if arguments in (None, "", {}):
+                return name or "工具调用"
+            try:
+                args_text = json.dumps(arguments, ensure_ascii=False, sort_keys=True)
+            except (TypeError, ValueError):
+                args_text = str(arguments)
+            title = f"{name}({args_text})" if name else f"工具调用({args_text})"
+            if len(title) <= max_len:
+                return title
+            return f"{title[: max_len - 3]}..."
+
+        def format_tool_end_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+            base = format_tool_title(name, arguments, max_len=max_len)
+            return f"完成：{base}"
         for _ in range(self._max_rounds):
             try:
                 stream = await self._client.chat.completions.create(
@@ -145,13 +186,29 @@ class LegalResearchPromptStreamingAgent:
                     for tool_call in tool_calls:
                         name = tool_call.get("name") or ""
                         arguments = tool_call.get("arguments") or {}
-                        yield {"event": "tool_call_start", "text":name, "created": int(time.time() * 1000),}
+                        node_id = new_node_id()
+                        yield build_node_event(
+                            "node_start",
+                            node_id=node_id,
+                            type="tool",
+                            title=format_tool_title(name, arguments),
+                        )
 
                         result = await dispatch_tool_call(name, arguments)
                         tool_feedback = (
                             f"工具 `{name}` 的返回结果：\n{result}\n请结合结果继续判断下一步。"
                         )
-                        yield {"event": "tool_call_end", "text":tool_feedback, "created": int(time.time() * 1000),}
+                        yield build_node_event(
+                            "node_delta",
+                            node_id=node_id,
+                            delta=tool_feedback,
+                        )
+                        yield build_node_event(
+                            "node_end",
+                            node_id=node_id,
+                            status="completed",
+                            title=format_tool_end_title(name, arguments),
+                        )
                         messages.append(
                             {
                                 "role": "user",
