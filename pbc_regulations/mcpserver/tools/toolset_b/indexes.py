@@ -13,6 +13,8 @@ from functools import lru_cache
 from time import perf_counter
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
+import numpy as np
+
 from ..base import CorpusDocument, CorpusStore
 from ._articles import ArticleSection, load_articles
 
@@ -25,44 +27,24 @@ def _tokenize(text: str) -> List[str]:
     return _TOKEN_RE.findall(text.lower())
 
 
-def _parse_embedding_cache(raw_text: str) -> Dict[str, Dict[str, Any]]:
-    raw: Dict[str, Dict[str, Any]] = {}
-    try:
-        data = json.loads(raw_text)
-    except Exception:
-        data = None
-
-    if isinstance(data, dict) and isinstance(data.get("items"), dict):
-        raw = data["items"]
-    elif isinstance(data, dict):
-        raw = data
-    else:
-        lines = [line for line in raw_text.splitlines() if line.strip()]
-        for line in lines:
-            try:
-                item = json.loads(line)
-            except Exception:
-                continue
-            if not isinstance(item, dict):
-                continue
-            article_id = item.get("article_id")
-            if not article_id:
-                continue
-            raw[str(article_id)] = {
-                "hash": item.get("hash"),
-                "vector": item.get("vector"),
-            }
-
+def _clean_embedding_cache(raw: Any) -> Dict[str, Dict[str, Any]]:
+    if not isinstance(raw, dict):
+        return {}
     cleaned: Dict[str, Dict[str, Any]] = {}
     for article_id, payload in raw.items():
         if not isinstance(payload, dict):
             continue
         vector = payload.get("vector")
+        if isinstance(vector, np.ndarray):
+            vector = vector.tolist()
         if not isinstance(vector, list) or len(vector) < 2:
             continue
         if all(isinstance(val, (int, float)) and val == 0 for val in vector):
             continue
-        cleaned[article_id] = payload
+        cleaned[str(article_id)] = {
+            "hash": payload.get("hash"),
+            "vector": vector,
+        }
     return cleaned
 
 
@@ -73,10 +55,17 @@ def preload_embedding_cache(cache_path: Path) -> int:
     if not cache_path or not cache_path.exists():
         return 0
     try:
-        raw_text = cache_path.read_text("utf-8")
+        loaded = np.load(cache_path, allow_pickle=True)
     except Exception:
         return 0
-    cleaned = _parse_embedding_cache(raw_text)
+    try:
+        raw_data = loaded.item()
+    except Exception:
+        raw_data = loaded
+    finally:
+        if hasattr(loaded, "close"):
+            loaded.close()
+    cleaned = _clean_embedding_cache(raw_data)
     if cleaned:
         _EMBEDDING_CACHE_PRELOAD = cleaned
         try:
@@ -185,10 +174,17 @@ class EmbeddingIndex:
         start = perf_counter()
         print("[EmbeddingIndex] Loading cache...")
         try:
-            raw_text = self.cache_path.read_text("utf-8")
+            loaded = np.load(self.cache_path, allow_pickle=True)
         except Exception:
             return
-        self._cache = _parse_embedding_cache(raw_text)
+        try:
+            raw_data = loaded.item()
+        except Exception:
+            raw_data = loaded
+        finally:
+            if hasattr(loaded, "close"):
+                loaded.close()
+        self._cache = _clean_embedding_cache(raw_data)
         elapsed = perf_counter() - start
         print(f"[EmbeddingIndex] Cache loaded in {elapsed:.1f}s ({len(self._cache)} entries).")
 
@@ -197,23 +193,7 @@ class EmbeddingIndex:
             return
         try:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
-            lines = ['{', '  "version": 1,', '  "items": {']
-            total = len(self._cache)
-            for idx, (article_id, payload) in enumerate(self._cache.items(), start=1):
-                record = {
-                    "hash": payload.get("hash"),
-                    "vector": payload.get("vector"),
-                }
-                line = (
-                    f'    {json.dumps(str(article_id), ensure_ascii=False)}: '
-                    f'{json.dumps(record, ensure_ascii=False, separators=(",", ":"))}'
-                )
-                if idx < total:
-                    line += ","
-                lines.append(line)
-            lines.append("  }")
-            lines.append("}")
-            self.cache_path.write_text("\n".join(lines) + "\n")
+            np.save(self.cache_path, self._cache, allow_pickle=True)
         except Exception:
             return
 
@@ -442,9 +422,17 @@ def _build_article_corpus(store: CorpusStore) -> List[ArticleRecord]:
 
 @lru_cache(maxsize=1)
 def get_indexes(store: CorpusStore) -> Tuple[BM25Index, EmbeddingIndex, List[ArticleRecord]]:
+    start = perf_counter()
     corpus = _build_article_corpus(store)
+    corpus_elapsed = perf_counter() - start
+    print(f"[IndexBuild] Article corpus ready in {corpus_elapsed:.1f}s ({len(corpus)} records).")
+
+    start = perf_counter()
     bm25 = BM25Index(corpus)
-    cache_path = store.artifact_dir / "structured" / "embedding_cache.json"
+    bm25_elapsed = perf_counter() - start
+    print(f"[IndexBuild] BM25 index ready in {bm25_elapsed:.1f}s.")
+
+    cache_path = store.artifact_dir / "structured" / "embedding_cache.npy"
     vec = EmbeddingIndex(corpus, cache_path=cache_path)
     return bm25, vec, corpus
 _DOTENV_LOADED = False

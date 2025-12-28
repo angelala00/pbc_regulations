@@ -16,3 +16,4 @@ mcp
 a2a
 click
 a2a-sdk
+numpy
