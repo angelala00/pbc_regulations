@@ -44,7 +44,7 @@ class LegalResearchPromptStreamingAgent:
     ) -> AsyncIterator[str]:
         """Stream assistant deltas while orchestrating tool usage via prompt instructions."""
 
-        tools = await load_openai_tools()
+        tools = await load_openai_tools(force_refresh=True)
         if not tools:
             yield "未能加载工具列表，请检查 MCP 服务是否运行。"
             return

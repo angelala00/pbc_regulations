@@ -43,7 +43,7 @@ class LegalResearchStreamingAgent:
     ) -> AsyncIterator[Dict[str, Any]]:
         """Stream the assistant response for ``query`` while performing tool-calls."""
 
-        tools = await load_openai_tools()
+        tools = await load_openai_tools(force_refresh=True)
         if not tools:
             yield "未能加载工具列表。"
             return

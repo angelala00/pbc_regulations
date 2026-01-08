@@ -14,14 +14,26 @@ ContextRole = Literal["target", "neighbor", "definition", "exception", "referenc
 
 
 class ProvisionContextRequest(BaseModel):
-    law_id: str
-    article_id: str
+    items: List["ProvisionContextItem"]
     include_neighbors: Optional[bool] = True
     neighbor_range: Optional[int] = 1
     include_definitions: Optional[bool] = True
     include_exceptions: Optional[bool] = True
     include_references: Optional[bool] = True
     max_length: Optional[int] = 2000
+
+    model_config = {"extra": "ignore"}
+
+
+class ProvisionContextItem(BaseModel):
+    law_id: str
+    article_id: str
+    include_neighbors: Optional[bool] = None
+    neighbor_range: Optional[int] = None
+    include_definitions: Optional[bool] = None
+    include_exceptions: Optional[bool] = None
+    include_references: Optional[bool] = None
+    max_length: Optional[int] = None
 
     model_config = {"extra": "ignore"}
 
@@ -37,6 +49,10 @@ class ProvisionContextResponse(TypedDict):
     law_id: str
     law_title: str
     context: List[ProvisionContextEntry]
+
+
+class ProvisionContextBatchResponse(TypedDict):
+    results: List[ProvisionContextResponse]
 
 
 def _truncate(text: str, max_length: Optional[int]) -> str:
@@ -88,35 +104,15 @@ def _append_context(
     seen.add(key)
 
 
-@mcp.tool(structured_output=False)
-async def get_provision_context(
-    law_id: str,
-    article_id: str,
-    include_neighbors: Optional[bool] = True,
-    neighbor_range: Optional[int] = 1,
-    include_definitions: Optional[bool] = True,
-    include_exceptions: Optional[bool] = True,
-    include_references: Optional[bool] = True,
-    max_length: Optional[int] = 2000,
-) -> ProvisionContextResponse:
-    """
-    为命中的条款提供上下文（相邻条款、定义、例外、引用等）。
-    """
+def _resolve_flag(item_value: Optional[bool], default_value: Optional[bool]) -> Optional[bool]:
+    return item_value if item_value is not None else default_value
 
-    model = ProvisionContextRequest.model_validate(
-        {
-            "law_id": law_id,
-            "article_id": article_id,
-            "include_neighbors": include_neighbors,
-            "neighbor_range": neighbor_range,
-            "include_definitions": include_definitions,
-            "include_exceptions": include_exceptions,
-            "include_references": include_references,
-            "max_length": max_length,
-        }
-    )
-    data = model.model_dump(exclude_none=True)
 
+def _resolve_int(item_value: Optional[int], default_value: Optional[int]) -> Optional[int]:
+    return item_value if item_value is not None else default_value
+
+
+async def _get_single_context(data: dict) -> ProvisionContextResponse:
     store = get_store()
     doc = store.get(data["law_id"])
     if doc is None:
@@ -264,3 +260,46 @@ async def get_provision_context(
                 )
 
     return {"law_id": doc.doc_id, "law_title": doc.title, "context": context}
+
+
+@mcp.tool(structured_output=False)
+async def get_provision_context(
+    items: List[ProvisionContextItem],
+    include_neighbors: Optional[bool] = True,
+    neighbor_range: Optional[int] = 1,
+    include_definitions: Optional[bool] = True,
+    include_exceptions: Optional[bool] = True,
+    include_references: Optional[bool] = True,
+    max_length: Optional[int] = 2000,
+) -> ProvisionContextBatchResponse:
+    """
+    批量获取条款上下文（相邻条款、定义、例外、引用等）。
+    """
+
+    model = ProvisionContextRequest.model_validate(
+        {
+            "items": items,
+            "include_neighbors": include_neighbors,
+            "neighbor_range": neighbor_range,
+            "include_definitions": include_definitions,
+            "include_exceptions": include_exceptions,
+            "include_references": include_references,
+            "max_length": max_length,
+        }
+    )
+    data = model.model_dump(exclude_none=True)
+
+    results: List[ProvisionContextResponse] = []
+    for item in data["items"]:
+        merged = {
+            "law_id": item["law_id"],
+            "article_id": item["article_id"],
+            "include_neighbors": _resolve_flag(item.get("include_neighbors"), data.get("include_neighbors")),
+            "neighbor_range": _resolve_int(item.get("neighbor_range"), data.get("neighbor_range")),
+            "include_definitions": _resolve_flag(item.get("include_definitions"), data.get("include_definitions")),
+            "include_exceptions": _resolve_flag(item.get("include_exceptions"), data.get("include_exceptions")),
+            "include_references": _resolve_flag(item.get("include_references"), data.get("include_references")),
+            "max_length": _resolve_int(item.get("max_length"), data.get("max_length")),
+        }
+        results.append(await _get_single_context(merged))
+    return {"results": results}

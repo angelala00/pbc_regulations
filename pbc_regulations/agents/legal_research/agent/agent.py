@@ -35,7 +35,7 @@ class LegalResearchAgent:
     ) -> str:
         """Execute a query with tool-calling until the model returns a final answer."""
 
-        tools = await load_openai_tools()
+        tools = await load_openai_tools(force_refresh=True)
         if not tools:
             return "未能加载工具列表，请检查 MCP 服务是否运行。"
 
