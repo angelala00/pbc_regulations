@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>A2A Trace Viewer</title>
+    <link rel="stylesheet" href="style.css" />
+    <!--CONFIG_PLACEHOLDER-->
+  </head>
+  <body class="traces-page">
+    <header class="app-header traces-header">
+      <div class="app-header__top">
+        <h1>A2A Traces</h1>
+        <nav class="app-header__nav" aria-label="Primary">
+          <a class="button-link" href="index.html">Dashboard</a>
+          <a class="button-link" href="entries.html">Entries</a>
+          <a class="button-link" href="api-explorer.html">API Explorer</a>
+          <a class="button-link button-link--current" href="traces.html">Traces</a>
+        </nav>
+      </div>
+      <p class="traces-header__meta">
+        Trace log refresh at <span data-generated-at>—</span>.
+      </p>
+    </header>
+    <main class="traces-main">
+      <section class="trace-panel">
+        <div class="trace-panel__header">
+          <h2>Recent requests</h2>
+          <p>Click a trace to inspect the full request/response timeline.</p>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Trace</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Query</th>
+              </tr>
+            </thead>
+            <tbody id="traces-body">
+              <tr>
+                <td colspan="5" class="empty">Loading…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="message hidden" id="traces-message"></div>
+      </section>
+      <div class="trace-splitter" id="trace-splitter" aria-hidden="true"></div>
+      <section class="trace-panel trace-panel--detail">
+        <div class="trace-panel__header">
+          <h2>Trace detail</h2>
+          <p id="trace-detail-subtitle">Select a trace to view its timeline.</p>
+        </div>
+        <div class="trace-detail" id="trace-detail">
+          <div class="empty">No trace selected.</div>
+        </div>
+      </section>
+    </main>
+    <footer>
+      PBC Monitor dashboard &middot; Generated at
+      <span data-generated-at>—</span>
+    </footer>
+    <script src="traces.js" defer></script>
+  </body>
+</html>

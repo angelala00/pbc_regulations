@@ -45,6 +45,10 @@ def _cached_api_explorer_template() -> str:
     return _cached_template("api-explorer.html")
 
 
+def _cached_traces_template() -> str:
+    return _cached_template("traces.html")
+
+
 def _render_template_with_config(template: str, config: Dict[str, object]) -> str:
     config_script = (
         "<script>window.__PBC_CONFIG__ = "
@@ -117,6 +121,24 @@ def render_api_explorer_html(
     return _render_template_with_config(template, config)
 
 
+def render_traces_html(
+    *,
+    generated_at: datetime,
+    static_snapshot: bool = False,
+    api_base: str = "",
+    search_config: Optional[Dict[str, object]] = None,
+) -> str:
+    template = _cached_traces_template()
+    config: Dict[str, object] = {
+        "generatedAt": generated_at.isoformat(timespec="seconds"),
+        "staticSnapshot": static_snapshot,
+        "apiBase": api_base,
+    }
+    if search_config is not None:
+        config["search"] = search_config
+    return _render_template_with_config(template, config)
+
+
 def render_dashboard_html(
     overviews: Iterable["TaskOverview"],
     *,
@@ -169,6 +191,7 @@ __all__ = [
     "render_index_html",
     "render_entries_html",
     "render_api_explorer_html",
+    "render_traces_html",
     "render_dashboard_html",
     "build_entries_payload",
 ]

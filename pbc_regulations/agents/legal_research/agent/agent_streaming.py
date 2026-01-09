@@ -17,6 +17,7 @@ from ..common import (
 )
 from ..prompts import SYSTEM_PROMPT
 from ..tools import dispatch_tool_call, load_openai_tools
+from pbc_regulations.tracing import log_trace_event
 
 
 class LegalResearchStreamingAgent:
@@ -54,6 +55,14 @@ class LegalResearchStreamingAgent:
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": query})
+        log_trace_event(
+            "agent_start",
+            {
+                "query": query,
+                "model": self._model,
+                "max_rounds": self._max_rounds,
+            },
+        )
 
         seq = 0
         def build_event(event_name, *, chunk=None, include_message_id=True, **payload):
@@ -68,6 +77,9 @@ class LegalResearchStreamingAgent:
                 if value is None:
                     payload.pop(key)
             event_payload.update(payload)
+            trace_payload = dict(event_payload)
+            trace_payload.pop("chunk", None)
+            log_trace_event(event_name, trace_payload)
             return f"data: {json.dumps(event_payload, ensure_ascii=False)}\n\n"
 
         node_sentinel = object()
@@ -93,7 +105,7 @@ class LegalResearchStreamingAgent:
         def new_node_id() -> str:
             return f"node_{uuid.uuid4().hex}"
 
-        def format_tool_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+        def format_tool_title(name: str, arguments: Any, *, max_len: int = 1200) -> str:
             if arguments in (None, "", {}):
                 return name or "工具调用"
             try:
@@ -105,7 +117,7 @@ class LegalResearchStreamingAgent:
                 return title
             return f"{title[: max_len - 3]}..."
 
-        def format_tool_end_title(name: str, arguments: Any, *, max_len: int = 120) -> str:
+        def format_tool_end_title(name: str, arguments: Any, *, max_len: int = 1200) -> str:
             base = format_tool_title(name, arguments, max_len=max_len)
             return f"完成：{base}"
 
@@ -116,6 +128,15 @@ class LegalResearchStreamingAgent:
 
         for _ in range(self._max_rounds):
             try:
+                log_trace_event(
+                    "model_request",
+                    {
+                        "model": self._model,
+                        "temperature": temperature,
+                        "messages": messages,
+                        "tools": tools,
+                    },
+                )
                 stream = await self._client.chat.completions.create(
                     model=self._model,
                     messages=messages,
@@ -125,6 +146,7 @@ class LegalResearchStreamingAgent:
                     stream=True,
                 )
             except Exception as exc:
+                log_trace_event("model_error", {"error": str(exc)})
                 yield f"调用大模型接口失败: {exc}"
                 return
 
@@ -158,6 +180,10 @@ class LegalResearchStreamingAgent:
                 tool_calls = finalize_tool_calls(tool_call_accumulator) if function_mode else []
                 print(f"tool_callsssssssssss:{tool_calls}")
 
+                log_trace_event(
+                    "assistant_content",
+                    {"content": assistant_content, "tool_calls": tool_calls},
+                )
 
 
                 if tool_calls:
@@ -199,6 +225,7 @@ class LegalResearchStreamingAgent:
 
             if assistant_content:
                 messages.append({"role": "assistant", "content": assistant_content})
+                log_trace_event("assistant_content", {"content": assistant_content})
                 yield build_event(
                     "message_end",
                     role="assistant"

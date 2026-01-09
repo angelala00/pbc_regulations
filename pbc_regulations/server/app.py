@@ -18,7 +18,9 @@ from pbc_regulations.portal.dashboard_rendering import (
     render_api_explorer_html,
     render_entries_html,
     render_index_html,
+    render_traces_html,
 )
+from pbc_regulations.tracing import list_trace_files, load_trace_events, summarize_trace
 
 try:  # pragma: no cover - optional dependency during import
     from fastapi import FastAPI, HTTPException, Query, Request
@@ -199,6 +201,18 @@ def create_dashboard_app(
             return HTMLResponse(message, status_code=500)
         return HTMLResponse(html)
 
+    def _render_traces_response() -> HTMLResponse:
+        try:
+            html = render_traces_html(
+                generated_at=datetime.now(),
+                api_base="",
+                search_config=search_payload,
+            )
+        except FileNotFoundError as exc:  # pragma: no cover - configuration issue
+            message = f"Dashboard error: {exc}"
+            return HTMLResponse(message, status_code=500)
+        return HTMLResponse(html)
+
     @app.get("/")
     def index() -> HTMLResponse:
         return _render_index_response()
@@ -222,6 +236,45 @@ def create_dashboard_app(
     @app.get("/api-explorer.html")
     def api_explorer_html() -> HTMLResponse:
         return _render_api_explorer_response()
+
+    @app.get("/traces")
+    def traces_page() -> HTMLResponse:
+        return _render_traces_response()
+
+    @app.get("/traces.html")
+    def traces_html() -> HTMLResponse:
+        return _render_traces_response()
+
+    @app.get("/api/traces")
+    def get_traces(limit: int = 50, offset: int = 0) -> JSONResponse:
+        try:
+            all_files = list(list_trace_files())
+            total = len(all_files)
+            sliced = all_files[offset : offset + limit]
+            results: List[Dict[str, Any]] = []
+            for path in sliced:
+                trace_id = path.stem
+                events = load_trace_events(trace_id)
+                summary = summarize_trace(events)
+                summary["trace_id"] = trace_id
+                results.append(summary)
+            return JSONResponse({"total": total, "results": results})
+        except Exception as exc:  # pragma: no cover - logged to client
+            return JSONResponse({"error": str(exc)}, status_code=500)
+
+    @app.get("/api/traces/{trace_id}")
+    def get_trace_detail(trace_id: str) -> JSONResponse:
+        try:
+            events = load_trace_events(trace_id)
+            if not events:
+                raise HTTPException(status_code=404, detail="Trace not found")
+            summary = summarize_trace(events)
+            summary["trace_id"] = trace_id
+            return JSONResponse({"summary": summary, "events": events})
+        except HTTPException:
+            raise
+        except Exception as exc:  # pragma: no cover - logged to client
+            return JSONResponse({"error": str(exc)}, status_code=500)
 
     if extra_routers:
         for router, options in extra_routers:

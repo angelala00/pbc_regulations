@@ -22,6 +22,7 @@ from a2a.utils import (
 from uuid import uuid4
 
 from ..agent.agent_streaming import LegalResearchStreamingAgent
+from pbc_regulations.tracing import begin_trace, end_trace, log_trace_event
 
 
 class LegalResearchAgentExecutor(AgentExecutor):
@@ -40,6 +41,7 @@ class LegalResearchAgentExecutor(AgentExecutor):
         task = context.current_task
         message = context.message
         query = context.get_user_input() or ""
+        trace_started = False
 
         if not message:
             raise ValueError("Missing user message.")
@@ -61,50 +63,101 @@ class LegalResearchAgentExecutor(AgentExecutor):
             )
             context.current_task = task
 
-        #
-        # Send initial "working" state
-        #
-        await event_queue.enqueue_event(
-            TaskStatusUpdateEvent(
-                status=TaskStatus(state=TaskState.working),
-                final=False,
-                contextId=task.context_id,
-                taskId=task.id,
-            )
+        begin_trace(
+            action="a2a_request",
+            request={
+                "query": query,
+                "task_id": task.id,
+                "context_id": task.context_id,
+                "message": message,
+            },
         )
+        trace_started = True
+        trace_completed = False
 
-        #
-        # 2) Stream model output — each token becomes an artifact_update(append=True)
-        #
-        # chunks: List[str] = []
-
-        first_chunk = True
-        async for delta in self.agent.stream(query):
-            if not delta:
-                continue
-
+        try:
+            #
+            # Send initial "working" state
+            #
+            log_trace_event(
+                "a2a_status",
+                {
+                    "state": "working",
+                    "final": False,
+                    "task_id": task.id,
+                    "context_id": task.context_id,
+                },
+            )
             await event_queue.enqueue_event(
-                TaskArtifactUpdateEvent(
-                    # First chunk seeds the artifact; subsequent chunks append.
-                    append=not first_chunk,
+                TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.working),
+                    final=False,
                     contextId=task.context_id,
                     taskId=task.id,
-                    artifact=build_text_artifact(text=delta, artifact_id="content"),
                 )
             )
-            first_chunk = False
 
-        #
-        # Send final completed status
-        #
-        await event_queue.enqueue_event(
-            TaskStatusUpdateEvent(
-                status=TaskStatus(state=TaskState.completed),
-                final=True,
-                contextId=task.context_id,
-                taskId=task.id,
+            #
+            # 2) Stream model output — each token becomes an artifact_update(append=True)
+            #
+            # chunks: List[str] = []
+
+            first_chunk = True
+            async for delta in self.agent.stream(query):
+                if not delta:
+                    continue
+                log_trace_event(
+                    "a2a_artifact",
+                    {
+                        "append": not first_chunk,
+                        "task_id": task.id,
+                        "context_id": task.context_id,
+                        "text": delta,
+                    },
+                )
+                await event_queue.enqueue_event(
+                    TaskArtifactUpdateEvent(
+                        # First chunk seeds the artifact; subsequent chunks append.
+                        append=not first_chunk,
+                        contextId=task.context_id,
+                        taskId=task.id,
+                        artifact=build_text_artifact(text=delta, artifact_id="content"),
+                    )
+                )
+                first_chunk = False
+
+            #
+            # Send final completed status
+            #
+            log_trace_event(
+                "a2a_status",
+                {
+                    "state": "completed",
+                    "final": True,
+                    "task_id": task.id,
+                    "context_id": task.context_id,
+                },
             )
-        )
+            await event_queue.enqueue_event(
+                TaskStatusUpdateEvent(
+                    status=TaskStatus(state=TaskState.completed),
+                    final=True,
+                    contextId=task.context_id,
+                    taskId=task.id,
+                )
+            )
+            if trace_started:
+                end_trace(status="completed")
+                trace_completed = True
+        except Exception as exc:
+            log_trace_event("a2a_error", {"error": str(exc)})
+            if trace_started:
+                end_trace(status="error", error=str(exc))
+                trace_completed = True
+            raise
+        finally:
+            if trace_started and not trace_completed:
+                end_trace(status="error", error="trace_incomplete")
 
     async def cancel(
         self,

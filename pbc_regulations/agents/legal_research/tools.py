@@ -5,12 +5,14 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 from typing import Any, Dict, List, Mapping, MutableMapping, Optional
 
 import mcp.types as types
 from mcp.client.sse import sse_client
 from mcp.shared.message import SessionMessage
 
+from pbc_regulations.tracing import log_trace_event
 # When mounted under /mcp with mount_path="/", the SSE endpoint is /mcp/sse.
 DEFAULT_MCP_URL = os.getenv("LEGAL_RESEARCH_MCP_URL", "http://127.0.0.1:8000/mcp/sse")
 
@@ -148,17 +150,39 @@ async def dispatch_tool_call(name: str, arguments: Any) -> str:
     """Call a MCP tool by name with model-provided arguments."""
 
     parsed_args = _parse_arguments(arguments)
+    start_ms = time.time()
     try:
         result = await _client.call_tool(name, parsed_args)
     except Exception as exc:  # pylint: disable=broad-except
+        log_trace_event(
+            "tool_call",
+            {
+                "name": name,
+                "arguments": parsed_args,
+                "error": str(exc),
+                "duration_ms": int((time.time() - start_ms) * 1000),
+            },
+        )
         return f"工具调用失败: {exc}"
 
     if isinstance(result, (dict, list)):
         try:
-            return json.dumps(result, ensure_ascii=False)
+            rendered = json.dumps(result, ensure_ascii=False)
         except Exception:
-            return str(result)
-    return str(result)
+            rendered = str(result)
+    else:
+        rendered = str(result)
+
+    log_trace_event(
+        "tool_call",
+        {
+            "name": name,
+            "arguments": parsed_args,
+            "result": rendered,
+            "duration_ms": int((time.time() - start_ms) * 1000),
+        },
+    )
+    return rendered
 
 
 __all__ = ["load_openai_tools", "dispatch_tool_call", "DEFAULT_MCP_URL"]
