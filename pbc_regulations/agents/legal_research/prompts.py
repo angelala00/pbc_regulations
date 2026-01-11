@@ -15,9 +15,10 @@ SYSTEM_PROMPT = """
 {
   "policies": [
     {
-      "title": "法规名称",
-      "clause": "第X条：内容简述；如无明确条号，注明为“全文相关段落”（若有）",
-      "id": "law_id 或 doc_id"
+      "law_title": "法规名称",
+      "law_id": "law_id 或 doc_id",
+      "clause": "第X条：内容简述；如无明确条款，填空字符串",
+      "clause_id": "article_id；如无明确条款，填空字符串"
     }
   ]
 }

@@ -49,8 +49,7 @@ HYBRID_SEARCH_CASES = [
         "name": "pipl_personal_info_processing",
         "input": {
             "query": "个人信息处理活动",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["scattered:6"]},
+            "law_id": "scattered:6",
         },
         "expect_snippet": "个人信息处理活动",
         "expect_law_id": "scattered:6",
@@ -59,8 +58,7 @@ HYBRID_SEARCH_CASES = [
         "name": "pipl_overseas_processing",
         "input": {
             "query": "境外处理",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["scattered:6"]},
+            "law_id": "scattered:6",
         },
         "expect_snippet": "境外处理",
         "expect_law_id": "scattered:6",
@@ -69,8 +67,7 @@ HYBRID_SEARCH_CASES = [
         "name": "aml_prevent_money_laundering",
         "input": {
             "query": "预防洗钱活动",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:1"]},
+            "law_id": "tiaofasi_national_law:1",
         },
         "expect_snippet": "预防洗钱活动",
         "expect_law_id": "tiaofasi_national_law:1",
@@ -79,8 +76,7 @@ HYBRID_SEARCH_CASES = [
         "name": "aml_definition",
         "input": {
             "query": "本法所称反洗钱",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:1"]},
+            "law_id": "tiaofasi_national_law:1",
         },
         "expect_snippet": "本法所称反洗钱",
         "expect_law_id": "tiaofasi_national_law:1",
@@ -89,8 +85,7 @@ HYBRID_SEARCH_CASES = [
         "name": "real_name_deposits",
         "input": {
             "query": "个人存款账户的真实性",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_administrative_regulation:7"]},
+            "law_id": "tiaofasi_administrative_regulation:7",
         },
         "expect_snippet": "个人存款账户的真实性",
         "expect_law_id": "tiaofasi_administrative_regulation:7",
@@ -99,8 +94,7 @@ HYBRID_SEARCH_CASES = [
         "name": "housing_loan_management",
         "input": {
             "query": "个人住房贷款管理",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["zhengwugongkai_chinese_regulations:68"]},
+            "law_id": "zhengwugongkai_chinese_regulations:68",
         },
         "expect_snippet": "个人住房贷款管理",
         "expect_law_id": "zhengwugongkai_chinese_regulations:68",
@@ -109,8 +103,7 @@ HYBRID_SEARCH_CASES = [
         "name": "pbc_law_central_bank",
         "input": {
             "query": "中央银行",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:2"]},
+            "law_id": "tiaofasi_national_law:2",
         },
         "expect_snippet": "中央银行",
         "expect_law_id": "tiaofasi_national_law:2",
@@ -119,8 +112,7 @@ HYBRID_SEARCH_CASES = [
         "name": "commercial_bank_definition",
         "input": {
             "query": "商业银行",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:3"]},
+            "law_id": "tiaofasi_national_law:3",
         },
         "expect_snippet": "商业银行",
         "expect_law_id": "tiaofasi_national_law:3",
@@ -129,8 +121,7 @@ HYBRID_SEARCH_CASES = [
         "name": "trust_definition",
         "input": {
             "query": "信托",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:9"]},
+            "law_id": "tiaofasi_national_law:9",
         },
         "expect_snippet": "信托",
         "expect_law_id": "tiaofasi_national_law:9",
@@ -139,8 +130,7 @@ HYBRID_SEARCH_CASES = [
         "name": "company_law_llc",
         "input": {
             "query": "有限责任公司",
-            "top_k": 5,
-            "meta_filter": {"doc_id": ["tiaofasi_national_law:16"]},
+            "law_id": "tiaofasi_national_law:16",
         },
         "expect_snippet": "有限责任公司",
         "expect_law_id": "tiaofasi_national_law:16",

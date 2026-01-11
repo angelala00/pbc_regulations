@@ -156,34 +156,28 @@ def _make_snippet(text: str, terms: List[str], max_len: int = 180) -> str:
 @mcp.tool(structured_output=False)
 async def hybrid_search(
     query: str,
-    top_k: Optional[int] = 20,
-    use_bm25: Optional[bool] = True,
-    use_vector: Optional[bool] = True,
-    meta_filter: Optional[HybridMetaFilter] = None,
+    level: Optional[str] = "article",
+    law_id: Optional[str] = None,
 ) -> HybridSearchResponse:
     """
-    混合检索：关键词 + 语义（占位）+ 元数据过滤。
+    混合检索：关键词 + 语义（占位），支持条款/法律粒度切换与按 law_id 过滤。
     """
 
-    model = HybridSearchRequest.model_validate(
-        {
-            "query": query,
-            "top_k": top_k,
-            "use_bm25": use_bm25,
-            "use_vector": use_vector,
-            "meta_filter": meta_filter,
-        }
-    )
-    data = model.model_dump(exclude_none=True)
-
-    text_query = (data.get("query") or "").strip()
+    text_query = (query or "").strip()
     if not text_query:
         return {"results": []}
 
+    granularity = (level or "article").strip().lower()
+    if granularity not in ("article", "law"):
+        granularity = "article"
+
     store = get_store()
-    filters = _build_filters(data.get("meta_filter") or {})
-    rows = store.filter_rows(filters)
-    rows = _apply_date_range(rows, data.get("meta_filter", {}).get("date_range"))
+    normalized_law_id = (law_id or "").strip()
+    filter_enabled = bool(normalized_law_id)
+    if filter_enabled:
+        rows = store.filter_rows([{"field": "doc_id", "op": "=", "value": normalized_law_id}])
+    else:
+        rows = store.filter_rows([])
 
     terms = [t for t in re.split(r"\s+", text_query) if t]
     if not terms and text_query:
@@ -191,11 +185,9 @@ async def hybrid_search(
     if not terms:
         return {"results": []}
 
-    allow_bm25 = bool(data.get("use_bm25", True))
-    allow_vec = bool(data.get("use_vector", True))
-    max_k = data.get("top_k") or 20
-    if not isinstance(max_k, int) or max_k <= 0:
-        max_k = 20
+    allow_bm25 = True
+    allow_vec = True
+    max_k = 20
 
     allowed_laws = {str(row.get("doc_id") or "") for row in rows if row.get("doc_id")}
     bm25_index, vec_index, corpus = get_indexes(store)
@@ -216,62 +208,71 @@ async def hybrid_search(
     if allow_bm25:
         bm25_hits = bm25_index.search(text_query, top_k=max_k * 2)
         for record, score in bm25_hits:
-            if allowed_laws and record.law_id not in allowed_laws:
+            if filter_enabled and record.law_id not in allowed_laws:
                 continue
             snippet = _make_snippet(record.text, terms)
+            record_id = record.article_id if granularity == "article" else record.law_id
+            hit: HybridSearchHit = {
+                "law_id": record.law_id,
+                "law_title": record.law_title,
+                "snippet": snippet,
+                "score": float(score),
+                "match_type": ["bm25"],
+            }
+            if granularity == "article":
+                hit["article_id"] = record.article_id
+                hit["article_no"] = record.article_no
             _add_hit(
-                record.article_id,
+                record_id,
                 score * 2.0,  # keyword weight
-                {
-                    "law_id": record.law_id,
-                    "law_title": record.law_title,
-                    "article_id": record.article_id,
-                    "article_no": record.article_no,
-                    "snippet": snippet,
-                    "score": float(score),
-                    "match_type": ["bm25"],
-                },
+                hit,
             )
 
     if allow_vec:
         vec_hits = vec_index.search(text_query, top_k=max_k * 2)
         for record, score in vec_hits:
-            if allowed_laws and record.law_id not in allowed_laws:
+            if filter_enabled and record.law_id not in allowed_laws:
                 continue
             snippet = _make_snippet(record.text, terms)
+            record_id = record.article_id if granularity == "article" else record.law_id
+            hit = {
+                "law_id": record.law_id,
+                "law_title": record.law_title,
+                "snippet": snippet,
+                "score": float(score),
+                "match_type": ["vector"],
+            }
+            if granularity == "article":
+                hit["article_id"] = record.article_id
+                hit["article_no"] = record.article_no
             _add_hit(
-                record.article_id,
+                record_id,
                 score * 1.0,  # vector weight
-                {
-                    "law_id": record.law_id,
-                    "law_title": record.law_title,
-                    "article_id": record.article_id,
-                    "article_no": record.article_no,
-                    "snippet": snippet,
-                    "score": float(score),
-                    "match_type": ["vector"],
-                },
+                hit,
             )
 
     # Rule-based boost for penalty related queries
     if any(keyword in text_query for keyword in ("处罚", "违法", "罚款")) and allow_bm25:
         rule_hits = bm25_index.search("罚款 责令 违反", top_k=max_k)
         for record, score in rule_hits:
-            if allowed_laws and record.law_id not in allowed_laws:
+            if filter_enabled and record.law_id not in allowed_laws:
                 continue
             snippet = _make_snippet(record.text, terms)
+            record_id = record.article_id if granularity == "article" else record.law_id
+            hit = {
+                "law_id": record.law_id,
+                "law_title": record.law_title,
+                "snippet": snippet,
+                "score": float(score),
+                "match_type": ["bm25"],
+            }
+            if granularity == "article":
+                hit["article_id"] = record.article_id
+                hit["article_no"] = record.article_no
             _add_hit(
-                record.article_id,
+                record_id,
                 score * 1.0,
-                {
-                    "law_id": record.law_id,
-                    "law_title": record.law_title,
-                    "article_id": record.article_id,
-                    "article_no": record.article_no,
-                    "snippet": snippet,
-                    "score": float(score),
-                    "match_type": ["bm25"],
-                },
+                hit,
             )
 
     # Merge and rank
