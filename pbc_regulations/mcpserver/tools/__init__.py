@@ -14,6 +14,7 @@ _DEFAULT_TOOLSET = "toolset_a"
 _TOOLSET_MODULES: Dict[str, str] = {
     "toolset_a": "pbc_regulations.mcpserver.tools.toolset_a",
     "toolset_b": "pbc_regulations.mcpserver.tools.toolset_b",
+    "toolset_c": "pbc_regulations.mcpserver.tools.toolset_c",
 }
 
 
