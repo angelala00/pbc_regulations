@@ -55,7 +55,41 @@
           <p id="trace-detail-subtitle">Select a trace to view its timeline.</p>
         </div>
         <div class="trace-detail" id="trace-detail">
-          <div class="empty">No trace selected.</div>
+          <div class="trace-meta">
+            <div class="trace-meta__row">
+              <span>Trace ID</span>
+              <strong>—</strong>
+            </div>
+          </div>
+          <div class="trace-detail__controls">
+            <div class="trace-filter">
+              <span>Event type</span>
+              <div class="trace-filter-group trace-filter-group--presets" id="trace-event-filter-presets">
+                <label class="trace-filter-item">
+                  <input type="checkbox" checked disabled />
+                  <span>All</span>
+                </label>
+                <label class="trace-filter-item">
+                  <input type="checkbox" disabled />
+                  <span>LLM</span>
+                </label>
+                <label class="trace-filter-item">
+                  <input type="checkbox" disabled />
+                  <span>TOOL</span>
+                </label>
+              </div>
+              <div class="trace-filter-divider"></div>
+              <div class="trace-filter-group trace-filter-group--types" id="trace-event-filter">
+                <label class="trace-filter-item">
+                  <input type="checkbox" checked disabled />
+                  <span>trace_start</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="trace-events">
+            <div class="empty">No trace selected.</div>
+          </div>
         </div>
       </section>
     </main>
@@ -63,6 +97,6 @@
       PBC Monitor dashboard &middot; Generated at
       <span data-generated-at>—</span>
     </footer>
-    <script src="traces.js" defer></script>
+    <script src="traces.js?v=2" defer></script>
   </body>
 </html>

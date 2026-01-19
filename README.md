@@ -27,6 +27,30 @@ python scripts/count_txt_chars.py --min-chars 10000
 ### Unified portal
 python -m pbc_regulations --host 0.0.0.0 --port 8000
 
+### MCP / A2A test scripts
+These scripts assume the portal is running (see above).
+
+#### MCP tool listing (verify toolset)
+Prints the MCP tool list from `/mcp/sse` to confirm which toolset is active.
+
+```
+.venv/bin/python tests/test_mcp_ws_client.py --steps tools
+```
+
+#### Direct hybrid_search tool (no A2A/MCP)
+Calls `hybrid_search` directly in-process (does not create A2A traces).
+
+```
+.venv/bin/python tests/run_hybrid_search.py --query "反诈法" --level law
+```
+
+#### A2A agent request (creates traces)
+Sends a user query to `/a2a` and prints streamed output (creates `files/traces/*.jsonl`).
+
+```
+.venv/bin/python tests/run_a2a_request.py --query "反诈法"
+```
+
 
 
 http://localhost:8000/api/policies/catalog?view=ai

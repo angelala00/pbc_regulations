@@ -10,6 +10,18 @@
   const generatedAtEls = document.querySelectorAll("[data-generated-at]");
   const splitter = document.getElementById("trace-splitter");
   const tracesMain = document.querySelector(".traces-main");
+  let currentTrace = { summary: null, events: [] };
+  let selectedEventTypes = new Set();
+  let lastCustomSelection = new Set();
+  const LLM_EVENT_TYPES = new Set([
+    "model_request",
+    "content_delta",
+    "message_start",
+    "message_end",
+    "assistant_content",
+    "model_error",
+  ]);
+  const TOOL_EVENT_TYPES = new Set(["node_start", "node_end", "tool_call"]);
 
   function buildUrl(base, path) {
     const normalizedPath =
@@ -132,7 +144,7 @@
     });
   }
 
-  function renderDetail(summary, events) {
+  function renderDetail(summary, events, types, selectedTypes) {
     const request = (summary && summary.request) || {};
     const items = [
       ["Trace ID", summary.trace_id || "—"],
@@ -168,12 +180,164 @@
         `;
       })
       .join("");
+    const typeList = types || [];
+    const selected = selectedTypes || new Set();
+    const allChecked =
+      typeList.length > 0 && typeList.every((type) => selected.has(type));
+    const llmTypes = typeList.filter((type) => LLM_EVENT_TYPES.has(type));
+    const toolTypes = typeList.filter((type) => TOOL_EVENT_TYPES.has(type));
+    const selectedCount = selected.size;
+    const llmChecked =
+      llmTypes.length > 0 &&
+      selectedCount === llmTypes.length &&
+      llmTypes.every((type) => selected.has(type));
+    const toolChecked =
+      toolTypes.length > 0 &&
+      selectedCount === toolTypes.length &&
+      toolTypes.every((type) => selected.has(type));
+    const filterItems = typeList
+      .map((type) => {
+        const safeType = escapeHtml(type);
+        const checked = selected.has(type) ? " checked" : "";
+        return `
+          <label class="trace-filter-item">
+            <input type="checkbox" data-event-type="${safeType}"${checked} />
+            <span>${safeType}</span>
+          </label>
+        `;
+      })
+      .join("");
+    const filterDisabled = typeList.length <= 1 ? " disabled" : "";
     traceDetail.innerHTML = `
       <div class="trace-meta">${metaRows}</div>
+      <div class="trace-detail__controls">
+        <div class="trace-filter">
+          <span>Event type</span>
+          <div class="trace-filter-group trace-filter-group--presets">
+            <label class="trace-filter-item">
+              <input type="checkbox" data-event-type="__all__"${
+                allChecked ? " checked" : ""
+              }${filterDisabled} />
+              <span>All</span>
+            </label>
+            <label class="trace-filter-item">
+              <input type="checkbox" data-event-type="__llm__"${
+                llmChecked ? " checked" : ""
+              }${llmTypes.length === 0 ? " disabled" : ""} />
+              <span>LLM</span>
+            </label>
+            <label class="trace-filter-item">
+              <input type="checkbox" data-event-type="__tool__"${
+                toolChecked ? " checked" : ""
+              }${toolTypes.length === 0 ? " disabled" : ""} />
+              <span>TOOL</span>
+            </label>
+          </div>
+          <div class="trace-filter-divider"></div>
+          <div class="trace-filter-group trace-filter-group--types" id="trace-event-filter">
+            ${filterItems}
+          </div>
+        </div>
+      </div>
       <div class="trace-events">
         ${eventRows || '<div class="empty">No events.</div>'}
       </div>
     `;
+    const filter = traceDetail.querySelector(".trace-filter");
+    if (filter) {
+      filter.addEventListener("change", (event) => {
+        const target = event.target;
+        if (!target || target.tagName !== "INPUT") {
+          return;
+        }
+        const type = target.getAttribute("data-event-type");
+        if (!type) {
+          return;
+        }
+        if (type === "__all__") {
+          if (target.checked) {
+            selectedEventTypes = new Set(typeList);
+          } else {
+            selectedEventTypes = new Set();
+          }
+          lastCustomSelection = new Set(selectedEventTypes);
+        } else if (type === "__llm__") {
+          if (target.checked) {
+            if (selectedEventTypes.size > 0) {
+              lastCustomSelection = new Set(selectedEventTypes);
+            }
+            selectedEventTypes = new Set(llmTypes);
+          } else if (lastCustomSelection.size > 0) {
+            selectedEventTypes = new Set(lastCustomSelection);
+          } else {
+            selectedEventTypes = new Set(typeList);
+          }
+        } else if (type === "__tool__") {
+          if (target.checked) {
+            if (selectedEventTypes.size > 0) {
+              lastCustomSelection = new Set(selectedEventTypes);
+            }
+            selectedEventTypes = new Set(toolTypes);
+          } else if (lastCustomSelection.size > 0) {
+            selectedEventTypes = new Set(lastCustomSelection);
+          } else {
+            selectedEventTypes = new Set(typeList);
+          }
+        } else if (target.checked) {
+          selectedEventTypes.add(type);
+        } else {
+          selectedEventTypes.delete(type);
+        }
+        renderCurrentTrace();
+      });
+    }
+  }
+
+  function buildEventTypes(events) {
+    const seen = new Set();
+    (events || []).forEach((event) => {
+      const name = event && event.event ? String(event.event) : "event";
+      seen.add(name);
+    });
+    return Array.from(seen).sort((a, b) => a.localeCompare(b));
+  }
+
+  function getFilteredEvents() {
+    if (!selectedEventTypes || selectedEventTypes.size === 0) {
+      return [];
+    }
+    if (selectedEventTypes.size === buildEventTypes(currentTrace.events).length) {
+      return currentTrace.events || [];
+    }
+    return (currentTrace.events || []).filter(
+      (event) => selectedEventTypes.has(String(event.event || "event"))
+    );
+  }
+
+  function renderCurrentTrace() {
+    if (!currentTrace.summary) {
+      return;
+    }
+    const filtered = getFilteredEvents();
+    if (filtered.length === 0 && (currentTrace.events || []).length > 0) {
+      renderDetail(
+        currentTrace.summary,
+        [],
+        buildEventTypes(currentTrace.events),
+        selectedEventTypes
+      );
+      const empty = traceDetail.querySelector(".trace-events .empty");
+      if (empty) {
+        empty.textContent = "No events match the selected types.";
+      }
+      return;
+    }
+    renderDetail(
+      currentTrace.summary,
+      filtered,
+      buildEventTypes(currentTrace.events),
+      selectedEventTypes
+    );
   }
 
   async function loadTraceDetail(traceId) {
@@ -190,7 +354,22 @@
         throw new Error(`Failed to load trace: ${response.status}`);
       }
       const payload = await response.json();
-      renderDetail(payload.summary || {}, payload.events || []);
+      currentTrace = {
+        summary: payload.summary || {},
+        events: payload.events || [],
+      };
+      const types = buildEventTypes(currentTrace.events);
+      if (selectedEventTypes.size === 0) {
+        selectedEventTypes = new Set(types);
+      } else {
+        selectedEventTypes = new Set(
+          types.filter((type) => selectedEventTypes.has(type))
+        );
+        if (selectedEventTypes.size === 0) {
+          selectedEventTypes = new Set(types);
+        }
+      }
+      renderCurrentTrace();
     } catch (error) {
       traceDetail.innerHTML = `<div class="message">${
         error && error.message ? escapeHtml(error.message) : "Failed to load trace."

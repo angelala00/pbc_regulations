@@ -9,15 +9,19 @@ from dotenv import load_dotenv
 
 from pbc_regulations.portal import main
 from pbc_regulations.config_paths import discover_project_root, resolve_artifact_dir
+from pbc_regulations.mcpserver.tools import ACTIVE_TOOLSET
 from pbc_regulations.mcpserver.tools.base import get_store
-from pbc_regulations.mcpserver.tools.toolset_b.indexes import get_indexes, preload_embedding_cache
 
 
 def _preload_embedding_cache() -> None:
     try:
+        if ACTIVE_TOOLSET != "toolset_b":
+            return
         project_root = discover_project_root(Path(__file__).resolve().parent)
         artifact_dir = resolve_artifact_dir(project_root)
         cache_path = artifact_dir / "structured" / "embedding_cache.npy"
+        from pbc_regulations.mcpserver.tools.toolset_b.indexes import preload_embedding_cache
+
         preload_embedding_cache(cache_path)
     except Exception:
         return
@@ -25,7 +29,11 @@ def _preload_embedding_cache() -> None:
 
 def _preload_indexes() -> None:
     try:
+        if ACTIVE_TOOLSET != "toolset_b":
+            return
         store = get_store()
+        from pbc_regulations.mcpserver.tools.toolset_b.indexes import get_indexes
+
         get_indexes(store)
     except Exception:
         return

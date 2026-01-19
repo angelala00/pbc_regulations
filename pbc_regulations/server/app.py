@@ -90,6 +90,13 @@ def create_dashboard_app(
         allow_headers=["*"],
     )
 
+    def _no_cache_headers() -> Dict[str, str]:
+        return {
+            "Cache-Control": "no-store, max-age=0",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        }
+
     def _collect_overviews() -> List[TaskOverview]:
         with overviews_lock:
             return collect_task_overviews(
@@ -174,8 +181,8 @@ def create_dashboard_app(
             )
         except FileNotFoundError as exc:  # pragma: no cover - configuration issue
             message = f"Dashboard error: {exc}"
-            return HTMLResponse(message, status_code=500)
-        return HTMLResponse(html)
+            return HTMLResponse(message, status_code=500, headers=_no_cache_headers())
+        return HTMLResponse(html, headers=_no_cache_headers())
 
     def _render_entries_response() -> HTMLResponse:
         try:
@@ -186,8 +193,8 @@ def create_dashboard_app(
             )
         except FileNotFoundError as exc:  # pragma: no cover - configuration issue
             message = f"Dashboard error: {exc}"
-            return HTMLResponse(message, status_code=500)
-        return HTMLResponse(html)
+            return HTMLResponse(message, status_code=500, headers=_no_cache_headers())
+        return HTMLResponse(html, headers=_no_cache_headers())
 
     def _render_api_explorer_response() -> HTMLResponse:
         try:
@@ -198,8 +205,8 @@ def create_dashboard_app(
             )
         except FileNotFoundError as exc:  # pragma: no cover - configuration issue
             message = f"Dashboard error: {exc}"
-            return HTMLResponse(message, status_code=500)
-        return HTMLResponse(html)
+            return HTMLResponse(message, status_code=500, headers=_no_cache_headers())
+        return HTMLResponse(html, headers=_no_cache_headers())
 
     def _render_traces_response() -> HTMLResponse:
         try:
@@ -210,8 +217,8 @@ def create_dashboard_app(
             )
         except FileNotFoundError as exc:  # pragma: no cover - configuration issue
             message = f"Dashboard error: {exc}"
-            return HTMLResponse(message, status_code=500)
-        return HTMLResponse(html)
+            return HTMLResponse(message, status_code=500, headers=_no_cache_headers())
+        return HTMLResponse(html, headers=_no_cache_headers())
 
     @app.get("/")
     def index() -> HTMLResponse:
@@ -313,7 +320,7 @@ def create_dashboard_app(
             raise HTTPException(status_code=404, detail="File not found")
         if not target.is_file():
             raise HTTPException(status_code=404, detail="File not found")
-        return FileResponse(target)
+        return FileResponse(target, headers=_no_cache_headers())
 
     return app
 

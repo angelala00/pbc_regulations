@@ -56,18 +56,26 @@ async def main() -> None:
     )
     args = parser.parse_args()
     steps: List[str] = args.steps
+    print(f"[client] connecting to {args.url}", flush=True)
 
     async with sse_client(args.url, on_session_created=lambda sid: print(f"[client] session_id={sid}", flush=True)) as (
         read_stream,
         write_stream,
     ):
-        # initialize
+        # Always initialize once before any other calls.
+        await _send(
+            write_stream,
+            "initialize",
+            {
+                "protocolVersion": "2025-11-25",
+                "capabilities": {},
+                "clientInfo": {"name": "mcp", "version": "0.1.0"},
+            },
+            0,
+        )
+        init = await asyncio.wait_for(_recv_until(read_stream, 0, "initialize"), timeout=15)
         if "initialize" in steps:
-            await _send(write_stream, "initialize", {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "mcp", "version": "0.1.0"}}, 0)
-            init = await asyncio.wait_for(_recv_until(read_stream, 0, "initialize"), timeout=15)
             _pp("initialize", init)
-        else:
-            init = {}
 
         # tools/list
         if "tools" in steps:

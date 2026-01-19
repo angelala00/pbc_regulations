@@ -140,7 +140,11 @@ def list_trace_files() -> Iterable[Path]:
     trace_dir = _trace_dir()
     if not trace_dir.exists():
         return []
-    return sorted(trace_dir.glob("*.jsonl"), reverse=True)
+    return sorted(
+        trace_dir.glob("*.jsonl"),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
 
 
 def load_trace_events(trace_id: str) -> List[Dict[str, Any]]:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import functools
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, Optional, TYPE_CHECKING
@@ -13,6 +13,7 @@ if TYPE_CHECKING:  # pragma: no cover - imported for type checking only
 
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
+_TEMPLATE_CACHE: Dict[str, str] = {}
 
 
 def _load_template(filename: str) -> str:
@@ -28,9 +29,19 @@ def _load_template(filename: str) -> str:
     return template_path.read_text(encoding="utf-8")
 
 
-@functools.lru_cache(maxsize=None)
 def _cached_template(filename: str) -> str:
-    return _load_template(filename)
+    cache_enabled = os.getenv("PBC_DASHBOARD_TEMPLATE_CACHE", "0").lower() not in {
+        "0",
+        "false",
+        "no",
+    }
+    if not cache_enabled:
+        return _load_template(filename)
+    cached = _TEMPLATE_CACHE.get(filename)
+    if cached is None:
+        cached = _load_template(filename)
+        _TEMPLATE_CACHE[filename] = cached
+    return cached
 
 
 def _cached_index_template() -> str:
